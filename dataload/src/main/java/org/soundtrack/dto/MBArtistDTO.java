@@ -3,6 +3,7 @@ package org.soundtrack.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
+/** DTO class for MusicBrainz artist DTO */
 public class MBArtistDTO {
 
   @JsonProperty("id")
