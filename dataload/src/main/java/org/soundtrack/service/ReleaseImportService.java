@@ -1,5 +1,7 @@
 package org.soundtrack.service;
 
+import static java.lang.Thread.sleep;
+
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -11,14 +13,14 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.soundtrack.client.MusicBrainzClient;
+import org.soundtrack.domain.model.Album;
+import org.soundtrack.domain.model.Artist;
+import org.soundtrack.domain.model.Genre;
+import org.soundtrack.domain.model.Song;
+import org.soundtrack.domain.repository.AlbumRepository;
+import org.soundtrack.domain.repository.ArtistRepository;
+import org.soundtrack.domain.repository.GenreRepository;
 import org.soundtrack.dto.*;
-import org.soundtrack.entity.Album;
-import org.soundtrack.entity.Artist;
-import org.soundtrack.entity.Genre;
-import org.soundtrack.entity.Song;
-import org.soundtrack.repository.AlbumRepository;
-import org.soundtrack.repository.ArtistRepository;
-import org.soundtrack.repository.GenreRepository;
 import org.soundtrack.validator.ReleaseValidator;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -34,22 +36,56 @@ public class ReleaseImportService {
   private final GenreRepository genreRepository;
   private static final Logger log = LoggerFactory.getLogger(ReleaseImportService.class);
 
-  /**
-   * Fetches albums from the MusicBrainz API for a given year
-   *
-   * @param year the year to fetch albums from
-   * @param offset offset for the response
-   * @throws InterruptedException for sleep()
-   */
-  @Transactional
-  public void importReleasesByYear(int year, int offset) throws InterruptedException {
+  private static final int PAGE_SIZE = 100;
 
-    MBReleaseGroupsDTO dto = client.fetchReleasesByYear(year, offset);
+  public void importAllReleasesByYear(int year) throws InterruptedException {
 
-    if (dto == null || dto.releaseGroups == null || dto.releaseGroups.isEmpty()) {
-      log.debug("Fetching albums by year {} failed.", year);
+    long startTime = System.currentTimeMillis();
+
+    log.info("Starting import for year {}", year);
+
+    MBReleaseGroupsDTO firstPage = client.fetchReleasesByYear(year, 0);
+
+    if (firstPage == null || firstPage.releaseGroups == null) {
+      log.error("Failed to fetch first page for year {}", year);
       return;
     }
+
+    int totalCount = firstPage.count;
+    int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
+    log.info("Total albums found for {}: {}", year, totalCount);
+    log.info("Total pages to import: {}", totalPages);
+
+    importPage(firstPage, year, 0);
+
+    for (int page = 1; page < totalPages; page++) {
+
+      int offset = page * PAGE_SIZE;
+
+      log.info("Fetching page {}/{} (offset={})", page + 1, totalPages, offset);
+
+      MBReleaseGroupsDTO dto = client.fetchReleasesByYear(year, offset);
+
+      if (dto == null || dto.releaseGroups == null || dto.releaseGroups.isEmpty()) {
+        log.warn("Skipping empty page at offset {}", offset);
+        continue;
+      }
+
+      importPage(dto, year, offset);
+
+      sleep(1000);
+    }
+
+    long endTime = System.currentTimeMillis();
+    long durationSeconds = (endTime - startTime) / 1000;
+
+    log.info("Finished importing year {} in {} seconds", year, durationSeconds);
+  }
+
+  @Transactional
+  protected void importPage(MBReleaseGroupsDTO dto, int year, int offset)
+      throws InterruptedException {
 
     log.debug("Saving all unique genres for year {} with offset {}", year, offset);
     Map<String, Genre> genreMap = saveUniqueGenres(dto);
@@ -68,6 +104,7 @@ public class ReleaseImportService {
 
       validateAndSaveRelease(release, genreMap);
     }
+    log.info("Imported page with offset {}", offset);
   }
 
   /**
@@ -96,7 +133,7 @@ public class ReleaseImportService {
         client.fetchReleaseRecording(coverArtResult.releaseId());
 
     if (releaseRecordingDTO != null) {
-      List<Song> songs = mapSongsToEntity(releaseRecordingDTO, album);
+      Set<Song> songs = mapSongsToEntity(releaseRecordingDTO, album);
       album.setSongs(songs);
     }
 
@@ -196,11 +233,11 @@ public class ReleaseImportService {
    * @return the List containing the songs
    * @throws InterruptedException for sleep()
    */
-  private List<Song> mapSongsToEntity(MBReleaseRecordingDTO releaseRecordingDTO, Album album)
+  private Set<Song> mapSongsToEntity(MBReleaseRecordingDTO releaseRecordingDTO, Album album)
       throws InterruptedException {
 
     if (releaseRecordingDTO.media == null || releaseRecordingDTO.media.isEmpty()) {
-      return new ArrayList<>();
+      return Collections.emptySet();
     }
 
     List<MBReleaseRecordingDTO.Track> tracks =
@@ -221,7 +258,7 @@ public class ReleaseImportService {
         resolveArtistsByMbids(allArtistMbids).stream()
             .collect(Collectors.toMap(Artist::getMbid, Function.identity()));
 
-    List<Song> songs = new ArrayList<>();
+    Set<Song> songs = new HashSet<>();
 
     for (MBReleaseRecordingDTO.Track track : tracks) {
 
