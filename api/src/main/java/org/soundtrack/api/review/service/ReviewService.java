@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
 import org.soundtrack.api.review.dto.ReviewResponse;
@@ -43,12 +44,11 @@ public class ReviewService {
 
     User user = getAuthenticatedUser();
 
-    //    if (reviewRepository.existsByUserAndAlbum(user, album)) {
-    //      throw new ResourceExistsException(
-    //          String.format(
-    //              "Album %s has already been reviewed by user %s", album.getTitle(),
-    // user.getEmail()));
-    //    }
+    if (reviewRepository.existsByUserAndAlbum(user, album)) {
+      throw new ResourceExistsException(
+          String.format(
+              "Album %s has already been reviewed by user %s", album.getTitle(), user.getEmail()));
+    }
 
     Review review =
         Review.builder()

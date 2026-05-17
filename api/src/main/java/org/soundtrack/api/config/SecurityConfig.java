@@ -27,7 +27,9 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers("/api/auth/**")
                     .permitAll()
-                    .requestMatchers("/api/albums/**", "/api/users/*")
+                    .requestMatchers("/api/albums/**", "/api/users/*", "/api/images/**")
+                    .permitAll()
+                    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

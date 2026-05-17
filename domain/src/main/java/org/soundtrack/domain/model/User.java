@@ -43,7 +43,7 @@ public class User {
 
   @OneToMany(mappedBy = "user")
   private List<Review> reviews = new ArrayList<>();
-  //
-  //  @OneToMany(mappedBy = "owner")
-  //  private List<UserList> lists = new ArrayList<>();
+
+  @OneToMany(mappedBy = "owner")
+  private List<UserList> lists = new ArrayList<>();
 }
