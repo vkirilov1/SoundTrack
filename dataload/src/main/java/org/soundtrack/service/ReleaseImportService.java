@@ -34,6 +34,8 @@ public class ReleaseImportService {
   private final AlbumRepository albumRepository;
   private final ArtistRepository artistRepository;
   private final GenreRepository genreRepository;
+  private final CoverImageDownloader coverImageDownloader;
+  private final ArtistPhotoDownloader artistPhotoDownloader;
   private static final Logger log = LoggerFactory.getLogger(ReleaseImportService.class);
 
   private static final int PAGE_SIZE = 100;
@@ -123,11 +125,14 @@ public class ReleaseImportService {
 
     if (coverArtResult == null) return;
 
+    String coverFilename =
+        coverImageDownloader.downloadAndSave(coverArtResult.coverUrl(), coverArtResult.releaseId());
+
     List<Artist> albumArtists = resolveArtists(release.artistCredit);
 
     if (albumArtists.isEmpty()) return;
 
-    Album album = mapAlbumToEntity(release, coverArtResult);
+    Album album = mapAlbumToEntity(release, coverArtResult, coverFilename);
 
     MBReleaseRecordingDTO releaseRecordingDTO =
         client.fetchReleaseRecording(coverArtResult.releaseId());
@@ -190,12 +195,14 @@ public class ReleaseImportService {
    * @param coverArtResult the cover art result for CoverArchive
    * @return the album
    */
-  private Album mapAlbumToEntity(MBReleaseDTO dto, CoverArtResult coverArtResult) {
+  private Album mapAlbumToEntity(
+      MBReleaseDTO dto, CoverArtResult coverArtResult, String coverFilename) {
     Album album = new Album();
     album.setMbid(dto.id);
     album.setReleaseid(coverArtResult.releaseId());
     album.setTitle(dto.title);
-    album.setCoverUrl(coverArtResult.coverUrl());
+    // Store local filename; fall back to remote URL if download failed
+    album.setCoverUrl(coverFilename != null ? coverFilename : coverArtResult.coverUrl());
 
     if (dto.releaseDate != null && !dto.releaseDate.isEmpty()) {
       album.setReleaseDate(parseDate(dto.releaseDate));
@@ -392,7 +399,12 @@ public class ReleaseImportService {
 
       String imageUrl = client.fetchArtistImageUrl(wikidataId);
 
-      Artist artist = mapArtistToEntity(mbArtist, imageUrl);
+      String photoFilename =
+          (imageUrl != null)
+              ? artistPhotoDownloader.downloadAndSave(imageUrl, mbArtist.id)
+              : "defaultArtistPhoto.jpg";
+
+      Artist artist = mapArtistToEntity(mbArtist, photoFilename);
 
       saveArtist(artist);
 

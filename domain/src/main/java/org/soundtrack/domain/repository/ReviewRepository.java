@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    boolean existsByUserAndAlbum(User user, Album album);
-    Page<Review> findByAlbumId(Long albumId, Pageable pageable);
+  boolean existsByUserAndAlbum(User user, Album album);
+
+  Page<Review> findByAlbumId(Long albumId, Pageable pageable);
 }
