@@ -29,8 +29,6 @@ public class ReviewController {
   private final ReviewService reviewService;
   private final ReviewReplyService reviewReplyService;
 
-  // ---- Reviews ----
-
   @GetMapping("/{albumId}/reviews")
   @Operation(
       summary = "Get reviews for an album",
@@ -108,8 +106,6 @@ public class ReviewController {
       throws BadRequestException {
     reviewService.deleteReview(albumId, reviewId);
   }
-
-  // ---- Replies ----
 
   @GetMapping("/{albumId}/reviews/{reviewId}/replies")
   @Operation(

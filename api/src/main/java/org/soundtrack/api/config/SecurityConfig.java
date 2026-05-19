@@ -2,6 +2,7 @@ package org.soundtrack.api.config;
 
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.auth.security.JwtAuthenticationFilter;
+import org.soundtrack.domain.model.UserRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -29,8 +30,15 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/albums/**", "/api/users/*", "/api/images/**")
                     .permitAll()
+                    .requestMatchers(
+                        "/api/favorites/albums/user/*", "/api/favorites/songs/user/*")
+                    .permitAll()
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
+                    .requestMatchers("/ws/**")
+                    .permitAll()
+                    .requestMatchers("/api/admin/**")
+                    .hasRole(UserRole.ADMIN.toString())
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
