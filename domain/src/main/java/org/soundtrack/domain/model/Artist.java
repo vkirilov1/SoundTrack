@@ -17,7 +17,7 @@ public class Artist {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(unique = true)
+  @Column(name = "mbid", unique = true)
   private String mbid;
 
   @Column(name = "artist_name", nullable = false)
@@ -29,7 +29,7 @@ public class Artist {
   @Column(name = "artist_type")
   private String artistType;
 
-  @Column(length = 1024)
+  @Column(name = "biography", length = 1024)
   private String biography;
 
   @Column(name = "artist_pic", length = 512)

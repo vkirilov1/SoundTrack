@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.common.exception.ForbiddenException;
+import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.review.dto.CreateReviewReplyRequest;
 import org.soundtrack.api.review.dto.ReviewReplyResponse;
@@ -17,7 +19,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -139,19 +140,19 @@ public class ReviewReplyService {
 
   private void validateReviewBelongsToAlbum(Review review, Long albumId) {
     if (!review.getAlbum().getId().equals(albumId)) {
-      throw new IllegalArgumentException("Review does not belong to album with id: " + albumId);
+      throw new InvalidOperationException("Review does not belong to album with id: " + albumId);
     }
   }
 
   private void validateReplyBelongsToReview(ReviewReply reply, Long reviewId) {
     if (!reply.getReview().getId().equals(reviewId)) {
-      throw new IllegalArgumentException("Reply does not belong to review with id: " + reviewId);
+      throw new InvalidOperationException("Reply does not belong to review with id: " + reviewId);
     }
   }
 
   private void validateReplyOwnership(ReviewReply reply, User user) {
     if (!reply.getUser().getId().equals(user.getId())) {
-      throw new AccessDeniedException("You are not authorized to modify this reply");
+      throw new ForbiddenException("You are not authorized to modify this reply");
     }
   }
 }

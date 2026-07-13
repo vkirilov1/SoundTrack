@@ -27,17 +27,38 @@ public class GlobalExceptionHandler {
     return new ErrorResponse(ex.getMessage());
   }
 
+  @ExceptionHandler(ForbiddenException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ErrorResponse handleForbidden(ForbiddenException ex) {
+    return new ErrorResponse(ex.getMessage());
+  }
+
+  @ExceptionHandler(ChatRoomFullException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public ErrorResponse handleChatRoomFull(ChatRoomFullException ex) {
+    return new ErrorResponse(ex.getMessage());
+  }
+
+  @ExceptionHandler(InvalidOperationException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ErrorResponse handleInvalidOperation(InvalidOperationException ex) {
+    return new ErrorResponse(ex.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public Map<String, String> handleValidation(MethodArgumentNotValidException ex) {
-
     Map<String, String> errors = new HashMap<>();
-
     ex.getBindingResult()
         .getFieldErrors()
         .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
     return errors;
+  }
+
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ErrorResponse handleGeneric(Exception ex) {
+    return new ErrorResponse("An unexpected error occurred");
   }
 
   public record ErrorResponse(String message) {}
