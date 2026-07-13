@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.review.dto.CreateReviewReplyRequest;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
@@ -82,8 +81,7 @@ public class ReviewController {
   public ReviewResponse updateReview(
       @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
       @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId,
-      @Valid @RequestBody CreateReviewRequest request)
-      throws BadRequestException {
+      @Valid @RequestBody CreateReviewRequest request) {
     return reviewService.updateReview(albumId, reviewId, request);
   }
 
@@ -102,8 +100,7 @@ public class ReviewController {
   })
   public void deleteReview(
       @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
-      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId)
-      throws BadRequestException {
+      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId) {
     reviewService.deleteReview(albumId, reviewId);
   }
 

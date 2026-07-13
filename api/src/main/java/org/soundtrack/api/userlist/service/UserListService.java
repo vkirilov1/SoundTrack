@@ -3,6 +3,7 @@ package org.soundtrack.api.userlist.service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.common.exception.ForbiddenException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.userlist.dto.CreateUserListRequest;
@@ -18,7 +19,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -178,7 +178,7 @@ public class UserListService {
 
   private void validateOwnership(UserList userList, User user) {
     if (!userList.getOwner().getId().equals(user.getId())) {
-      throw new AccessDeniedException("You are not authorized to modify this list");
+      throw new ForbiddenException("You are not authorized to modify this list");
     }
   }
 

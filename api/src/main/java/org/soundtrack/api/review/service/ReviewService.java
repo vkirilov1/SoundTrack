@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.common.exception.ForbiddenException;
+import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
@@ -19,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -173,11 +174,11 @@ public class ReviewService {
   private void validateReviewOwnership(Review review, Long albumId, User user, String action) {
 
     if (!review.getAlbum().getId().equals(albumId)) {
-      throw new IllegalArgumentException("Review does not belong to this album");
+      throw new InvalidOperationException("Review does not belong to this album");
     }
 
     if (!review.getUser().getId().equals(user.getId())) {
-      throw new AccessDeniedException("You cannot " + action + " this review");
+      throw new ForbiddenException("You cannot " + action + " this review");
     }
   }
 
