@@ -288,8 +288,10 @@ public class MusicBrainzClient {
   }
 
   /**
-   * @param fileName
-   * @return
+   * Builds the url for an artist's image
+   * 
+   * @param fileName the name of the file containing the image
+   * @return the url
    */
   private String buildCommonsImageUrl(String fileName) {
 

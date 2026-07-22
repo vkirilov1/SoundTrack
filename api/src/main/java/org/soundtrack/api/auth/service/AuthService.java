@@ -2,11 +2,11 @@ package org.soundtrack.api.auth.service;
 
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.soundtrack.api.auth.dto.AuthResponse;
 import org.soundtrack.api.auth.dto.LoginRequest;
 import org.soundtrack.api.auth.dto.RegisterRequest;
 import org.soundtrack.api.common.exception.InvalidCredentialsException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
+import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.model.UserRole;
 import org.soundtrack.domain.repository.UserRepository;
@@ -20,8 +20,9 @@ public class AuthService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
+  private final RefreshTokenService refreshTokenService;
 
-  public AuthResponse register(RegisterRequest request) {
+  public AuthResult register(RegisterRequest request) {
 
     if (userRepository.existsByEmail(request.getEmail())) {
       throw new ResourceExistsException("Email already exists");
@@ -42,12 +43,10 @@ public class AuthService {
 
     userRepository.save(user);
 
-    String token = jwtService.generateToken(user.getEmail());
-
-    return new AuthResponse(token);
+    return issueSession(user);
   }
 
-  public AuthResponse login(LoginRequest request) {
+  public AuthResult login(LoginRequest request) {
 
     User user =
         userRepository
@@ -60,8 +59,36 @@ public class AuthService {
       throw new InvalidCredentialsException("Invalid credentials");
     }
 
-    String token = jwtService.generateToken(user.getEmail());
-
-    return new AuthResponse(token);
+    return issueSession(user);
   }
+
+  public AuthResult refresh(String refreshToken) {
+    User user = refreshTokenService.consume(refreshToken);
+    return issueSession(user);
+  }
+
+  public void logout(String refreshToken) {
+    refreshTokenService.revoke(refreshToken);
+  }
+
+  public long refreshExpirationMs() {
+    return refreshTokenService.refreshExpirationMs();
+  }
+
+  private AuthResult issueSession(User user) {
+    String accessToken = jwtService.generateToken(user.getEmail());
+    String refreshToken = refreshTokenService.issue(user);
+
+    UserProfileResponse profile =
+        new UserProfileResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getBio(),
+            user.getProfilePicture(),
+            user.getJoinDate());
+
+    return new AuthResult(accessToken, refreshToken, profile);
+  }
+
+  public record AuthResult(String accessToken, String refreshToken, UserProfileResponse profile) {}
 }
