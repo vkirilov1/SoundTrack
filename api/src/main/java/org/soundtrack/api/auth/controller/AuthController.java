@@ -48,9 +48,7 @@ public class AuthController {
   private boolean cookieSecure;
 
   @PostMapping("/register")
-  @Operation(
-      summary = "Register",
-      description = "Creates a new user account and starts a session")
+  @Operation(summary = "Register", description = "Creates a new user account and starts a session")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Registration successful"),
     @ApiResponse(
@@ -58,8 +56,7 @@ public class AuthController {
         description = "Validation failed (password too weak, invalid email, etc.)"),
     @ApiResponse(responseCode = "409", description = "Email or username already in use")
   })
-  public ResponseEntity<UserProfileResponse> register(
-      @Valid @RequestBody RegisterRequest request) {
+  public ResponseEntity<UserProfileResponse> register(@Valid @RequestBody RegisterRequest request) {
     return withSessionCookies(authService.register(request));
   }
 

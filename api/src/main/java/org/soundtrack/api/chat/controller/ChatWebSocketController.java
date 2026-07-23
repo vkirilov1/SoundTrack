@@ -29,8 +29,8 @@ public class ChatWebSocketController {
   private final SimpMessagingTemplate messagingTemplate;
 
   /**
-   * Client sends to /app/chat/{roomId}/join after subscribing to /topic/chat/{roomId}.
-   * Registers active presence and broadcasts a JOIN system message to the room.
+   * Client sends to /app/chat/{roomId}/join after subscribing to /topic/chat/{roomId}. Registers
+   * active presence and broadcasts a JOIN system message to the room.
    */
   @MessageMapping("/chat/{roomId}/join")
   public void handleJoin(
@@ -48,14 +48,12 @@ public class ChatWebSocketController {
   }
 
   /**
-   * Client sends to /app/chat/{roomId}/send.
-   * Persists the message and broadcasts it to all room subscribers.
+   * Client sends to /app/chat/{roomId}/send. Persists the message and broadcasts it to all room
+   * subscribers.
    */
   @MessageMapping("/chat/{roomId}/send")
   public void handleMessage(
-      @DestinationVariable Long roomId,
-      @Payload SendMessagePayload payload,
-      Principal principal) {
+      @DestinationVariable Long roomId, @Payload SendMessagePayload payload, Principal principal) {
 
     String email = resolveEmail(principal);
     ChatMessageResponse response = chatService.processMessage(roomId, payload, email);

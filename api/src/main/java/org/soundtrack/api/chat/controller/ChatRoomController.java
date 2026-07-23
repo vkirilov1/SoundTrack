@@ -28,7 +28,8 @@ public class ChatRoomController {
 
   @Operation(summary = "Create a new chat room (creator is auto-joined)")
   @PostMapping
-  public ResponseEntity<ChatRoomResponse> createRoom(@Valid @RequestBody CreateRoomRequest request) {
+  public ResponseEntity<ChatRoomResponse> createRoom(
+      @Valid @RequestBody CreateRoomRequest request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(chatService.createRoom(request));
   }
 

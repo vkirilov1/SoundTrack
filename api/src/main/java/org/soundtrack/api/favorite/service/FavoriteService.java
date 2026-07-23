@@ -43,7 +43,8 @@ public class FavoriteService {
     Album album =
         albumRepository
             .findById(albumId)
-            .orElseThrow(() -> new ResourceNotFoundException("Album not found with id: " + albumId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Album not found with id: " + albumId));
 
     favoriteAlbumRepository.save(FavoriteAlbum.builder().user(user).album(album).build());
   }
@@ -118,8 +119,7 @@ public class FavoriteService {
     return getFavoriteSongs(userId, page, size);
   }
 
-  private PagedResponse<FavoriteAlbumResponse> getFavoriteAlbums(
-      Long userId, int page, int size) {
+  private PagedResponse<FavoriteAlbumResponse> getFavoriteAlbums(Long userId, int page, int size) {
     Page<FavoriteAlbum> favPage =
         favoriteAlbumRepository.findByUserId(
             userId, PageRequest.of(page, size, Sort.by("id").ascending()));

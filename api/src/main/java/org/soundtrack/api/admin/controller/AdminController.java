@@ -118,9 +118,7 @@ public class AdminController {
 
   @DeleteMapping("/replies/{replyId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "Delete a reply",
-      description = "Removes any reply regardless of author.")
+  @Operation(summary = "Delete a reply", description = "Removes any reply regardless of author.")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "Reply deleted"),
     @ApiResponse(responseCode = "401", description = "Not authenticated"),

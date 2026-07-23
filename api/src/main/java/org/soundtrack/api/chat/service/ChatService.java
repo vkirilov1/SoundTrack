@@ -42,8 +42,7 @@ public class ChatService {
   public ChatRoomResponse createRoom(CreateRoomRequest request) {
     User creator = getAuthenticatedUser();
 
-    int capacity =
-        (request.maxCapacity() != null) ? request.maxCapacity() : DEFAULT_MAX_CAPACITY;
+    int capacity = (request.maxCapacity() != null) ? request.maxCapacity() : DEFAULT_MAX_CAPACITY;
 
     ChatRoom room =
         ChatRoom.builder()
@@ -122,8 +121,7 @@ public class ChatService {
   public PagedResponse<ChatMessageResponse> getRoomHistory(Long roomId, int page, int size) {
     findRoomWithMembers(roomId);
     Page<ChatMessage> messagePage =
-        chatMessageRepository.findByRoomIdOrderBySentAtDesc(
-            roomId, PageRequest.of(page, size));
+        chatMessageRepository.findByRoomIdOrderBySentAtDesc(roomId, PageRequest.of(page, size));
 
     List<ChatMessageResponse> content =
         messagePage.getContent().stream().map(this::toMessageResponse).toList();

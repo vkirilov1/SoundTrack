@@ -19,9 +19,7 @@ public class ChatRoomStateService {
   private final ConcurrentHashMap<String, SessionInfo> sessionIndex = new ConcurrentHashMap<>();
 
   public void addUserToRoom(String sessionId, String userEmail, Long roomId) {
-    activeUsersByRoom
-        .computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet())
-        .add(userEmail);
+    activeUsersByRoom.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(userEmail);
     sessionIndex
         .computeIfAbsent(sessionId, k -> new SessionInfo(userEmail, ConcurrentHashMap.newKeySet()))
         .roomIds()
