@@ -41,7 +41,8 @@ public class UserFollowService {
     User target =
         userRepository
             .findById(targetId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + targetId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("User not found with id: " + targetId));
 
     userFollowRepository.save(UserFollow.builder().follower(me).following(target).build());
   }
@@ -94,7 +95,11 @@ public class UserFollowService {
 
   private UserProfileResponse toProfileResponse(User user) {
     return new UserProfileResponse(
-        user.getId(), user.getUsername(), user.getBio(), user.getProfilePicture(), user.getJoinDate());
+        user.getId(),
+        user.getUsername(),
+        user.getBio(),
+        user.getProfilePicture(),
+        user.getJoinDate());
   }
 
   private User getAuthenticatedUser() {

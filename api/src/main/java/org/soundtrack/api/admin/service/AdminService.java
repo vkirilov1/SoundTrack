@@ -133,7 +133,8 @@ public class AdminService {
       album.setReviewsCount(count - 1);
     }
 
-    // Replies to this review are cascade-deleted by the DB (ON DELETE CASCADE on review_reply.review_id).
+    // Replies to this review are cascade-deleted by the DB (ON DELETE CASCADE on
+    // review_reply.review_id).
     reviewRepository.delete(review);
   }
 
@@ -149,6 +150,7 @@ public class AdminService {
   }
 
   private AdminUserResponse toAdminUserResponse(User user) {
-    return new AdminUserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getJoinDate());
+    return new AdminUserResponse(
+        user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getJoinDate());
   }
 }

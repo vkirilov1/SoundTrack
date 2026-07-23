@@ -24,7 +24,9 @@ public class UserFollowController {
   @PostMapping("/{id}/follow")
   @ResponseStatus(HttpStatus.CREATED)
   @SecurityRequirement(name = "bearerAuth")
-  @Operation(summary = "Follow a user", description = "Follow another user. Cannot follow yourself.")
+  @Operation(
+      summary = "Follow a user",
+      description = "Follow another user. Cannot follow yourself.")
   @ApiResponses({
     @ApiResponse(responseCode = "201", description = "Now following the user"),
     @ApiResponse(responseCode = "400", description = "Cannot follow yourself"),
@@ -53,7 +55,8 @@ public class UserFollowController {
   @GetMapping("/{id}/followers")
   @Operation(
       summary = "Get followers of a user",
-      description = "Returns a paginated list of users who follow the given user. Publicly accessible.")
+      description =
+          "Returns a paginated list of users who follow the given user. Publicly accessible.")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Followers returned"),
     @ApiResponse(responseCode = "404", description = "User not found")
@@ -68,7 +71,8 @@ public class UserFollowController {
   @GetMapping("/{id}/following")
   @Operation(
       summary = "Get users followed by a user",
-      description = "Returns a paginated list of users that the given user follows. Publicly accessible.")
+      description =
+          "Returns a paginated list of users that the given user follows. Publicly accessible.")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Following list returned"),
     @ApiResponse(responseCode = "404", description = "User not found")

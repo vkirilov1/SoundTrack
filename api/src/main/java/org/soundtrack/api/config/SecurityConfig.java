@@ -40,8 +40,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/albums/**", "/api/users/*", "/api/images/**")
                     .permitAll()
-                    .requestMatchers(
-                        "/api/favorites/albums/user/*", "/api/favorites/songs/user/*")
+                    .requestMatchers("/api/favorites/albums/user/*", "/api/favorites/songs/user/*")
                     .permitAll()
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
