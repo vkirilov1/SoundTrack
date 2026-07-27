@@ -39,11 +39,12 @@ public class AuthService {
             .password(passwordEncoder.encode(request.getPassword()))
             .role(UserRole.USER)
             .joinDate(LocalDateTime.now())
+            .profilePicture("userDefault.png")
             .build();
 
     userRepository.save(user);
 
-    return issueSession(user);
+    return issueSession(user, true);
   }
 
   public AuthResult login(LoginRequest request) {
@@ -59,12 +60,12 @@ public class AuthService {
       throw new InvalidCredentialsException("Invalid credentials");
     }
 
-    return issueSession(user);
+    return issueSession(user, request.isRememberMe());
   }
 
   public AuthResult refresh(String refreshToken) {
     User user = refreshTokenService.consume(refreshToken);
-    return issueSession(user);
+    return issueSession(user, true);
   }
 
   public void logout(String refreshToken) {
@@ -75,9 +76,14 @@ public class AuthService {
     return refreshTokenService.refreshExpirationMs();
   }
 
-  private AuthResult issueSession(User user) {
+  /**
+   * Issues an access token always, and a refresh token only when the caller wants the session to
+   * survive the browser closing. Without a refresh token there's nothing to silently renew the
+   * access token with, so it naturally expires (and the session ends) after its short lifetime.
+   */
+  private AuthResult issueSession(User user, boolean rememberMe) {
     String accessToken = jwtService.generateToken(user.getEmail());
-    String refreshToken = refreshTokenService.issue(user);
+    String refreshToken = rememberMe ? refreshTokenService.issue(user) : null;
 
     UserProfileResponse profile =
         new UserProfileResponse(
@@ -87,8 +93,9 @@ public class AuthService {
             user.getProfilePicture(),
             user.getJoinDate());
 
-    return new AuthResult(accessToken, refreshToken, profile);
+    return new AuthResult(accessToken, refreshToken, profile, rememberMe);
   }
 
-  public record AuthResult(String accessToken, String refreshToken, UserProfileResponse profile) {}
+  public record AuthResult(
+      String accessToken, String refreshToken, UserProfileResponse profile, boolean rememberMe) {}
 }

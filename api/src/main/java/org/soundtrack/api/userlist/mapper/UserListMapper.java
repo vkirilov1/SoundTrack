@@ -5,6 +5,7 @@ import org.soundtrack.api.userlist.dto.AlbumSummaryResponse;
 import org.soundtrack.api.userlist.dto.UserListDetailResponse;
 import org.soundtrack.api.userlist.dto.UserListSummaryResponse;
 import org.soundtrack.domain.model.Album;
+import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.UserList;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ public class UserListMapper {
         .id(userList.getId())
         .name(userList.getName())
         .description(userList.getDescription())
+        .itemCount(userList.getAlbums().size())
         .build();
   }
 
@@ -33,7 +35,7 @@ public class UserListMapper {
   }
 
   private AlbumSummaryResponse toAlbumSummary(Album album) {
-    List<String> artistNames = album.getArtists().stream().map(a -> a.getArtistName()).toList();
+    List<String> artistNames = album.getArtists().stream().map(Artist::getArtistName).toList();
 
     return AlbumSummaryResponse.builder()
         .id(album.getId())

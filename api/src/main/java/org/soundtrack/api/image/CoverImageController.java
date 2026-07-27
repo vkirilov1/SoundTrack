@@ -31,6 +31,9 @@ public class CoverImageController {
   @Value("${artist.photo.storage.path}")
   private String artistStoragePath;
 
+  @Value("${user.photo.storage.path}")
+  private String userPhotoStoragePath;
+
   @GetMapping("/covers/{filename}")
   @Operation(
       summary = "Get album cover image",
@@ -43,7 +46,7 @@ public class CoverImageController {
   })
   public ResponseEntity<Resource> getCoverImage(
       @Parameter(description = "Filename from AlbumResponse.coverUrl (e.g. 481a694f-....jpg)")
-          @PathVariable
+          @PathVariable("filename")
           String filename)
       throws IOException {
     return serveImage(coverStoragePath, filename);
@@ -63,10 +66,31 @@ public class CoverImageController {
       @Parameter(
               description =
                   "Filename from ArtistResponse.artistPic (e.g. {mbid}.jpg or defaultArtistPhoto.jpg)")
-          @PathVariable
+          @PathVariable("filename")
           String filename)
       throws IOException {
     return serveImage(artistStoragePath, filename);
+  }
+
+  @GetMapping("/users/{filename}")
+  @Operation(
+      summary = "Get user profile photo",
+      description =
+          "Returns the profile photo for a user. The filename comes from"
+              + " UserProfileResponse.profilePictureUrl.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Image returned"),
+    @ApiResponse(responseCode = "400", description = "Invalid filename"),
+    @ApiResponse(responseCode = "404", description = "Image not found on disk")
+  })
+  public ResponseEntity<Resource> getUserPhoto(
+      @Parameter(
+              description =
+                  "Filename from UserProfileResponse.profilePictureUrl (e.g. userDefault.png)")
+          @PathVariable("filename")
+          String filename)
+      throws IOException {
+    return serveImage(userPhotoStoragePath, filename);
   }
 
   private ResponseEntity<Resource> serveImage(String storagePath, String filename)
@@ -83,10 +107,13 @@ public class CoverImageController {
     }
 
     byte[] bytes = Files.readAllBytes(filePath);
+    String probedType = Files.probeContentType(filePath);
+    MediaType contentType =
+        probedType != null ? MediaType.parseMediaType(probedType) : MediaType.IMAGE_JPEG;
 
     return ResponseEntity.ok()
         .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
-        .contentType(MediaType.IMAGE_JPEG)
+        .contentType(contentType)
         .body(new ByteArrayResource(bytes));
   }
 }

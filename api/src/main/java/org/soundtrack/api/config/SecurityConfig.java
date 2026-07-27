@@ -38,9 +38,13 @@ public class SecurityConfig {
                         "/api/auth/refresh",
                         "/api/auth/logout")
                     .permitAll()
-                    .requestMatchers("/api/albums/**", "/api/users/*", "/api/images/**")
+                    .requestMatchers(
+                        "/api/albums/**", "/api/users/*", "/api/users/*/reviews", "/api/images/**")
                     .permitAll()
-                    .requestMatchers("/api/favorites/albums/user/*", "/api/favorites/songs/user/*")
+                    .requestMatchers(
+                        "/api/favorites/albums/user/*",
+                        "/api/favorites/songs/user/*",
+                        "/api/lists/user/*")
                     .permitAll()
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()

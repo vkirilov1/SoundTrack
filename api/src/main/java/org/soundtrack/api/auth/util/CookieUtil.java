@@ -18,6 +18,17 @@ public final class CookieUtil {
         .build();
   }
 
+  /** No Max-Age attribute, so the browser drops it as soon as it closes - a true session cookie. */
+  public static ResponseCookie buildSession(
+      String name, String value, String path, boolean secure) {
+    return ResponseCookie.from(name, value)
+        .httpOnly(true)
+        .secure(secure)
+        .sameSite("Lax")
+        .path(path)
+        .build();
+  }
+
   public static ResponseCookie clear(String name, String path, boolean secure) {
     return ResponseCookie.from(name, "")
         .httpOnly(true)

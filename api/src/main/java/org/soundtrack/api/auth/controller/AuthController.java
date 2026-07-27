@@ -113,24 +113,30 @@ public class AuthController {
 
   private ResponseEntity<UserProfileResponse> withSessionCookies(AuthResult result) {
     ResponseCookie accessCookie =
-        CookieUtil.build(
-            ACCESS_TOKEN_COOKIE,
-            result.accessToken(),
-            "/",
-            Duration.ofMillis(accessExpirationMs),
-            cookieSecure);
-    ResponseCookie refreshCookie =
-        CookieUtil.build(
-            REFRESH_TOKEN_COOKIE,
-            result.refreshToken(),
-            REFRESH_TOKEN_PATH,
-            Duration.ofMillis(authService.refreshExpirationMs()),
-            cookieSecure);
+        result.rememberMe()
+            ? CookieUtil.build(
+                ACCESS_TOKEN_COOKIE,
+                result.accessToken(),
+                "/",
+                Duration.ofMillis(accessExpirationMs),
+                cookieSecure)
+            : CookieUtil.buildSession(ACCESS_TOKEN_COOKIE, result.accessToken(), "/", cookieSecure);
 
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-        .body(result.profile());
+    ResponseEntity.BodyBuilder builder =
+        ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+    if (result.refreshToken() != null) {
+      ResponseCookie refreshCookie =
+          CookieUtil.build(
+              REFRESH_TOKEN_COOKIE,
+              result.refreshToken(),
+              REFRESH_TOKEN_PATH,
+              Duration.ofMillis(authService.refreshExpirationMs()),
+              cookieSecure);
+      builder = builder.header(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+    }
+
+    return builder.body(result.profile());
   }
 
   private Optional<String> readCookie(HttpServletRequest request, String name) {

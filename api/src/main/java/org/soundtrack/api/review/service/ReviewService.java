@@ -10,6 +10,7 @@ import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
 import org.soundtrack.api.review.dto.ReviewResponse;
+import org.soundtrack.api.review.dto.UserReviewResponse;
 import org.soundtrack.api.review.mapper.ReviewMapper;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Review;
@@ -51,9 +52,17 @@ public class ReviewService {
               "Album %s has already been reviewed by user %s", album.getTitle(), user.getEmail()));
     }
 
+    double rating = request.getRating();
+
+    if ((rating >= 0.0 && rating <= 5.0) && (rating * 2 == (int) (rating * 2))) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Invalid rating %s. Only increments of .5 allowed, ranging from 0-5", rating));
+    }
+
     Review review =
         Review.builder()
-            .rating(request.getRating())
+            .rating(rating)
             .title(request.getTitle())
             .comment(request.getComment())
             .album(album)
@@ -144,6 +153,24 @@ public class ReviewService {
 
     List<ReviewResponse> content =
         reviewPage.getContent().stream().map(reviewMapper::toResponse).toList();
+
+    return new PagedResponse<>(
+        content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
+  }
+
+  @Transactional(readOnly = true)
+  public PagedResponse<UserReviewResponse> getUserReviews(Long userId, int page, int size) {
+
+    if (!userRepository.existsById(userId)) {
+      throw new ResourceNotFoundException("User not found with id: " + userId);
+    }
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+    Page<Review> reviewPage = reviewRepository.findByUserId(userId, pageable);
+
+    List<UserReviewResponse> content =
+        reviewPage.getContent().stream().map(reviewMapper::toUserReviewResponse).toList();
 
     return new PagedResponse<>(
         content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
