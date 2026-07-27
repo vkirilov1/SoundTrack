@@ -37,36 +37,36 @@ public class ChatRoomController {
   @GetMapping
   public ResponseEntity<List<ChatRoomResponse>> getRooms(
       @Parameter(description = "Filter by topic type (ALBUM, ARTIST, SONG)")
-          @RequestParam(required = false)
+          @RequestParam(name = "topicType", required = false)
           TopicType topicType,
       @Parameter(description = "Filter by topic entity ID (requires topicType)")
-          @RequestParam(required = false)
+          @RequestParam(name = "topicId", required = false)
           Long topicId) {
     return ResponseEntity.ok(chatService.getRooms(topicType, topicId));
   }
 
   @Operation(summary = "Get a single chat room by ID")
   @GetMapping("/{roomId}")
-  public ResponseEntity<ChatRoomResponse> getRoom(@PathVariable Long roomId) {
+  public ResponseEntity<ChatRoomResponse> getRoom(@PathVariable("roomId") Long roomId) {
     return ResponseEntity.ok(chatService.getRoomById(roomId));
   }
 
   @Operation(summary = "Join a chat room")
   @PostMapping("/{roomId}/join")
-  public ResponseEntity<ChatRoomResponse> joinRoom(@PathVariable Long roomId) {
+  public ResponseEntity<ChatRoomResponse> joinRoom(@PathVariable("roomId") Long roomId) {
     return ResponseEntity.ok(chatService.joinRoom(roomId));
   }
 
   @Operation(summary = "Leave a chat room")
   @DeleteMapping("/{roomId}/leave")
-  public ResponseEntity<Void> leaveRoom(@PathVariable Long roomId) {
+  public ResponseEntity<Void> leaveRoom(@PathVariable("roomId") Long roomId) {
     chatService.leaveRoom(roomId);
     return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "Delete a chat room (creator only)")
   @DeleteMapping("/{roomId}")
-  public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
+  public ResponseEntity<Void> deleteRoom(@PathVariable("roomId") Long roomId) {
     chatService.deleteRoom(roomId);
     return ResponseEntity.noContent().build();
   }
@@ -74,9 +74,9 @@ public class ChatRoomController {
   @Operation(summary = "Fetch paginated message history for a room")
   @GetMapping("/{roomId}/messages")
   public ResponseEntity<PagedResponse<ChatMessageResponse>> getMessages(
-      @PathVariable Long roomId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "50") int size) {
+      @PathVariable("roomId") Long roomId,
+      @RequestParam(name = "page", defaultValue = "0") int page,
+      @RequestParam(name = "size", defaultValue = "50") int size) {
     return ResponseEntity.ok(chatService.getRoomHistory(roomId, page, size));
   }
 }

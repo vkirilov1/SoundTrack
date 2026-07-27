@@ -34,7 +34,8 @@ public class UserFollowController {
     @ApiResponse(responseCode = "404", description = "User not found"),
     @ApiResponse(responseCode = "409", description = "Already following this user")
   })
-  public void follow(@Parameter(description = "ID of the user to follow") @PathVariable Long id) {
+  public void follow(
+      @Parameter(description = "ID of the user to follow") @PathVariable("id") Long id) {
     userFollowService.follow(id);
   }
 
@@ -48,7 +49,7 @@ public class UserFollowController {
     @ApiResponse(responseCode = "404", description = "Not following this user")
   })
   public void unfollow(
-      @Parameter(description = "ID of the user to unfollow") @PathVariable Long id) {
+      @Parameter(description = "ID of the user to unfollow") @PathVariable("id") Long id) {
     userFollowService.unfollow(id);
   }
 
@@ -62,7 +63,7 @@ public class UserFollowController {
     @ApiResponse(responseCode = "404", description = "User not found")
   })
   public PagedResponse<UserProfileResponse> getFollowers(
-      @Parameter(description = "Internal user ID") @PathVariable Long id,
+      @Parameter(description = "Internal user ID") @PathVariable("id") Long id,
       @RequestParam(name = "page", defaultValue = "0") int page,
       @RequestParam(name = "size", defaultValue = "20") int size) {
     return userFollowService.getFollowers(id, page, size);
@@ -78,7 +79,7 @@ public class UserFollowController {
     @ApiResponse(responseCode = "404", description = "User not found")
   })
   public PagedResponse<UserProfileResponse> getFollowing(
-      @Parameter(description = "Internal user ID") @PathVariable Long id,
+      @Parameter(description = "Internal user ID") @PathVariable("id") Long id,
       @RequestParam(name = "page", defaultValue = "0") int page,
       @RequestParam(name = "size", defaultValue = "20") int size) {
     return userFollowService.getFollowing(id, page, size);

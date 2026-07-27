@@ -21,4 +21,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
   @EntityGraph(attributePaths = {"album"})
   @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
   List<Review> findByUserId(@Param("userId") Long userId);
+
+  @EntityGraph(attributePaths = {"album"})
+  @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
+  Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
 }

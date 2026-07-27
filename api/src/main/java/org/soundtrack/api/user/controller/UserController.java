@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.review.dto.UserReviewResponse;
+import org.soundtrack.api.review.service.ReviewService;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.api.user.service.UserService;
 import org.springframework.security.core.Authentication;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
   private final UserService userService;
+  private final ReviewService reviewService;
 
   @GetMapping("/{id}")
   @Operation(
@@ -29,7 +33,7 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "User not found")
   })
   public UserProfileResponse getUser(
-      @Parameter(description = "Internal user ID") @PathVariable Long id) {
+      @Parameter(description = "Internal user ID") @PathVariable("id") Long id) {
     return userService.getById(id);
   }
 
@@ -45,5 +49,24 @@ public class UserController {
   public UserProfileResponse me(Authentication authentication) {
     String email = authentication.getName();
     return userService.getByEmail(email);
+  }
+
+  @GetMapping("/{id}/reviews")
+  @Operation(
+      summary = "Get reviews by user",
+      description = "Returns a paginated list of reviews written by the given user")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Reviews returned"),
+    @ApiResponse(responseCode = "404", description = "User not found")
+  })
+  public PagedResponse<UserReviewResponse> getUserReviews(
+      @Parameter(description = "Internal user ID") @PathVariable("id") Long id,
+      @Parameter(description = "Zero-based page index")
+          @RequestParam(name = "page", defaultValue = "0")
+          int page,
+      @Parameter(description = "Number of reviews per page")
+          @RequestParam(name = "size", defaultValue = "20")
+          int size) {
+    return reviewService.getUserReviews(id, page, size);
   }
 }

@@ -1,0 +1,86 @@
+:root {
+  --color-bg: #ffffff;
+  --color-ink: #08060d;
+  --color-ink-black: #000000;
+  --color-text: #6b6b76;
+  --color-border: #e5e4e7;
+
+  --color-accent: #f7a43f;
+  --color-accent-hover: #e6912b;
+
+  --color-chat-bg: #0b1b3f;
+  --color-highlight-bg: #dbe8ff;
+  --color-highlight-icon-border: #2f6bff;
+  --color-checkbox: #5b4fe0;
+  --color-link-hover: #1e3a8a;
+  --color-star: #ffb400;
+  --color-star-empty: #e2e1e6;
+
+  --radius-md: 8px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --content-width: 1160px;
+
+  --sans: 'Segoe UI', system-ui, Roboto, sans-serif;
+
+  font: 16px/150% var(--sans);
+  color-scheme: light;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#root > main {
+  flex: 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+a:hover {
+  color: var(--color-link-hover);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}

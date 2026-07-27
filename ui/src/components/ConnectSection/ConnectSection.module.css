@@ -1,0 +1,10 @@
+.connect {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 64px 24px;
+}
+
+.heading {
+  font-size: 28px;
+}

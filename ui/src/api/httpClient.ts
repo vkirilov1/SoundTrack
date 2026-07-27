@@ -1,0 +1,66 @@
+const API_BASE = "/api";
+
+// Auth endpoints handle their own 401 semantics (bad credentials, expired refresh
+// token, etc.) and must never trigger the retry loop below, or a bad login could
+// recurse into itself via the refresh call.
+const NO_RETRY_PATHS = new Set([
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh",
+  "/auth/logout",
+]);
+
+type UnauthorizedHandler = () => void;
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  onUnauthorized = handler;
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshSession(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => response.ok)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
+function doFetch(path: string, init: RequestInit): Promise<Response> {
+  return fetch(`${API_BASE}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...init.headers },
+  });
+}
+
+/**
+ * fetch wrapper for the API: always sends the httpOnly auth cookies, and on a 401
+ * from a protected endpoint, silently tries to refresh the session once and
+ * retries the original request before giving up.
+ */
+export async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const response = await doFetch(path, init);
+
+  if (response.status !== 401 || NO_RETRY_PATHS.has(path)) {
+    return response;
+  }
+
+  const refreshed = await refreshSession();
+  if (!refreshed) {
+    onUnauthorized?.();
+    return response;
+  }
+
+  return doFetch(path, init);
+}
