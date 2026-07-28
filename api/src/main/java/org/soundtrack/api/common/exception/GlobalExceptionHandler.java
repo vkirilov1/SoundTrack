@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorResponse handleInvalidOperation(InvalidOperationException ex) {
     return new ErrorResponse(ex.getMessage());
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ErrorResponse handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+    return new ErrorResponse("File is too large. Maximum size is 5MB");
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

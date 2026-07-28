@@ -13,11 +13,14 @@ import org.springframework.stereotype.Component;
 public class UserListMapper {
 
   public UserListSummaryResponse toSummary(UserList userList) {
+    List<Album> albums = userList.getAlbums();
+
     return UserListSummaryResponse.builder()
         .id(userList.getId())
         .name(userList.getName())
         .description(userList.getDescription())
-        .itemCount(userList.getAlbums().size())
+        .itemCount(albums.size())
+        .coverUrl(albums.isEmpty() ? null : albums.get(0).getCoverUrl())
         .build();
   }
 

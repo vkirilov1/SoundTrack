@@ -34,10 +34,14 @@ function refreshSession(): Promise<boolean> {
 }
 
 function doFetch(path: string, init: RequestInit): Promise<Response> {
+  const isFormData = init.body instanceof FormData;
+
   return fetch(`${API_BASE}${path}`, {
     ...init,
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...init.headers },
+    headers: isFormData
+      ? init.headers
+      : { "Content-Type": "application/json", ...init.headers },
   });
 }
 

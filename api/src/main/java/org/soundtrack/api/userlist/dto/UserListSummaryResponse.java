@@ -11,4 +11,5 @@ public class UserListSummaryResponse {
   private String name;
   private String description;
   private int itemCount;
+  private String coverUrl;
 }
