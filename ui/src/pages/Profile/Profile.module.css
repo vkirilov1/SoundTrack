@@ -224,7 +224,6 @@
 }
 
 .favoritesTitle {
-  composes: listTitle;
   color: var(--color-accent);
 }
 
@@ -309,6 +308,7 @@
   margin: 2px 0 0;
   font-size: 14px;
   line-height: 1.5;
+  line-clamp: 3;
   color: var(--color-text);
   display: -webkit-box;
   -webkit-box-orient: vertical;
