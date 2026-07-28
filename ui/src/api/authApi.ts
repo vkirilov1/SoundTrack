@@ -24,6 +24,15 @@ async function throwApiError(response: Response): Promise<never> {
   );
 }
 
+async function throwMessageApiError(response: Response): Promise<never> {
+  const body = await response.json().catch(() => ({}));
+
+  throw new ApiError(
+    response.status,
+    (body as { message?: string }).message ?? "Request failed.",
+  );
+}
+
 export async function register(payload: RegisterRequest): Promise<UserProfile> {
   const response = await apiFetch("/auth/register", {
     method: "POST",
@@ -66,4 +75,46 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
 
 export async function logout(): Promise<void> {
   await apiFetch("/auth/logout", { method: "POST" });
+}
+
+export async function updateProfile(payload: {
+  username: string;
+  bio: string;
+}): Promise<UserProfile> {
+  const response = await apiFetch("/users/me/profile", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    return throwApiError(response);
+  }
+
+  return response.json() as Promise<UserProfile>;
+}
+
+export async function uploadProfilePhoto(file: File): Promise<UserProfile> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiFetch("/users/me/photo", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    return throwMessageApiError(response);
+  }
+
+  return response.json() as Promise<UserProfile>;
+}
+
+export async function resetProfilePhoto(): Promise<UserProfile> {
+  const response = await apiFetch("/users/me/photo", { method: "DELETE" });
+
+  if (!response.ok) {
+    return throwMessageApiError(response);
+  }
+
+  return response.json() as Promise<UserProfile>;
 }

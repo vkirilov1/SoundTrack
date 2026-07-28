@@ -6,14 +6,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.review.dto.UserReviewResponse;
 import org.soundtrack.api.review.service.ReviewService;
+import org.soundtrack.api.user.dto.UpdateProfileRequest;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.api.user.service.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -49,6 +53,50 @@ public class UserController {
   public UserProfileResponse me(Authentication authentication) {
     String email = authentication.getName();
     return userService.getByEmail(email);
+  }
+
+  @PutMapping("/me/profile")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(
+      summary = "Update own profile",
+      description = "Updates the display name (username) and bio of the authenticated user")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Profile updated"),
+    @ApiResponse(responseCode = "400", description = "Validation failed"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "409", description = "Username already taken")
+  })
+  public UserProfileResponse updateProfile(
+      Authentication authentication, @Valid @RequestBody UpdateProfileRequest request) {
+    return userService.updateProfile(authentication.getName(), request);
+  }
+
+  @PostMapping("/me/photo")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(
+      summary = "Upload profile photo",
+      description = "Replaces the authenticated user's profile photo")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Photo updated"),
+    @ApiResponse(responseCode = "400", description = "Invalid or missing file"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
+  })
+  public UserProfileResponse uploadPhoto(
+      Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+    return userService.updatePhoto(authentication.getName(), file);
+  }
+
+  @DeleteMapping("/me/photo")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(
+      summary = "Reset profile photo",
+      description = "Reverts the authenticated user's profile photo to the default")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Photo reset"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
+  })
+  public UserProfileResponse resetPhoto(Authentication authentication) throws IOException {
+    return userService.resetPhoto(authentication.getName());
   }
 
   @GetMapping("/{id}/reviews")

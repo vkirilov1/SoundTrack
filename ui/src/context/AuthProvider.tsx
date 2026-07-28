@@ -47,8 +47,14 @@ function AuthProvider({ children }: AuthProviderProps) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((profile: UserProfile) => {
+    setUser(profile);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, register, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, register, login, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

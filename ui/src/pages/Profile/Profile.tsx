@@ -1,45 +1,32 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import {
-  getUserFavoriteAlbums,
-  getUserFavoriteSongs,
-  getUserLists,
-  getUserProfile,
-  getUserReviews,
-} from "../../api/profileApi";
+import { Link, useParams } from "react-router-dom";
+import { getUserProfile } from "../../api/profileApi";
 import { ApiError } from "../../api/ApiError";
-import Pagination from "../../components/Pagination/Pagination";
+import missingResourcesIcon from "../../assets/MissingResources.png";
 import Spinner from "../../components/Spinner/Spinner";
+import { useAuth } from "../../context/useAuth";
+import { MONTH_YEAR_FORMAT } from "../../lib/date";
 import { userPhotoUrl } from "../../lib/images";
 import type { UserProfile } from "../../types/auth";
-import type { UserListSummary, UserReview } from "../../types/profile";
 import styles from "./Profile.module.css";
-import ReviewCard from "./components/ReviewCard";
+import ListsCard from "./components/ListsCard";
+import ReviewsCard from "./components/ReviewsCard";
 
-const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-});
-
-interface ListRow {
-  key: string;
-  name: string;
-  itemCount: number;
-  isFavorites: boolean;
-}
+const ProfilePageStates = {
+  Reviews: 0,
+  Lists: 1,
+};
 
 function Profile() {
   const { userId } = useParams<{ userId: string }>();
   const id = Number(userId);
   const invalidId = !Number.isFinite(id);
+  const { user: currentUser } = useAuth();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [lists, setLists] = useState<UserListSummary[]>([]);
-  const [favoritesCount, setFavoritesCount] = useState(0);
-  const [reviews, setReviews] = useState<UserReview[]>([]);
-  const [reviewsPage, setReviewsPage] = useState(0);
-  const [reviewsTotalPages, setReviewsTotalPages] = useState(0);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [currentPageState, setCurrentPageState] = useState(
+    ProfilePageStates.Lists,
+  );
   const [loading, setLoading] = useState(() => !invalidId);
   const [notFound, setNotFound] = useState(() => invalidId);
 
@@ -48,33 +35,12 @@ function Profile() {
 
     let cancelled = false;
 
-    Promise.all([
-      getUserProfile(id),
-      getUserLists(id),
-      getUserFavoriteAlbums(id),
-      getUserFavoriteSongs(id),
-      getUserReviews(id),
-    ])
-      .then(
-        ([
-          profileRes,
-          listsRes,
-          favoriteAlbumsRes,
-          favoriteSongsRes,
-          reviewsRes,
-        ]) => {
-          if (cancelled) return;
-          setProfile(profileRes);
-          setLists(listsRes.content);
-          setFavoritesCount(
-            favoriteAlbumsRes.totalElements + favoriteSongsRes.totalElements,
-          );
-          setReviews(reviewsRes.content);
-          setReviewsPage(reviewsRes.page);
-          setReviewsTotalPages(reviewsRes.totalPages);
-          setNotFound(false);
-        },
-      )
+    getUserProfile(id)
+      .then((profileRes) => {
+        if (cancelled) return;
+        setProfile(profileRes);
+        setNotFound(false);
+      })
       .catch((error: unknown) => {
         if (cancelled) return;
         if (error instanceof ApiError && error.status === 404) {
@@ -90,19 +56,6 @@ function Profile() {
     };
   }, [id, invalidId]);
 
-  const handleReviewsPageChange = (page: number) => {
-    if (page === reviewsPage) return;
-    setReviewsLoading(true);
-    getUserReviews(id, page)
-      .then((reviewsRes) => {
-        setReviews(reviewsRes.content);
-        setReviewsPage(reviewsRes.page);
-        setReviewsTotalPages(reviewsRes.totalPages);
-      })
-      .catch(() => {})
-      .finally(() => setReviewsLoading(false));
-  };
-
   if (loading) {
     return (
       <section className={styles.wrap}>
@@ -116,32 +69,31 @@ function Profile() {
   if (notFound || !profile) {
     return (
       <section className={styles.wrap}>
-        <p className={styles.status}>This user doesn't exist.</p>
+        <div className={styles.status}>
+          <img
+            src={missingResourcesIcon}
+            alt=""
+            className={styles.statusIcon}
+          />
+          <p>This user doesn't exist.</p>
+        </div>
       </section>
     );
   }
 
-  const listRows: ListRow[] = [
-    ...(favoritesCount > 0
-      ? [
-          {
-            key: "favorites",
-            name: "Favorites",
-            itemCount: favoritesCount,
-            isFavorites: true,
-          },
-        ]
-      : []),
-    ...lists.map((list) => ({
-      key: `list-${list.id}`,
-      name: list.name,
-      itemCount: list.itemCount,
-      isFavorites: false,
-    })),
-  ];
-
   return (
     <section className={styles.wrap}>
+      {currentUser?.id === profile.id && (
+        <Link
+          to="/profile/edit"
+          className={styles.editButtonCorner}
+          aria-label="Edit profile"
+        >
+          <svg viewBox="0 0 24 24" width={18} height={18} fill="currentColor">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+          </svg>
+        </Link>
+      )}
       <div className={styles.header}>
         <img
           src={userPhotoUrl(profile.profilePictureUrl ?? "userDefault.png")}
@@ -151,65 +103,42 @@ function Profile() {
         <h1 className={styles.name}>{profile.username}</h1>
         {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
         <p className={styles.joinDate}>
-          Joined {DATE_FORMAT.format(new Date(profile.joinDate))}
+          Joined {MONTH_YEAR_FORMAT.format(new Date(profile.joinDate))}
         </p>
+      </div>
+
+      <div className={styles.viewToggle}>
+        <button
+          type="button"
+          className={
+            currentPageState === ProfilePageStates.Lists
+              ? `${styles.viewToggleButton} ${styles.active}`
+              : styles.viewToggleButton
+          }
+          onClick={() => setCurrentPageState(ProfilePageStates.Lists)}
+        >
+          Lists
+        </button>
+        <button
+          type="button"
+          className={
+            currentPageState === ProfilePageStates.Reviews
+              ? `${styles.viewToggleButton} ${styles.active}`
+              : styles.viewToggleButton
+          }
+          onClick={() => setCurrentPageState(ProfilePageStates.Reviews)}
+        >
+          Reviews
+        </button>
       </div>
 
       <div className={styles.sections}>
         <div className={styles.column}>
-          <h2 className={styles.sectionHeading}>Lists</h2>
-          {listRows.length === 0 ? (
-            <p className={styles.empty}>No lists yet.</p>
+          {currentPageState === ProfilePageStates.Lists ? (
+            <ListsCard userId={id} />
           ) : (
-            <ul className={styles.rows}>
-              {listRows.map((row) => (
-                <li key={row.key} className={styles.row}>
-                  <span className={styles.bullet} aria-hidden="true">
-                    ·
-                  </span>
-                  <span
-                    className={
-                      row.isFavorites ? styles.favoritesName : styles.rowName
-                    }
-                  >
-                    {row.name}
-                  </span>
-                  <span className={styles.rowMeta}>
-                    {row.itemCount} {row.itemCount === 1 ? "item" : "items"}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <ReviewsCard userId={id} />
           )}
-        </div>
-
-        <div className={styles.column}>
-          <h2 className={styles.sectionHeading}>Reviews</h2>
-          <div className={styles.reviewsWrap}>
-            <div
-              className={
-                reviewsLoading
-                  ? `${styles.reviewsContent} ${styles.blurred}`
-                  : styles.reviewsContent
-              }
-            >
-              {reviews.length === 0 ? (
-                <p className={styles.empty}>No reviews yet.</p>
-              ) : (
-                <ReviewCard reviews={reviews} />
-              )}
-            </div>
-            {reviewsLoading && (
-              <div className={styles.loadingOverlay}>
-                <Spinner label="Loading reviews" />
-              </div>
-            )}
-          </div>
-          <Pagination
-            page={reviewsPage}
-            totalPages={reviewsTotalPages}
-            onPageChange={handleReviewsPageChange}
-          />
         </div>
       </div>
     </section>

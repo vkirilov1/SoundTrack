@@ -11,6 +11,7 @@ export interface UserListSummary {
   name: string;
   description: string | null;
   itemCount: number;
+  coverUrl: string | null;
 }
 
 export interface FavoriteAlbum {
