@@ -24,6 +24,9 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
   Page<Artist> findByArtistPicStartingWith(String prefix, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"albums"})
+  List<Artist> findTop8ByArtistNameContainingIgnoreCase(String artistName);
+
   @Modifying
   @Transactional
   @Query("UPDATE Artist a SET a.artistPic = 'defaultArtistPhoto.jpg' WHERE a.artistPic IS NULL")

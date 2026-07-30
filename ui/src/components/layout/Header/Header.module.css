@@ -9,7 +9,6 @@
   padding: 18px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 40px;
 }
 
@@ -44,19 +43,11 @@
 }
 
 .actions {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 32px;
-}
-
-.searchButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: #ffffff;
-  padding: 4px;
 }
 
 .signIn {

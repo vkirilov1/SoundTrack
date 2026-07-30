@@ -5,6 +5,7 @@ import SignUp from "./pages/SignUp/SignUp";
 import Login from "./pages/Login/Login";
 import Profile from "./pages/Profile/Profile";
 import EditProfile from "./pages/EditProfile/EditProfile";
+import Album from "./pages/Album/Album";
 import NotFound from "./pages/NotFound/NotFound";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/profile/edit" element={<EditProfile />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/album/:albumId" element={<Album />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

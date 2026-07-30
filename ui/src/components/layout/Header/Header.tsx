@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "../../../assets/SoundTrackLogo.png";
+import SearchBar from "../../SearchBar/SearchBar";
 import { useAuth } from "../../../context/useAuth";
 import styles from "./Header.module.css";
 
@@ -16,33 +17,7 @@ function Header() {
         </Link>
 
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.searchButton}
-            aria-label="Search"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M16 16L12.5 12.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+          <SearchBar />
 
           <nav className={styles.nav}>
             {NAV_LINKS.map((label) => (

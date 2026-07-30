@@ -15,5 +15,8 @@ public record AlbumResponse(
     @Schema(description = "Average user rating, 0.0–5.0") double rating,
     int reviewsCount,
     List<ArtistResponse> artists,
-    List<String> genres,
-    List<SongResponse> songs) {}
+    @Schema(description = "Genre names, ordered by relevance weight, highest first")
+        List<String> genres,
+    List<SongResponse> songs,
+    @Schema(description = "User-facing album description, null until one is written")
+        String description) {}
