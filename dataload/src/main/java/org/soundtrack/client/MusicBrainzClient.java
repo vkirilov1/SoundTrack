@@ -289,7 +289,7 @@ public class MusicBrainzClient {
 
   /**
    * Builds the url for an artist's image
-   * 
+   *
    * @param fileName the name of the file containing the image
    * @return the url
    */

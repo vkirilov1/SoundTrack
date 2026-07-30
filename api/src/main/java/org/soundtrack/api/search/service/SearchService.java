@@ -57,9 +57,9 @@ public class SearchService {
   }
 
   /**
-   * Combines two lists into one, de-duplicated by id and capped at {@link #MAX_RESULTS},
-   * preferring entries from {@code primary} (direct matches) over {@code secondary} (related
-   * entries pulled in via association) whenever both are present.
+   * Combines two lists into one, de-duplicated by id and capped at {@link #MAX_RESULTS}, preferring
+   * entries from {@code primary} (direct matches) over {@code secondary} (related entries pulled in
+   * via association) whenever both are present.
    */
   private <T> List<T> mergeById(List<T> primary, List<T> secondary, Function<T, Long> idOf) {
     Map<Long, T> byId = new LinkedHashMap<>();
