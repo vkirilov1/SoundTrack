@@ -38,7 +38,6 @@ export interface UserReview {
   rating: number;
   title: string;
   comment: string;
-  edited: boolean;
   createdAt: string;
   albumId: number;
   albumTitle: string;

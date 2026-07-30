@@ -14,8 +14,9 @@ public class ReviewMapper {
         .rating(review.getRating())
         .title(review.getTitle())
         .comment(review.getComment())
-        .edited(review.isEdited())
         .username(review.getUser().getUsername())
+        .userId(review.getUser().getId())
+        .profilePictureUrl(review.getUser().getProfilePicture())
         .createdAt(review.getCreatedAt())
         .build();
   }
@@ -26,7 +27,6 @@ public class ReviewMapper {
         .rating(review.getRating())
         .title(review.getTitle())
         .comment(review.getComment())
-        .edited(review.isEdited())
         .createdAt(review.getCreatedAt())
         .albumId(review.getAlbum().getId())
         .albumTitle(review.getAlbum().getTitle())

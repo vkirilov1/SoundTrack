@@ -21,10 +21,4 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 
   @EntityGraph(attributePaths = {"artists"})
   List<Album> findTop8ByTitleContainingIgnoreCase(String title);
-
-  @EntityGraph(attributePaths = {"albumGenres"})
-  List<Album> findByMbidIn(Set<String> mbids);
-
-  @Query("SELECT a FROM Album a WHERE NOT EXISTS (SELECT 1 FROM AlbumGenre ag WHERE ag.album = a)")
-  List<Album> findAlbumsWithNoGenres();
 }

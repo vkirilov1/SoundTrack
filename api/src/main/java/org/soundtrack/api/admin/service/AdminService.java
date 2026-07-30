@@ -14,11 +14,9 @@ import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.Review;
-import org.soundtrack.domain.model.ReviewReply;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
-import org.soundtrack.domain.repository.ReviewReplyRepository;
 import org.soundtrack.domain.repository.ReviewRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -35,7 +33,6 @@ public class AdminService {
   private final AlbumRepository albumRepository;
   private final ArtistRepository artistRepository;
   private final ReviewRepository reviewRepository;
-  private final ReviewReplyRepository reviewReplyRepository;
   private final AlbumMapper albumMapper;
   private final ArtistMapper artistMapper;
 
@@ -57,8 +54,6 @@ public class AdminService {
         userRepository
             .findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-    reviewReplyRepository.deleteAllByUserId(userId);
 
     List<Review> reviews = reviewRepository.findByUserId(userId);
     for (Review review : reviews) {
@@ -133,20 +128,7 @@ public class AdminService {
       album.setReviewsCount(count - 1);
     }
 
-    // Replies to this review are cascade-deleted by the DB (ON DELETE CASCADE on
-    // review_reply.review_id).
     reviewRepository.delete(review);
-  }
-
-  @Transactional
-  public void deleteReply(Long replyId) {
-    ReviewReply reply =
-        reviewReplyRepository
-            .findById(replyId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Reply not found with id: " + replyId));
-
-    reviewReplyRepository.delete(reply);
   }
 
   private AdminUserResponse toAdminUserResponse(User user) {

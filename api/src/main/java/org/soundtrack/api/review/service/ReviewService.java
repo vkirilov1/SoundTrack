@@ -49,12 +49,13 @@ public class ReviewService {
     if (reviewRepository.existsByUserAndAlbum(user, album)) {
       throw new ResourceExistsException(
           String.format(
-              "Album %s has already been reviewed by user %s", album.getTitle(), user.getEmail()));
+              "Album %s has already been reviewed by user %s",
+              album.getTitle(), user.getUsername()));
     }
 
     double rating = request.getRating();
 
-    if ((rating >= 0.0 && rating <= 5.0) && (rating * 2 == (int) (rating * 2))) {
+    if (rating < 0.0 || rating > 5.0 || rating * 2 != (int) (rating * 2)) {
       throw new IllegalArgumentException(
           String.format(
               "Invalid rating %s. Only increments of .5 allowed, ranging from 0-5", rating));
@@ -67,7 +68,6 @@ public class ReviewService {
             .comment(request.getComment())
             .album(album)
             .user(user)
-            .edited(false)
             .createdAt(LocalDateTime.now())
             .build();
 
@@ -105,7 +105,6 @@ public class ReviewService {
     review.setRating(request.getRating());
     review.setTitle(request.getTitle());
     review.setComment(request.getComment());
-    review.setEdited(true);
 
     Review savedReview = reviewRepository.save(review);
 
@@ -156,6 +155,21 @@ public class ReviewService {
 
     return new PagedResponse<>(
         content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
+  }
+
+  @Transactional(readOnly = true)
+  public ReviewResponse getMyReview(Long albumId) {
+
+    Album album = findAlbumById(albumId);
+
+    User user = getAuthenticatedUser();
+
+    Review review =
+        reviewRepository
+            .findByUserAndAlbum(user, album)
+            .orElseThrow(() -> new ResourceNotFoundException("You haven't reviewed this album"));
+
+    return reviewMapper.toResponse(review);
   }
 
   @Transactional(readOnly = true)
