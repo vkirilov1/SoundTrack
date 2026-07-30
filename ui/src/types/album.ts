@@ -23,3 +23,20 @@ export interface AlbumDetail {
   songs: AlbumSong[];
   description: string | null;
 }
+
+export interface AlbumReview {
+  id: number;
+  rating: number;
+  title: string;
+  comment: string;
+  username: string;
+  userId: number;
+  profilePictureUrl: string | null;
+  createdAt: string;
+}
+
+export interface CreateAlbumReviewRequest {
+  rating: number;
+  title: string;
+  comment: string;
+}

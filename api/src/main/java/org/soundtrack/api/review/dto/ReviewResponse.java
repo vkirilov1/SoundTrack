@@ -16,9 +16,11 @@ public class ReviewResponse {
 
   private String comment;
 
-  private boolean edited;
-
   private String username;
+
+  private Long userId;
+
+  private String profilePictureUrl;
 
   private LocalDateTime createdAt;
 }

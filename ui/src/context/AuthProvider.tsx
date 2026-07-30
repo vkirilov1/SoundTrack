@@ -6,7 +6,10 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from "../api/authApi";
-import { setUnauthorizedHandler } from "../api/httpClient";
+import {
+  setSessionRefreshedHandler,
+  setUnauthorizedHandler,
+} from "../api/httpClient";
 import type { LoginRequest, RegisterRequest, UserProfile } from "../types/auth";
 import { AuthContext } from "./AuthContext";
 
@@ -20,7 +23,15 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null));
-    return () => setUnauthorizedHandler(null);
+    setSessionRefreshedHandler(() => {
+      fetchCurrentUser()
+        .then(setUser)
+        .catch(() => setUser(null));
+    });
+    return () => {
+      setUnauthorizedHandler(null);
+      setSessionRefreshedHandler(null);
+    };
   }, []);
 
   useEffect(() => {

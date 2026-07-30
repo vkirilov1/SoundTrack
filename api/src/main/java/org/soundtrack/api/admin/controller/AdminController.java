@@ -51,7 +51,7 @@ public class AdminController {
   @Operation(
       summary = "Delete a user",
       description =
-          "Permanently deletes a user along with all their reviews, replies, and lists."
+          "Permanently deletes a user along with all their reviews and lists."
               + " Album ratings are recalculated automatically.")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "User deleted"),
@@ -102,9 +102,7 @@ public class AdminController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Delete a review",
-      description =
-          "Removes any review regardless of author. Album rating is recalculated."
-              + " All replies under the review are also deleted.")
+      description = "Removes any review regardless of author. Album rating is recalculated.")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "Review deleted"),
     @ApiResponse(responseCode = "401", description = "Not authenticated"),
@@ -114,19 +112,5 @@ public class AdminController {
   public void deleteReview(
       @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId) {
     adminService.deleteReview(reviewId);
-  }
-
-  @DeleteMapping("/replies/{replyId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Delete a reply", description = "Removes any reply regardless of author.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "204", description = "Reply deleted"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not an admin"),
-    @ApiResponse(responseCode = "404", description = "Reply not found")
-  })
-  public void deleteReply(
-      @Parameter(description = "Internal reply ID") @PathVariable("replyId") Long replyId) {
-    adminService.deleteReply(replyId);
   }
 }

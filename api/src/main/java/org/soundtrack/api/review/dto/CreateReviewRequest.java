@@ -17,6 +17,6 @@ public class CreateReviewRequest {
   private String title;
 
   @NotBlank(message = "Comment is required")
-  @Size(max = 7000, message = "Comment too long")
+  @Size(min = 200, max = 3400, message = "Comment must be at least 200 characters")
   private String comment;
 }

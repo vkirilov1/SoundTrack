@@ -9,11 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
-import org.soundtrack.api.review.dto.CreateReviewReplyRequest;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
-import org.soundtrack.api.review.dto.ReviewReplyResponse;
 import org.soundtrack.api.review.dto.ReviewResponse;
-import org.soundtrack.api.review.service.ReviewReplyService;
 import org.soundtrack.api.review.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 public class ReviewController {
 
   private final ReviewService reviewService;
-  private final ReviewReplyService reviewReplyService;
 
   @GetMapping("/{albumId}/reviews")
   @Operation(
@@ -45,6 +41,21 @@ public class ReviewController {
           @RequestParam(name = "size", defaultValue = "20")
           int size) {
     return reviewService.getAlbumReviews(albumId, page, size);
+  }
+
+  @GetMapping("/{albumId}/reviews/me")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(
+      summary = "Get my review for an album",
+      description = "Returns the authenticated user's own review for the given album, if any.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Review returned"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "404", description = "Album not found, or not reviewed by you")
+  })
+  public ReviewResponse getMyReview(
+      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId) {
+    return reviewService.getMyReview(albumId);
   }
 
   @PostMapping("/{albumId}/reviews")
@@ -102,83 +113,5 @@ public class ReviewController {
       @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
       @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId) {
     reviewService.deleteReview(albumId, reviewId);
-  }
-
-  @GetMapping("/{albumId}/reviews/{reviewId}/replies")
-  @Operation(
-      summary = "Get replies for a review",
-      description = "Returns a paginated list of replies for the given review, oldest first.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Replies returned"),
-    @ApiResponse(responseCode = "404", description = "Review or album not found")
-  })
-  public PagedResponse<ReviewReplyResponse> getReviewReplies(
-      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
-      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId,
-      @Parameter(description = "Zero-based page index")
-          @RequestParam(name = "page", defaultValue = "0")
-          int page,
-      @Parameter(description = "Number of replies per page")
-          @RequestParam(name = "size", defaultValue = "20")
-          int size) {
-    return reviewReplyService.getReviewReplies(albumId, reviewId, page, size);
-  }
-
-  @PostMapping("/{albumId}/reviews/{reviewId}/replies")
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(
-      summary = "Post a reply to a review",
-      description = "Adds a reply to the given review. Requires authentication.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "201", description = "Reply created"),
-    @ApiResponse(responseCode = "400", description = "Validation failed"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "404", description = "Review or album not found")
-  })
-  @ResponseStatus(HttpStatus.CREATED)
-  public ReviewReplyResponse createReply(
-      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
-      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId,
-      @Valid @RequestBody CreateReviewReplyRequest request) {
-    return reviewReplyService.createReply(albumId, reviewId, request);
-  }
-
-  @PutMapping("/{albumId}/reviews/{reviewId}/replies/{replyId}")
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(
-      summary = "Edit a reply",
-      description = "Updates the message of a reply. Only the reply's author may edit it.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Reply updated"),
-    @ApiResponse(responseCode = "400", description = "Validation failed"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not the reply's author"),
-    @ApiResponse(responseCode = "404", description = "Reply, review, or album not found")
-  })
-  public ReviewReplyResponse updateReply(
-      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
-      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId,
-      @Parameter(description = "Internal reply ID") @PathVariable("replyId") Long replyId,
-      @Valid @RequestBody CreateReviewReplyRequest request) {
-    return reviewReplyService.updateReply(albumId, reviewId, replyId, request);
-  }
-
-  @DeleteMapping("/{albumId}/reviews/{reviewId}/replies/{replyId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(
-      summary = "Delete a reply",
-      description = "Deletes a reply. Only the reply's author may delete it.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "204", description = "Reply deleted"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not the reply's author"),
-    @ApiResponse(responseCode = "404", description = "Reply, review, or album not found")
-  })
-  public void deleteReply(
-      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
-      @Parameter(description = "Internal review ID") @PathVariable("reviewId") Long reviewId,
-      @Parameter(description = "Internal reply ID") @PathVariable("replyId") Long replyId) {
-    reviewReplyService.deleteReply(albumId, reviewId, replyId);
   }
 }

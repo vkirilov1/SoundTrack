@@ -16,8 +16,6 @@ public class UserReviewResponse {
 
   private String comment;
 
-  private boolean edited;
-
   private LocalDateTime createdAt;
 
   private Long albumId;

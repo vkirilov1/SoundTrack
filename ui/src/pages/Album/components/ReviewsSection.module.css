@@ -1,0 +1,400 @@
+.wrap {
+  margin-top: 40px;
+}
+
+.heading {
+  font-size: 22px;
+}
+
+.composeForm {
+  margin-top: 16px;
+}
+
+.composeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.titleInput {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 2px;
+}
+
+.titleInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.titleInput::placeholder {
+  font-weight: 400;
+  color: var(--color-text);
+  opacity: 0.7;
+}
+
+.ratingPicker {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zeroButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 22px;
+  margin-right: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-star-empty);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.zeroButton.zeroActive {
+  color: var(--color-star);
+}
+
+.starWrap {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+}
+
+.starBg {
+  display: block;
+}
+
+.starClip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  display: block;
+}
+
+.starHalf {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.commentInput {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  max-height: 240px;
+  resize: vertical;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.commentInput::placeholder {
+  color: var(--color-text);
+  opacity: 0.7;
+}
+
+.commentMeta {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.charCount {
+  font-size: 12px;
+  color: var(--color-text);
+  opacity: 0.7;
+}
+
+.charCountShort {
+  font-size: 12px;
+  color: #b3261e;
+}
+
+.formError {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+.composeFooter {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancelButton {
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 18px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: var(--color-border);
+  color: var(--color-ink);
+}
+
+.postButton {
+  background: var(--color-accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.postButton:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.postButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.loginPrompt {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.link {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--color-accent-hover);
+}
+
+.myReviewLoading {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.myReviewCard {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.myReviewActions {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editButton,
+.deleteButton {
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.editButton {
+  color: var(--color-accent);
+}
+
+.editButton:hover {
+  color: var(--color-accent-hover);
+}
+
+.deleteButton {
+  color: #b3261e;
+}
+
+.deleteButton:hover {
+  color: #8f1c15;
+}
+
+.confirmText {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.iconButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.confirmDeleteIconButton {
+  background: #b3261e;
+  color: #ffffff;
+}
+
+.confirmDeleteIconButton:hover:not(:disabled) {
+  background: #8f1c15;
+}
+
+.cancelDeleteIconButton {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.cancelDeleteIconButton:hover:not(:disabled) {
+  background: var(--color-border);
+  color: var(--color-ink);
+  opacity: 0.85;
+}
+
+.listWrap {
+  position: relative;
+  margin-top: 28px;
+}
+
+.list {
+  transition: filter 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.list.blurred {
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.loadingRow {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviewRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewRowHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reviewAvatar {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  background: var(--color-border);
+}
+
+.reviewUsername {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.reviewDate {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text);
+  opacity: 0.7;
+}
+
+.reviewTitleRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.reviewTitle {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.reviewRatingValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.reviewComment {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

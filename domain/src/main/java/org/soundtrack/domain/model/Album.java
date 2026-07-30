@@ -38,7 +38,7 @@ public class Album {
   @Column(name = "cover_pic")
   private String coverUrl;
 
-  @Column(name = "description", columnDefinition = "TEXT")
+  @Column(name = "description", columnDefinition = "TEXT", length = 2400)
   private String description;
 
   @OneToMany(

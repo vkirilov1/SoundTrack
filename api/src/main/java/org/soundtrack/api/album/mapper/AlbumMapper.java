@@ -24,7 +24,10 @@ public class AlbumMapper {
         album.getReviewsCount(),
         album.getArtists().stream().map(this::toArtistResponse).toList(),
         album.getAlbumGenres().stream()
-            .sorted(Comparator.comparingInt(AlbumGenre::getWeight).reversed())
+            .sorted(
+                Comparator.comparingInt(AlbumGenre::getWeight)
+                    .reversed()
+                    .thenComparing(AlbumGenre::getId))
             .map(link -> link.getGenre().getGenre())
             .toList(),
         album.getSongs().stream().map(this::toSongResponse).toList(),

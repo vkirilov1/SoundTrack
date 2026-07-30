@@ -304,6 +304,15 @@
   color: var(--color-accent);
 }
 
+.reviewAlbum a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.reviewAlbum a:hover {
+  color: var(--color-accent-hover);
+}
+
 .reviewComment {
   margin: 2px 0 0;
   font-size: 14px;

@@ -7,6 +7,7 @@ import StarRating from "../../../components/StarRating/StarRating";
 import { MONTH_YEAR_FORMAT } from "../../../lib/date";
 import type { UserReview } from "../../../types/profile";
 import styles from "../Profile.module.css";
+import { Link } from "react-router-dom";
 
 interface ReviewsCardProps {
   userId: number;
@@ -93,7 +94,9 @@ function ReviewsCard({ userId }: ReviewsCardProps) {
                     </div>
                   </div>
                   <span className={styles.reviewAlbum}>
-                    {review.albumTitle}
+                    <Link to={`/album/${review.albumId}`}>
+                      {review.albumTitle}
+                    </Link>
                   </span>
                   <p className={styles.reviewComment}>{review.comment}</p>
                 </li>

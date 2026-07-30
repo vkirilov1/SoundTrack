@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getAlbum } from "../../api/albumApi";
 import { ApiError } from "../../api/ApiError";
@@ -8,12 +8,11 @@ import { FULL_DATE_FORMAT } from "../../lib/date";
 import { coverImageUrl } from "../../lib/images";
 import type { AlbumDetail } from "../../types/album";
 import styles from "./Album.module.css";
+import ReviewsSection from "./components/ReviewsSection";
 
-const DESCRIPTION_PREVIEW_LENGTH = 260;
-// Prominent genre pills vs. the smaller "extended" row underneath. This split isn't
-// meaningful relevance ordering until the backend has weighted album_genre data for
-// this album (see SearchService/dataload genre-weight work) - it's just first N / rest.
+const DESCRIPTION_PREVIEW_LENGTH = 180;
 const PRIMARY_GENRE_COUNT = 4;
+const SECONDARY_GENRE_COUNT = 8;
 
 function AlbumCover({
   coverUrl,
@@ -57,6 +56,7 @@ function Album() {
   const [loading, setLoading] = useState(() => !invalidId);
   const [notFound, setNotFound] = useState(() => invalidId);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (invalidId) return;
@@ -84,6 +84,20 @@ function Album() {
     };
   }, [id, invalidId]);
 
+  function focusReviewInput() {
+    commentInputRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    commentInputRef.current?.focus();
+  }
+
+  function handleReviewPosted() {
+    getAlbum(id)
+      .then(setAlbum)
+      .catch(() => {});
+  }
+
   if (loading) {
     return (
       <section className={styles.wrap}>
@@ -110,7 +124,10 @@ function Album() {
   }
 
   const primaryGenres = album.genres.slice(0, PRIMARY_GENRE_COUNT);
-  const secondaryGenres = album.genres.slice(PRIMARY_GENRE_COUNT);
+  const secondaryGenres = album.genres.slice(
+    PRIMARY_GENRE_COUNT,
+    PRIMARY_GENRE_COUNT + SECONDARY_GENRE_COUNT,
+  );
 
   const description = album.description?.trim() || null;
   const showReadMore =
@@ -164,16 +181,29 @@ function Album() {
             </div>
           )}
 
-          <p className={styles.rating}>
-            <span className={styles.ratingValue}>
-              {album.rating.toFixed(1)}/5
-            </span>
-            <span className={styles.ratingMeta}>
-              {" "}
-              based on {album.reviewsCount}{" "}
-              {album.reviewsCount === 1 ? "review" : "reviews"}
-            </span>
-          </p>
+          {album.reviewsCount === 0 ? (
+            <p className={styles.noReviews}>
+              No reviews yet, be the{" "}
+              <button
+                type="button"
+                className={styles.noReviewsLink}
+                onClick={focusReviewInput}
+              >
+                first
+              </button>
+            </p>
+          ) : (
+            <p className={styles.rating}>
+              <span className={styles.ratingValue}>
+                {album.rating.toFixed(2)}/5
+              </span>
+              <span className={styles.ratingMeta}>
+                {" "}
+                based on {album.reviewsCount}{" "}
+                {album.reviewsCount === 1 ? "review" : "reviews"}
+              </span>
+            </p>
+          )}
 
           <div className={styles.description}>
             {description ? (
@@ -197,6 +227,12 @@ function Album() {
           </div>
         </div>
       </div>
+
+      <ReviewsSection
+        albumId={id}
+        commentInputRef={commentInputRef}
+        onReviewPosted={handleReviewPosted}
+      />
     </section>
   );
 }
