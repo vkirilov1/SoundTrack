@@ -15,7 +15,13 @@ const DESCRIPTION_PREVIEW_LENGTH = 260;
 // this album (see SearchService/dataload genre-weight work) - it's just first N / rest.
 const PRIMARY_GENRE_COUNT = 4;
 
-function AlbumCover({ coverUrl, title }: { coverUrl: string | null; title: string }) {
+function AlbumCover({
+  coverUrl,
+  title,
+}: {
+  coverUrl: string | null;
+  title: string;
+}) {
   if (coverUrl) {
     return (
       <img src={coverImageUrl(coverUrl)} alt={title} className={styles.cover} />
@@ -159,7 +165,9 @@ function Album() {
           )}
 
           <p className={styles.rating}>
-            <span className={styles.ratingValue}>{album.rating.toFixed(1)}/5</span>
+            <span className={styles.ratingValue}>
+              {album.rating.toFixed(1)}/5
+            </span>
             <span className={styles.ratingMeta}>
               {" "}
               based on {album.reviewsCount}{" "}
@@ -175,7 +183,9 @@ function Album() {
                   <button
                     type="button"
                     className={styles.readMoreButton}
-                    onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+                    onClick={() =>
+                      setDescriptionExpanded((expanded) => !expanded)
+                    }
                   >
                     {descriptionExpanded ? "Show less" : "Read more"}
                   </button>
