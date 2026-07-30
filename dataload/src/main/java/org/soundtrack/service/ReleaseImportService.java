@@ -110,6 +110,28 @@ public class ReleaseImportService {
   }
 
   /**
+   * Collapses a release's tag list down to one weight per genre name. MusicBrainz can list the same
+   * tag name more than once for a release (e.g. merged from multiple sub-releases); without this,
+   * {@link Album#addGenre} would create two distinct AlbumGenre link rows for the same (album,
+   * genre) pair and violate the {@code uq_album_genre} constraint on save. When a name repeats, the
+   * higher vote count wins.
+   *
+   * @param tags the release's raw tag list, possibly null
+   * @return genre name (trimmed) to relevance weight, deduplicated
+   */
+  private Map<String, Integer> dedupeTagWeights(List<MBReleaseDTO.TagDTO> tags) {
+    if (tags == null) {
+      return Map.of();
+    }
+
+    Map<String, Integer> weightsByName = new LinkedHashMap<>();
+    for (MBReleaseDTO.TagDTO tag : tags) {
+      weightsByName.merge(tag.name.trim(), tag.count, Math::max);
+    }
+    return weightsByName;
+  }
+
+  /**
    * Validates a release and saves it to the database
    *
    * @param release the release dto
@@ -142,12 +164,10 @@ public class ReleaseImportService {
       album.setSongs(songs);
     }
 
-    if (release.tags != null) {
-      for (MBReleaseDTO.TagDTO tag : release.tags) {
-        Genre genre = genreMap.get(tag.name);
-        if (genre != null) {
-          album.addGenre(genre);
-        }
+    for (Map.Entry<String, Integer> tagWeight : dedupeTagWeights(release.tags).entrySet()) {
+      Genre genre = genreMap.get(tagWeight.getKey());
+      if (genre != null) {
+        album.addGenre(genre, tagWeight.getValue());
       }
     }
 
@@ -159,7 +179,7 @@ public class ReleaseImportService {
         "Saving album {} with {} artists, {} genres, and {} songs",
         album.getTitle(),
         albumArtists.size(),
-        album.getGenres().size(),
+        album.getAlbumGenres().size(),
         album.getSongs().size());
 
     saveAlbum(album);
@@ -347,11 +367,21 @@ public class ReleaseImportService {
             .map(tag -> tag.name.trim())
             .collect(Collectors.toSet());
 
+    return resolveGenres(allTagNames);
+  }
+
+  /**
+   * Looks up existing {@link Genre} rows for the given names, creating any that don't exist yet.
+   *
+   * @param tagNames genre/tag names to resolve, already trimmed
+   * @return name to saved {@link Genre}
+   */
+  private Map<String, Genre> resolveGenres(Set<String> tagNames) {
     Map<String, Genre> genreMap =
-        genreRepository.findAllByGenreIn(allTagNames).stream()
+        genreRepository.findAllByGenreIn(tagNames).stream()
             .collect(Collectors.toMap(Genre::getGenre, g -> g));
 
-    for (String tagName : allTagNames) {
+    for (String tagName : tagNames) {
       if (!genreMap.containsKey(tagName)) {
         Genre newGenre = new Genre();
         newGenre.setGenre(tagName);

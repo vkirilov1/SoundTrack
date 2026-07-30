@@ -1,8 +1,6 @@
 package org.soundtrack.domain.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +17,4 @@ public class Genre {
 
   @Column(name = "genre", unique = true, nullable = false)
   private String genre;
-
-  @ManyToMany(mappedBy = "genres")
-  private Set<Album> albums = new HashSet<>();
 }

@@ -38,6 +38,9 @@ public class Album {
   @Column(name = "cover_pic")
   private String coverUrl;
 
+  @Column(name = "description", columnDefinition = "TEXT")
+  private String description;
+
   @OneToMany(
       mappedBy = "album",
       cascade = CascadeType.ALL,
@@ -46,12 +49,12 @@ public class Album {
   @OrderBy("position ASC")
   private Set<Song> songs = new LinkedHashSet<>();
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "album_genre",
-      joinColumns = @JoinColumn(name = "album_id"),
-      inverseJoinColumns = @JoinColumn(name = "genre_id"))
-  private Set<Genre> genres = new HashSet<>();
+  @OneToMany(
+      mappedBy = "album",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.LAZY)
+  private Set<AlbumGenre> albumGenres = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
@@ -70,11 +73,16 @@ public class Album {
   }
 
   /**
-   * Adds a new genre to the Album Entity
+   * Links a genre to this album with a relevance weight (MusicBrainz tag vote count).
    *
    * @param genre the genre
+   * @param weight the tag's relevance weight for this album
    */
-  public void addGenre(Genre genre) {
-    this.genres.add(genre);
+  public void addGenre(Genre genre, int weight) {
+    AlbumGenre link = new AlbumGenre();
+    link.setAlbum(this);
+    link.setGenre(genre);
+    link.setWeight(weight);
+    this.albumGenres.add(link);
   }
 }

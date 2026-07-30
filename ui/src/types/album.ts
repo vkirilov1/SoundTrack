@@ -1,0 +1,25 @@
+export interface AlbumArtist {
+  id: number;
+  name: string;
+}
+
+export interface AlbumSong {
+  id: number;
+  position: number;
+  title: string;
+  durationSeconds: number;
+  artists: AlbumArtist[];
+}
+
+export interface AlbumDetail {
+  id: number;
+  title: string;
+  coverUrl: string | null;
+  releaseDate: string;
+  rating: number;
+  reviewsCount: number;
+  artists: AlbumArtist[];
+  genres: string[];
+  songs: AlbumSong[];
+  description: string | null;
+}

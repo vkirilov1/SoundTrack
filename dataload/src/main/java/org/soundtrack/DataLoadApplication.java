@@ -14,7 +14,7 @@ public class DataLoadApplication {
   }
 
   @Bean
-  CommandLineRunner run(ReleaseImportService importService) throws InterruptedException {
+  CommandLineRunner run(ReleaseImportService importService) {
     return args -> {
       importService.importAllReleasesByYear(1969);
     };
