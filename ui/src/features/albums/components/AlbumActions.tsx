@@ -15,7 +15,11 @@ interface AlbumActionsProps {
 
 type AddStatus = "idle" | "adding" | "added" | "error";
 
-function AlbumActions({ albumId, favorited, onFavoriteChange }: AlbumActionsProps) {
+function AlbumActions({
+  albumId,
+  favorited,
+  onFavoriteChange,
+}: AlbumActionsProps) {
   const { user: currentUser } = useAuth();
 
   const [favoritePending, setFavoritePending] = useState(false);
@@ -50,7 +54,9 @@ function AlbumActions({ albumId, favorited, onFavoriteChange }: AlbumActionsProp
     setFavoritePending(true);
     onFavoriteChange(next);
 
-    const request = next ? addFavoriteAlbum(albumId) : removeFavoriteAlbum(albumId);
+    const request = next
+      ? addFavoriteAlbum(albumId)
+      : removeFavoriteAlbum(albumId);
 
     request
       .catch(() => onFavoriteChange(!next))
@@ -65,9 +71,6 @@ function AlbumActions({ albumId, favorited, onFavoriteChange }: AlbumActionsProp
       getMyLists(0, 50, albumId)
         .then((res) => {
           setLists(res.content);
-          // Lists that already contain this album can't be "added" to again - pre-seed
-          // their status so the button renders disabled/"Added ✓" instead of offering an
-          // action that would just 409.
           setAddStatus((prev) => {
             const next = { ...prev };
             res.content.forEach((list) => {
@@ -127,7 +130,11 @@ function AlbumActions({ albumId, favorited, onFavoriteChange }: AlbumActionsProp
     <div className={styles.wrap}>
       <button
         type="button"
-        className={favorited ? `${styles.favoriteButton} ${styles.active}` : styles.favoriteButton}
+        className={
+          favorited
+            ? `${styles.favoriteButton} ${styles.active}`
+            : styles.favoriteButton
+        }
         onClick={handleToggleFavorite}
         disabled={favoritePending}
         aria-pressed={favorited}
@@ -159,7 +166,11 @@ function AlbumActions({ albumId, favorited, onFavoriteChange }: AlbumActionsProp
                       >
                         <span>{list.name}</span>
                         <span className={styles.menuItemStatus}>
-                          {status === "adding" ? "Adding…" : status === "added" ? "Added ✓" : ""}
+                          {status === "adding"
+                            ? "Adding…"
+                            : status === "added"
+                              ? "Added ✓"
+                              : ""}
                         </span>
                       </button>
                     </li>

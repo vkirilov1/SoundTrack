@@ -13,6 +13,5 @@ public class UserListSummaryResponse {
   private int itemCount;
   private String coverUrl;
 
-  @Builder.Default
-  private boolean containsAlbum = false;
+  @Builder.Default private boolean containsAlbum = false;
 }

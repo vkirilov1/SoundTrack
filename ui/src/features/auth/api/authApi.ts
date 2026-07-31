@@ -1,4 +1,8 @@
-import type { LoginRequest, RegisterRequest, UserProfile } from "../../../types/auth";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UserProfile,
+} from "../../../types/auth";
 import { ApiError } from "../../../lib/api-error";
 import { apiFetch } from "../../../lib/api-client";
 

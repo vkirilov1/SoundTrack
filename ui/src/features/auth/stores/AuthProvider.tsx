@@ -10,7 +10,11 @@ import {
   setSessionRefreshedHandler,
   setUnauthorizedHandler,
 } from "../../../lib/api-client";
-import type { LoginRequest, RegisterRequest, UserProfile } from "../../../types/auth";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UserProfile,
+} from "../../../types/auth";
 import { AuthContext } from "./AuthContext";
 
 interface AuthProviderProps {

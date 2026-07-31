@@ -20,12 +20,6 @@ public interface UserListRepository extends JpaRepository<UserList, Long> {
   Set<Long> findListIdsByOwnerIdContainingAlbum(
       @Param("ownerId") Long ownerId, @Param("albumId") Long albumId);
 
-  // Deliberately NOT joining "albums.artists" here: fetching two collections in one query
-  // (albums + albums.artists) produces one SQL row per (album, artist) pair, and since
-  // `albums` is a List (not a Set), Hibernate doesn't dedupe the resulting rows - an album
-  // with 2+ artists ends up duplicated in the in-memory list, which then causes duplicate-key
-  // violations when the list is later flushed. Artist names are still available lazily,
-  // within the same transaction, via UserListMapper.
   @EntityGraph(attributePaths = {"albums", "owner"})
   Optional<UserList> findDetailedById(Long id);
 }

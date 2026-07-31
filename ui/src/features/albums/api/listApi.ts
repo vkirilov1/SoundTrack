@@ -29,7 +29,9 @@ export async function getMyLists(
   return response.json() as Promise<PagedResponse<UserListSummary>>;
 }
 
-export async function createList(name: string): Promise<{ id: number; name: string }> {
+export async function createList(
+  name: string,
+): Promise<{ id: number; name: string }> {
   const response = await apiFetch("/lists", {
     method: "POST",
     body: JSON.stringify({ name, description: null }),

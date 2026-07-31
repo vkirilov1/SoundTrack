@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { search, searchUsers } from "../api/searchApi";
-import { artistImageUrl, coverImageUrl, userPhotoUrl } from "../../../utils/images";
+import {
+  artistImageUrl,
+  coverImageUrl,
+  userPhotoUrl,
+} from "../../../utils/images";
 import type { UserProfile } from "../../../types/auth";
 import type { SearchResponse, SearchResult } from "../types";
 import styles from "./SearchBar.module.css";

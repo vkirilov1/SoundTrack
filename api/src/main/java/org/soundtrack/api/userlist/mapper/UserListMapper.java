@@ -19,8 +19,8 @@ public class UserListMapper {
 
   /**
    * @param listIdsContainingAlbum ids of lists (from the same caller's set of lists) that already
-   *     contain a particular album; used to flag {@code containsAlbum} when the caller is
-   *     choosing which list to add an album to. Empty when that context isn't relevant.
+   *     contain a particular album; used to flag {@code containsAlbum} when the caller is choosing
+   *     which list to add an album to. Empty when that context isn't relevant.
    */
   public UserListSummaryResponse toSummary(UserList userList, Set<Long> listIdsContainingAlbum) {
     List<Album> albums = userList.getAlbums();

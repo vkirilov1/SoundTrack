@@ -106,7 +106,10 @@ function AlbumPage() {
         ? {
             ...prev,
             favorited: nextFavorited,
-            songs: prev.songs.map((song) => ({ ...song, favorited: nextFavorited })),
+            songs: prev.songs.map((song) => ({
+              ...song,
+              favorited: nextFavorited,
+            })),
           }
         : prev,
     );

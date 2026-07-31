@@ -30,7 +30,9 @@ function SongsSection({ songs, onSongFavoriteChange }: SongsSectionProps) {
     setPendingIds((prev) => new Set(prev).add(song.id));
     onSongFavoriteChange(song.id, next);
 
-    const request = next ? addFavoriteSong(song.id) : removeFavoriteSong(song.id);
+    const request = next
+      ? addFavoriteSong(song.id)
+      : removeFavoriteSong(song.id);
 
     request
       .catch(() => onSongFavoriteChange(song.id, !next))

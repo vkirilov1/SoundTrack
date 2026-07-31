@@ -1,5 +1,9 @@
 import { createContext } from "react";
-import type { LoginRequest, RegisterRequest, UserProfile } from "../../../types/auth";
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UserProfile,
+} from "../../../types/auth";
 
 export interface AuthContextValue {
   user: UserProfile | null;
