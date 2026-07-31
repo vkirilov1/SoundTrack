@@ -19,4 +19,6 @@ public record AlbumResponse(
         List<String> genres,
     List<SongResponse> songs,
     @Schema(description = "User-facing album description, null until one is written")
-        String description) {}
+        String description,
+    @Schema(description = "Whether the current authenticated user has favorited this album")
+        boolean favorited) {}

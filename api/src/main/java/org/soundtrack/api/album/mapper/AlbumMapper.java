@@ -1,6 +1,7 @@
 package org.soundtrack.api.album.mapper;
 
 import java.util.Comparator;
+import java.util.Set;
 import org.soundtrack.api.album.dto.AlbumResponse;
 import org.soundtrack.api.album.dto.ArtistResponse;
 import org.soundtrack.api.album.dto.SongResponse;
@@ -13,7 +14,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class AlbumMapper {
 
-  public AlbumResponse toResponse(Album album) {
+  /**
+   * Maps an album to its response DTO.
+   *
+   * @param album the album
+   * @param favorited whether the current caller has this album favorited (false for anonymous
+   *     callers or contexts with no meaningful "current user", e.g. admin edits)
+   * @param favoritedSongIds ids of this album's songs the current caller has favorited
+   */
+  public AlbumResponse toResponse(Album album, boolean favorited, Set<Long> favoritedSongIds) {
 
     return new AlbumResponse(
         album.getId(),
@@ -30,21 +39,23 @@ public class AlbumMapper {
                     .thenComparing(AlbumGenre::getId))
             .map(link -> link.getGenre().getGenre())
             .toList(),
-        album.getSongs().stream().map(this::toSongResponse).toList(),
-        album.getDescription());
+        album.getSongs().stream().map(song -> toSongResponse(song, favoritedSongIds)).toList(),
+        album.getDescription(),
+        favorited);
   }
 
   private ArtistResponse toArtistResponse(Artist artist) {
     return new ArtistResponse(artist.getId(), artist.getArtistName());
   }
 
-  private SongResponse toSongResponse(Song song) {
+  private SongResponse toSongResponse(Song song, Set<Long> favoritedSongIds) {
 
     return new SongResponse(
         song.getId(),
         song.getPosition(),
         song.getTitle(),
         song.getDuration().toSeconds(),
-        song.getArtists().stream().map(this::toArtistResponse).toList());
+        song.getArtists().stream().map(this::toArtistResponse).toList(),
+        favoritedSongIds.contains(song.getId()));
   }
 }

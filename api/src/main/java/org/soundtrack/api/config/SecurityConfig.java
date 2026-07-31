@@ -40,7 +40,11 @@ public class SecurityConfig {
                         "/api/auth/logout")
                     .permitAll()
                     .requestMatchers(
-                        "/api/albums/**", "/api/users/*", "/api/users/*/reviews", "/api/images/**")
+                        HttpMethod.GET,
+                        "/api/albums/**",
+                        "/api/users/*",
+                        "/api/users/*/reviews",
+                        "/api/images/**")
                     .permitAll()
                     .requestMatchers(
                         "/api/favorites/albums/user/*",

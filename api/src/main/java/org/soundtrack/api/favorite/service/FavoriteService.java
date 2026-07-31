@@ -47,6 +47,13 @@ public class FavoriteService {
                 () -> new ResourceNotFoundException("Album not found with id: " + albumId));
 
     favoriteAlbumRepository.save(FavoriteAlbum.builder().user(user).album(album).build());
+
+    // Favoriting an album favorites its whole tracklist too
+    for (Song song : songRepository.findByAlbumId(albumId)) {
+      if (!favoriteSongRepository.existsByUserIdAndSongId(user.getId(), song.getId())) {
+        favoriteSongRepository.save(FavoriteSong.builder().user(user).song(song).build());
+      }
+    }
   }
 
   @Transactional
@@ -59,6 +66,13 @@ public class FavoriteService {
             .orElseThrow(() -> new ResourceNotFoundException("Album not found in favorites"));
 
     favoriteAlbumRepository.delete(favorite);
+
+    // Mirrors the cascade in addFavoriteAlbum
+    for (Song song : songRepository.findByAlbumId(albumId)) {
+      favoriteSongRepository
+          .findByUserIdAndSongId(user.getId(), song.getId())
+          .ifPresent(favoriteSongRepository::delete);
+    }
   }
 
   @Transactional(readOnly = true)

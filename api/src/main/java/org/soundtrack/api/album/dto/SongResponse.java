@@ -8,4 +8,6 @@ public record SongResponse(
     Short position,
     String title,
     @Schema(description = "Track duration in seconds") Long durationSeconds,
-    List<ArtistResponse> artists) {}
+    List<ArtistResponse> artists,
+    @Schema(description = "Whether the current authenticated user has favorited this song")
+        boolean favorited) {}
