@@ -1,6 +1,7 @@
 package org.soundtrack.api.admin.service;
 
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.admin.dto.AdminUserResponse;
 import org.soundtrack.api.admin.dto.UpdateAlbumRequest;
@@ -90,7 +91,7 @@ public class AdminService {
       album.setCoverUrl(request.getCoverUrl());
     }
 
-    return albumMapper.toResponse(album);
+    return albumMapper.toResponse(album, false, Set.of());
   }
 
   @Transactional

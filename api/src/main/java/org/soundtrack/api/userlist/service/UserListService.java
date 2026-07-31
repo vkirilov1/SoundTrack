@@ -1,6 +1,7 @@
 package org.soundtrack.api.userlist.service;
 
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ForbiddenException;
@@ -34,15 +35,22 @@ public class UserListService {
   private final UserListMapper userListMapper;
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserListSummaryResponse> getMyLists(int page, int size) {
+  public PagedResponse<UserListSummaryResponse> getMyLists(int page, int size, Long albumId) {
     User user = getAuthenticatedUser();
 
     Page<UserList> listPage =
         userListRepository.findByOwnerId(
             user.getId(), PageRequest.of(page, size, Sort.by("id").ascending()));
 
+    Set<Long> listIdsContainingAlbum =
+        albumId != null
+            ? userListRepository.findListIdsByOwnerIdContainingAlbum(user.getId(), albumId)
+            : Set.of();
+
     List<UserListSummaryResponse> content =
-        listPage.getContent().stream().map(userListMapper::toSummary).toList();
+        listPage.getContent().stream()
+            .map(list -> userListMapper.toSummary(list, listIdsContainingAlbum))
+            .toList();
 
     return new PagedResponse<>(
         content, page, size, listPage.getTotalElements(), listPage.getTotalPages());

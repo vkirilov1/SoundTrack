@@ -28,7 +28,9 @@ public class UserListController {
   @SecurityRequirement(name = "bearerAuth")
   @Operation(
       summary = "Get my lists",
-      description = "Returns a paginated summary of the authenticated user's lists.")
+      description =
+          "Returns a paginated summary of the authenticated user's lists. When albumId is"
+              + " given, each list is flagged with whether it already contains that album.")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Lists returned"),
     @ApiResponse(responseCode = "401", description = "Not authenticated")
@@ -39,8 +41,11 @@ public class UserListController {
           int page,
       @Parameter(description = "Number of lists per page")
           @RequestParam(name = "size", defaultValue = "20")
-          int size) {
-    return userListService.getMyLists(page, size);
+          int size,
+      @Parameter(description = "Optional album ID to flag membership for")
+          @RequestParam(name = "albumId", required = false)
+          Long albumId) {
+    return userListService.getMyLists(page, size, albumId);
   }
 
   @GetMapping("/user/{userId}")

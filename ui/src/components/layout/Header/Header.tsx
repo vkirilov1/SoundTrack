@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import logo from "../../../assets/SoundTrackLogo.png";
-import SearchBar from "../../SearchBar/SearchBar";
-import { useAuth } from "../../../context/useAuth";
+import SearchBar from "../../../features/search/components/SearchBar";
+import { useAuth } from "../../../features/auth/stores/useAuth";
 import styles from "./Header.module.css";
 
 const NAV_LINKS = ["Charts", "Chats", "Drops"];
