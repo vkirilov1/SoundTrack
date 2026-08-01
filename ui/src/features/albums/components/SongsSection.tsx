@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import { Link } from "react-router-dom";
 import { addFavoriteSong, removeFavoriteSong } from "../api/favoriteApi";
 import HeartIcon from "../../../components/HeartIcon/HeartIcon";
 import { useAuth } from "../../../features/auth/stores/useAuth";
@@ -55,8 +56,18 @@ function SongsSection({ songs, onSongFavoriteChange }: SongsSectionProps) {
             <div className={styles.info}>
               <span className={styles.title}>{song.title}</span>
               {song.artists.length > 0 && (
-                <span className={styles.artists}>
-                  {song.artists.map((artist) => artist.name).join(", ")}
+                <span>
+                  {song.artists.map((artist, index) => (
+                    <Fragment key={artist.id}>
+                      <Link
+                        to={`/artist/${artist.id}`}
+                        className={styles.artistLink}
+                      >
+                        {artist.name}
+                      </Link>
+                      {index < song.artists.length - 1 && ", "}
+                    </Fragment>
+                  ))}
                 </span>
               )}
             </div>
