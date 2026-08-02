@@ -5,13 +5,6 @@ import type { UserListSummary } from "../../../types/list";
 
 export type AddStatus = "idle" | "adding" | "added" | "error";
 
-/**
- * Drives the "add this album to one of my lists" dropdown: lazy-loads the user's
- * lists (pre-flagging ones that already contain the album so they render
- * disabled instead of risking a 409), handles adding, and inline list creation.
- * Shared between the album page's full pill button and the artist page's
- * compact icon button.
- */
 export function useAddToListMenu(albumId: number) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [lists, setLists] = useState<UserListSummary[] | null>(null);
