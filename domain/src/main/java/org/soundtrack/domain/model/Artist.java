@@ -1,8 +1,9 @@
 package org.soundtrack.domain.model;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,15 +30,23 @@ public class Artist {
   @Column(name = "artist_type")
   private String artistType;
 
-  @Column(name = "biography", length = 1024)
+  @Column(name = "biography", length = 3400)
   private String biography;
 
   @Column(name = "artist_pic", length = 512)
   private String artistPic;
 
-  @ManyToMany(mappedBy = "artists")
-  private List<Song> songs = new ArrayList<>();
+  @OneToMany(mappedBy = "artist", fetch = FetchType.LAZY)
+  private Set<SongArtist> songCredits = new HashSet<>();
 
-  @ManyToMany(mappedBy = "artists")
-  private List<Album> albums = new ArrayList<>();
+  @OneToMany(mappedBy = "artist", fetch = FetchType.LAZY)
+  private Set<AlbumArtist> albumCredits = new HashSet<>();
+
+  public List<Song> getSongs() {
+    return songCredits.stream().map(SongArtist::getSong).toList();
+  }
+
+  public List<Album> getAlbums() {
+    return albumCredits.stream().map(AlbumArtist::getAlbum).toList();
+  }
 }

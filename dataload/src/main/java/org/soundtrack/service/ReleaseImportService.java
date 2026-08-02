@@ -171,8 +171,8 @@ public class ReleaseImportService {
       }
     }
 
-    for (Artist artist : albumArtists) {
-      album.addArtist(artist);
+    for (int position = 0; position < albumArtists.size(); position++) {
+      album.addArtist(albumArtists.get(position), position);
     }
 
     log.debug(
@@ -199,13 +199,18 @@ public class ReleaseImportService {
       return List.of();
     }
 
-    Set<String> mbids =
+    List<String> orderedMbids =
         credits.stream()
             .filter(c -> c.artist != null && c.artist.id != null)
             .map(c -> c.artist.id)
-            .collect(Collectors.toSet());
+            .distinct()
+            .toList();
 
-    return resolveArtistsByMbids(mbids);
+    Map<String, Artist> artistsByMbid =
+        resolveArtistsByMbids(new LinkedHashSet<>(orderedMbids)).stream()
+            .collect(Collectors.toMap(Artist::getMbid, Function.identity()));
+
+    return orderedMbids.stream().map(artistsByMbid::get).filter(Objects::nonNull).toList();
   }
 
   /**
@@ -299,16 +304,24 @@ public class ReleaseImportService {
 
       if (track.artistCredits != null) {
 
+        Set<String> seenArtistMbids = new HashSet<>();
+        int position = 0;
+
         for (MBReleaseRecordingDTO.ArtistCredit credit : track.artistCredits) {
 
           if (credit.artist == null || credit.artist.id == null) {
             continue;
           }
 
+          if (!seenArtistMbids.add(credit.artist.id)) {
+            continue;
+          }
+
           Artist artist = artistsByMbid.get(credit.artist.id);
 
           if (artist != null) {
-            song.addArtist(artist);
+            song.addArtist(artist, position);
+            position++;
           }
         }
       }

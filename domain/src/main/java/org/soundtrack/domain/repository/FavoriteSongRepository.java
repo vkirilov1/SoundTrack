@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface FavoriteSongRepository extends JpaRepository<FavoriteSong, Long> {
 
-  @EntityGraph(attributePaths = {"song", "song.album", "song.artists"})
+  @EntityGraph(attributePaths = {"song", "song.album", "song.songArtists"})
   Page<FavoriteSong> findByUserId(Long userId, Pageable pageable);
 
   Optional<FavoriteSong> findByUserIdAndSongId(Long userId, Long songId);

@@ -32,13 +32,13 @@ function Header() {
               <Link to={`/profile/${user.id}`} className={styles.username}>
                 {user.username}
               </Link>
-              <button
-                type="button"
+              <Link
+                to="/"
                 className={styles.logoutButton}
                 onClick={() => logout()}
               >
                 Log out
-              </button>
+              </Link>
             </div>
           ) : (
             <Link to="/login" className={styles.signIn}>

@@ -94,21 +94,21 @@ public class AdminService {
     return albumMapper.toResponse(album, false, Set.of());
   }
 
-  @Transactional
-  public ArtistResponse updateArtist(Long artistId, UpdateArtistRequest request) {
-    Artist artist =
-        artistRepository
-            .findDetailedById(artistId)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Artist not found with id: " + artistId));
-
-    artist.setArtistName(request.getArtistName());
-    artist.setCountry(request.getCountry());
-    artist.setArtistType(request.getArtistType());
-    artist.setBiography(request.getBiography());
-
-    return artistMapper.toResponse(artist);
-  }
+//  @Transactional
+//  public ArtistResponse updateArtist(Long artistId, UpdateArtistRequest request) {
+//    Artist artist =
+//        artistRepository
+//            .findDetailedById(artistId)
+//            .orElseThrow(
+//                () -> new ResourceNotFoundException("Artist not found with id: " + artistId));
+//
+//    artist.setArtistName(request.getArtistName());
+//    artist.setCountry(request.getCountry());
+//    artist.setArtistType(request.getArtistType());
+//    artist.setBiography(request.getBiography());
+//
+//    return artistMapper.toResponse(artist);
+//  }
 
   @Transactional
   public void deleteReview(Long reviewId) {

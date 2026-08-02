@@ -16,9 +16,11 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   Set<String> findExistingMbids(@Param("mbids") Set<String> mbids);
 
   @EntityGraph(
-      attributePaths = {"artists", "albumGenres", "albumGenres.genre", "songs", "songs.artists"})
+      attributePaths = {
+        "albumArtists", "albumGenres", "albumGenres.genre", "songs", "songs.songArtists"
+      })
   Optional<Album> findDetailedById(Long id);
 
-  @EntityGraph(attributePaths = {"artists"})
+  @EntityGraph(attributePaths = {"albumArtists"})
   List<Album> findTop8ByTitleContainingIgnoreCase(String title);
 }

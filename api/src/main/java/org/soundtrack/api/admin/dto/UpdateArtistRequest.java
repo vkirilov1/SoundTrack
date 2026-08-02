@@ -17,6 +17,6 @@ public class UpdateArtistRequest {
 
   private String artistType;
 
-  @Size(max = 1024, message = "Biography cannot exceed 1024 characters")
+  @Size(max = 3400, message = "Biography cannot exceed 3400 characters")
   private String biography;
 }

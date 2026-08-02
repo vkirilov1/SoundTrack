@@ -56,20 +56,40 @@ public class Album {
       fetch = FetchType.LAZY)
   private Set<AlbumGenre> albumGenres = new HashSet<>();
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "album_artist",
-      joinColumns = @JoinColumn(name = "album_id"),
-      inverseJoinColumns = @JoinColumn(name = "artist_id"))
-  private Set<Artist> artists = new HashSet<>();
+  @OneToMany(
+      mappedBy = "album",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.LAZY)
+  private Set<AlbumArtist> albumArtists = new HashSet<>();
 
   /**
    * Adds a new artist to the Album Entity
    *
    * @param artist the artist
+   * @param position the artist's MusicBrainz credit order (0 = primary artist)
    */
-  public void addArtist(Artist artist) {
-    this.artists.add(artist);
+  public void addArtist(Artist artist, int position) {
+    AlbumArtist link = new AlbumArtist();
+    link.setAlbum(this);
+    link.setArtist(artist);
+    link.setPosition(position);
+    this.albumArtists.add(link);
+  }
+
+  /**
+   * Returns this album's artists ordered by MusicBrainz credit position (primary artist first),
+   * falling back to alphabetical order for ties - e.g. rows imported before credit order was
+   * tracked, which all default to position 0.
+   */
+  public List<Artist> getArtists() {
+    return albumArtists.stream()
+        .sorted(
+            Comparator.comparingInt(AlbumArtist::getPosition)
+                .thenComparing(
+                    link -> link.getArtist().getArtistName(), String.CASE_INSENSITIVE_ORDER))
+        .map(AlbumArtist::getArtist)
+        .toList();
   }
 
   /**

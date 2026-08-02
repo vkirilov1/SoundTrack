@@ -6,7 +6,7 @@ import Spinner from "../../../components/Spinner/Spinner";
 import StarRating from "../../../components/StarRating/StarRating";
 import { MONTH_YEAR_FORMAT } from "../../../utils/date";
 import type { UserReview } from "../types";
-import styles from "./ProfilePage.module.css";
+import styles from "./ReviewsCard.module.css";
 import { Link } from "react-router-dom";
 
 interface ReviewsCardProps {
