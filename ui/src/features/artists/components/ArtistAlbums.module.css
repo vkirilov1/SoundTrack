@@ -1,0 +1,13 @@
+.wrap {
+  margin-top: 48px;
+}
+
+.heading {
+  font-size: 22px;
+}
+
+.list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}

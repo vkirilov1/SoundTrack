@@ -143,23 +143,6 @@
   background: var(--color-border);
 }
 
-.resultThumb {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  background: var(--color-border);
-}
-
-.resultThumbPlaceholder {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--color-border);
-}
-
 .resultAvatar {
   flex-shrink: 0;
   width: 32px;
@@ -169,24 +152,10 @@
   background: var(--color-border);
 }
 
-.resultText {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 .resultTitle {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.resultSubtitle {
-  font-size: 12px;
-  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

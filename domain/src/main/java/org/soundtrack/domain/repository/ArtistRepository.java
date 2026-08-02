@@ -19,12 +19,12 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
   @Query("SELECT a FROM Artist a WHERE a.mbid IN :mbids")
   List<Artist> findAllByMbidIn(@Param("mbids") Set<String> mbids);
 
-  @EntityGraph(attributePaths = {"albums"})
+  @EntityGraph(attributePaths = {"albumCredits"})
   Optional<Artist> findDetailedById(Long id);
 
   Page<Artist> findByArtistPicStartingWith(String prefix, Pageable pageable);
 
-  @EntityGraph(attributePaths = {"albums"})
+  @EntityGraph(attributePaths = {"albumCredits"})
   List<Artist> findTop8ByArtistNameContainingIgnoreCase(String artistName);
 
   @Modifying

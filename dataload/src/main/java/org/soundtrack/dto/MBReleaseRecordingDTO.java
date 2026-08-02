@@ -8,6 +8,9 @@ public class MBReleaseRecordingDTO {
   @JsonProperty("media")
   public List<Medium> media;
 
+  @JsonProperty("artist-credit")
+  public List<MBReleaseDTO.ArtistCreditDTO> artistCredit;
+
   public static class Medium {
     @JsonProperty("tracks")
     public List<Track> tracks;

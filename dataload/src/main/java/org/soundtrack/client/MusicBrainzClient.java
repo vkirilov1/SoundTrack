@@ -112,19 +112,35 @@ public class MusicBrainzClient {
             .buildAndExpand(releaseId)
             .toUriString();
 
-    sleep(1000);
+    int maxRetries = 5;
 
-    log.debug("Fetching release recordings for id '{}'", releaseId);
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
 
-    try {
-      ResponseEntity<MBReleaseRecordingDTO> response =
-          restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseRecordingDTO.class);
+      sleep(1000);
 
-      return response.getBody();
-    } catch (RestClientException e) {
-      log.error("Failed to fetch release recordings for {}: {}", releaseId, e.getMessage());
-      return null;
+      log.debug("Fetching release recordings for id '{}'", releaseId);
+
+      try {
+        ResponseEntity<MBReleaseRecordingDTO> response =
+            restTemplate.exchange(
+                url, HttpMethod.GET, buildHeaders(), MBReleaseRecordingDTO.class);
+
+        return response.getBody();
+      } catch (HttpServerErrorException.ServiceUnavailable e) {
+        log.warn(
+            "MusicBrainz busy (503) fetching release recordings for {}. Retry {}/{} in 60s",
+            releaseId,
+            attempt + 1,
+            maxRetries);
+        sleep(60_000);
+      } catch (RestClientException e) {
+        log.error("Failed to fetch release recordings for {}: {}", releaseId, e.getMessage());
+        return null;
+      }
     }
+
+    log.warn("Exceeded max retries fetching release recordings for {}", releaseId);
+    return null;
   }
 
   /**

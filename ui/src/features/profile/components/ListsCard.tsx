@@ -9,7 +9,7 @@ import Pagination from "../../../components/Pagination/Pagination";
 import Spinner from "../../../components/Spinner/Spinner";
 import { coverImageUrl } from "../../../utils/images";
 import type { UserListSummary } from "../../../types/list";
-import styles from "./ProfilePage.module.css";
+import styles from "./ListsCard.module.css";
 
 interface ListsCardProps {
   userId: number;

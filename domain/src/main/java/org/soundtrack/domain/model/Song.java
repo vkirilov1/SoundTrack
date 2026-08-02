@@ -2,7 +2,9 @@ package org.soundtrack.domain.model;
 
 import jakarta.persistence.*;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,14 +39,39 @@ public class Song {
   @JoinColumn(name = "album_id", nullable = false)
   private Album album;
 
-  @ManyToMany
-  @JoinTable(
-      name = "song_artist",
-      joinColumns = @JoinColumn(name = "song_id"),
-      inverseJoinColumns = @JoinColumn(name = "artist_id"))
-  private Set<Artist> artists = new HashSet<>();
+  @OneToMany(
+      mappedBy = "song",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.LAZY)
+  private Set<SongArtist> songArtists = new HashSet<>();
 
-  public void addArtist(Artist artist) {
-    this.artists.add(artist);
+  /**
+   * Adds a new artist to this song.
+   *
+   * @param artist the artist
+   * @param position the artist's MusicBrainz credit order (0 = primary artist)
+   */
+  public void addArtist(Artist artist, int position) {
+    SongArtist link = new SongArtist();
+    link.setSong(this);
+    link.setArtist(artist);
+    link.setPosition(position);
+    this.songArtists.add(link);
+  }
+
+  /**
+   * Returns this song's artists ordered by MusicBrainz credit position (primary artist first),
+   * falling back to alphabetical order for ties - e.g. rows imported before credit order was
+   * tracked, which all default to position 0.
+   */
+  public List<Artist> getArtists() {
+    return songArtists.stream()
+        .sorted(
+            Comparator.comparingInt(SongArtist::getPosition)
+                .thenComparing(
+                    link -> link.getArtist().getArtistName(), String.CASE_INSENSITIVE_ORDER))
+        .map(SongArtist::getArtist)
+        .toList();
   }
 }

@@ -2,14 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { search, searchUsers } from "../api/searchApi";
-import {
-  artistImageUrl,
-  coverImageUrl,
-  userPhotoUrl,
-} from "../../../utils/images";
+import { userPhotoUrl } from "../../../utils/images";
 import type { UserProfile } from "../../../types/auth";
-import type { SearchResponse, SearchResult } from "../types";
+import type { SearchResponse } from "../types";
 import styles from "./SearchBar.module.css";
+import SearchResultRow from "./SearchResultRow";
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 300;
@@ -283,37 +280,6 @@ function SearchBar() {
           document.body,
         )}
     </div>
-  );
-}
-
-interface SearchResultRowProps {
-  result: SearchResult;
-  onNavigate: () => void;
-}
-
-function SearchResultRow({ result, onNavigate }: SearchResultRowProps) {
-  const href =
-    result.type === "ALBUM" ? `/album/${result.id}` : `/artist/${result.id}`;
-  const imageSrc = result.imageUrl
-    ? result.type === "ALBUM"
-      ? coverImageUrl(result.imageUrl)
-      : artistImageUrl(result.imageUrl)
-    : null;
-
-  return (
-    <Link to={href} className={styles.resultRow} onClick={onNavigate}>
-      {imageSrc ? (
-        <img src={imageSrc} alt="" className={styles.resultThumb} />
-      ) : (
-        <span className={styles.resultThumbPlaceholder} aria-hidden="true" />
-      )}
-      <span className={styles.resultText}>
-        <span className={styles.resultTitle}>{result.title}</span>
-        {result.subtitle && (
-          <span className={styles.resultSubtitle}>{result.subtitle}</span>
-        )}
-      </span>
-    </Link>
   );
 }
 

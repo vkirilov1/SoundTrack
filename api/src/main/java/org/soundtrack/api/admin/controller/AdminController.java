@@ -81,22 +81,22 @@ public class AdminController {
     return adminService.updateAlbum(albumId, request);
   }
 
-  @PutMapping("/artists/{artistId}")
-  @Operation(
-      summary = "Edit artist metadata",
-      description = "Updates an artist's name, country, type, and biography.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Artist updated"),
-    @ApiResponse(responseCode = "400", description = "Validation failed"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not an admin"),
-    @ApiResponse(responseCode = "404", description = "Artist not found")
-  })
-  public ArtistResponse updateArtist(
-      @Parameter(description = "Internal artist ID") @PathVariable("artistId") Long artistId,
-      @Valid @RequestBody UpdateArtistRequest request) {
-    return adminService.updateArtist(artistId, request);
-  }
+//  @PutMapping("/artists/{artistId}")
+//  @Operation(
+//      summary = "Edit artist metadata",
+//      description = "Updates an artist's name, country, type, and biography.")
+//  @ApiResponses({
+//    @ApiResponse(responseCode = "200", description = "Artist updated"),
+//    @ApiResponse(responseCode = "400", description = "Validation failed"),
+//    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+//    @ApiResponse(responseCode = "403", description = "Not an admin"),
+//    @ApiResponse(responseCode = "404", description = "Artist not found")
+//  })
+//  public ArtistResponse updateArtist(
+//      @Parameter(description = "Internal artist ID") @PathVariable("artistId") Long artistId,
+//      @Valid @RequestBody UpdateArtistRequest request) {
+//    return adminService.updateArtist(artistId, request);
+//  }
 
   @DeleteMapping("/reviews/{reviewId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
