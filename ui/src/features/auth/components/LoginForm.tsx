@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../../../lib/api-error";
+import PasswordInput from "../../../components/PasswordInput/PasswordInput";
 import { useAuth } from "../stores/useAuth";
 import styles from "./LoginForm.module.css";
 
@@ -94,10 +95,9 @@ function LoginForm() {
 
         <label className={styles.field}>
           <span className={styles.label}>Password</span>
-          <input
-            type="password"
+          <PasswordInput
             value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
+            onChange={(value) => updateField("password", value)}
             className={styles.input}
           />
           {fieldErrors.password && (

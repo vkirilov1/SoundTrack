@@ -12,10 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Join entity linking an {@link Album} to an {@link Artist}, carrying the artist's credit order
- * for that album (0 = primary artist, matching MusicBrainz's artist-credit ordering). Rows
- * imported before this column existed default to 0, so they fall back to alphabetical ordering
- * at read time.
+ * Join entity linking an {@link Album} to an {@link Artist}, carrying the artist's credit order for
+ * that album (0 = primary artist, matching MusicBrainz's artist-credit ordering). Rows imported
+ * before this column existed default to 0, so they fall back to alphabetical ordering at read time.
  */
 @Entity
 @Table(name = "album_artist")

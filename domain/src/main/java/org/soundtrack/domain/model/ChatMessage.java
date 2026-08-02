@@ -7,9 +7,7 @@ import lombok.*;
 @Entity
 @Table(
     name = "chat_message",
-    indexes = {
-      @Index(name = "idx_chat_message_room_time", columnList = "room_id, sent_at DESC")
-    })
+    indexes = {@Index(name = "idx_chat_message_room_time", columnList = "room_id, sent_at DESC")})
 @Getter
 @Setter
 @NoArgsConstructor

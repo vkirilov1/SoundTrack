@@ -3,10 +3,10 @@ package org.soundtrack.api.artist.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.soundtrack.domain.model.Album;
 import org.soundtrack.api.artist.dto.ArtistResponse;
 import org.soundtrack.api.artist.mapper.ArtistMapper;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.ArtistRepository;
@@ -45,9 +45,9 @@ public class ArtistService {
   }
 
   /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. GET
-   * /api/artists/{id} is open to anonymous visitors but returns per-user favorited flags on its
-   * albums when a real session is present.
+   * Returns the authenticated user's id, or null if the caller is anonymous. GET /api/artists/{id}
+   * is open to anonymous visitors but returns per-user favorited flags on its albums when a real
+   * session is present.
    *
    * @return the current user's id, or null if not authenticated
    */

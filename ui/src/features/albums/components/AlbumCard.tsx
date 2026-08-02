@@ -5,6 +5,14 @@ import AlbumActions from "./AlbumActions";
 import { coverImageUrl } from "../../../utils/images";
 import { useState, type RefObject } from "react";
 import type { AlbumDetail } from "../types";
+import { useAuth } from "../../auth/stores/useAuth";
+import SuggestEditLink from "../../edit-requests/components/SuggestEditLink";
+import AdminPhotoEditButton from "../../edit-requests/components/AdminPhotoEditButton";
+import AdminDescriptionEditButton from "../../edit-requests/components/AdminDescriptionEditButton";
+import {
+  updateAlbumDescription,
+  uploadAlbumPhoto,
+} from "../../edit-requests/api/adminContentApi";
 
 const DESCRIPTION_PREVIEW_LENGTH = 180;
 const PRIMARY_GENRE_COUNT = 4;
@@ -14,6 +22,8 @@ interface AlbumCardProps {
   album: AlbumDetail;
   commentInputRef: RefObject<HTMLTextAreaElement | null>;
   onAlbumFavoriteChange: (nextFavorited: boolean) => void;
+  onDescriptionChange: (description: string | null) => void;
+  onCoverChange: (coverUrl: string | null) => void;
 }
 
 function AlbumCover({
@@ -53,8 +63,13 @@ function AlbumCard({
   album,
   commentInputRef,
   onAlbumFavoriteChange,
+  onDescriptionChange,
+  onCoverChange,
 }: AlbumCardProps) {
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === "ADMIN";
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
 
   function focusReviewInput() {
     commentInputRef.current?.scrollIntoView({
@@ -62,6 +77,16 @@ function AlbumCard({
       block: "center",
     });
     commentInputRef.current?.focus();
+  }
+
+  async function handleSaveDescription(text: string) {
+    const updated = await updateAlbumDescription(album.id, album.title, text);
+    onDescriptionChange(updated.description);
+  }
+
+  async function handleSavePhoto(file: File) {
+    const updated = await uploadAlbumPhoto(album.id, file);
+    onCoverChange(updated.coverUrl);
   }
 
   const primaryGenres = album.genres.slice(0, PRIMARY_GENRE_COUNT);
@@ -80,7 +105,15 @@ function AlbumCard({
 
   return (
     <div className={styles.card}>
-      <AlbumCover coverUrl={album.coverUrl} title={album.title} />
+      <div className={styles.coverWrap}>
+        <AlbumCover coverUrl={album.coverUrl} title={album.title} />
+        {isAdmin && (
+          <AdminPhotoEditButton
+            onSavePhoto={handleSavePhoto}
+            label="Change cover"
+          />
+        )}
+      </div>
 
       <div className={styles.info}>
         <h1 className={styles.title}>{album.title}</h1>
@@ -152,24 +185,41 @@ function AlbumCard({
         />
 
         <div className={styles.description}>
-          {description ? (
-            <>
+          {!editingDescription &&
+            (description ? (
               <p className={styles.descriptionText}>{descriptionText}</p>
-              {showReadMore && (
-                <button
-                  type="button"
-                  className={styles.readMoreButton}
-                  onClick={() =>
-                    setDescriptionExpanded((expanded) => !expanded)
-                  }
-                >
-                  {descriptionExpanded ? "Show less" : "Read more"}
-                </button>
-              )}
-            </>
-          ) : (
-            <p className={styles.descriptionEmpty}>No description yet.</p>
-          )}
+            ) : (
+              <p className={styles.descriptionEmpty}>No description yet.</p>
+            ))}
+
+          <div className={styles.descriptionActions}>
+            {!editingDescription && showReadMore && (
+              <button
+                type="button"
+                className={styles.readMoreButton}
+                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+              >
+                {descriptionExpanded ? "Show less" : "Read more"}
+              </button>
+            )}
+
+            {isAdmin ? (
+              <AdminDescriptionEditButton
+                currentDescription={album.description}
+                onSaveDescription={handleSaveDescription}
+                onEditingChange={setEditingDescription}
+              />
+            ) : (
+              currentUser && (
+                <SuggestEditLink
+                  targetType="ALBUM"
+                  targetId={album.id}
+                  currentDescription={album.description}
+                  onEditingChange={setEditingDescription}
+                />
+              )
+            )}
+          </div>
         </div>
       </div>
     </div>

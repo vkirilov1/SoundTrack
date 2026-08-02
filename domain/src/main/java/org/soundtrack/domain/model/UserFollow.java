@@ -7,11 +7,10 @@ import lombok.*;
 @Entity
 @Table(
     name = "user_follow",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uq_follow",
-        columnNames = {"follower_id", "following_id"}
-    )
-)
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uq_follow",
+            columnNames = {"follower_id", "following_id"}))
 @Getter
 @Setter
 @NoArgsConstructor

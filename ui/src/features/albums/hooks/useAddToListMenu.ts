@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { SubmitEvent } from "react";
 import { addAlbumToList, createList, getMyLists } from "../api/listApi";
 import { ApiError } from "../../../lib/api-error";
 import type { UserListSummary } from "../../../types/list";
@@ -62,7 +63,7 @@ export function useAddToListMenu(albumId: number) {
       });
   }
 
-  function handleCreateList(event: React.FormEvent) {
+  function handleCreateList(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const name = newListName.trim();
     if (!name || creatingList) return;

@@ -17,7 +17,11 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 
   @EntityGraph(
       attributePaths = {
-        "albumArtists", "albumGenres", "albumGenres.genre", "songs", "songs.songArtists"
+        "albumArtists",
+        "albumGenres",
+        "albumGenres.genre",
+        "songs",
+        "songs.songArtists"
       })
   Optional<Album> findDetailedById(Long id);
 

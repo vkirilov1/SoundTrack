@@ -17,4 +17,7 @@ public class UpdateAlbumRequest {
   private LocalDate releaseDate;
 
   private String coverUrl;
+
+  @Size(max = 2400, message = "Description cannot exceed 2400 characters")
+  private String description;
 }

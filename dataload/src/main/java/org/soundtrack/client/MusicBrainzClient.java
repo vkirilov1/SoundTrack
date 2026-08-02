@@ -122,8 +122,7 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBReleaseRecordingDTO> response =
-            restTemplate.exchange(
-                url, HttpMethod.GET, buildHeaders(), MBReleaseRecordingDTO.class);
+            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseRecordingDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {

@@ -115,7 +115,7 @@ function ArtistAlbumRow({ album, onFavoriteChange }: ArtistAlbumRowProps) {
         <span className={styles.rating}>{album.rating.toFixed(1)}</span>
       )}
 
-      {currentUser && (
+      {currentUser && currentUser.role !== "ADMIN" && (
         <>
           <button
             type="button"

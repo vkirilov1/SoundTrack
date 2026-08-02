@@ -1,16 +1,16 @@
- package org.soundtrack.domain.model;
+package org.soundtrack.domain.model;
 
- import jakarta.persistence.*;
- import lombok.*;
+import jakarta.persistence.*;
+import lombok.*;
 
- @Entity
- @Table(name = "favorite_song")
- @Getter
- @Setter
- @NoArgsConstructor
- @AllArgsConstructor
- @Builder
- public class FavoriteSong {
+@Entity
+@Table(name = "favorite_song")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class FavoriteSong {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,4 +23,4 @@
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "song_id")
   private Song song;
- }
+}
