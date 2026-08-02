@@ -19,7 +19,8 @@ public interface FavoriteSongRepository extends JpaRepository<FavoriteSong, Long
 
   boolean existsByUserIdAndSongId(Long userId, Long songId);
 
-  @Query("SELECT fs.song.id FROM FavoriteSong fs WHERE fs.user.id = :userId AND fs.song.album.id = :albumId")
+  @Query(
+      "SELECT fs.song.id FROM FavoriteSong fs WHERE fs.user.id = :userId AND fs.song.album.id = :albumId")
   Set<Long> findFavoritedSongIdsByUserIdAndAlbumId(
       @Param("userId") Long userId, @Param("albumId") Long albumId);
 }

@@ -6,6 +6,10 @@
   text-align: center;
 }
 
+.photoWrap {
+  position: relative;
+}
+
 .photo {
   width: 180px;
   height: 180px;
@@ -43,4 +47,8 @@
   max-width: 620px;
   color: var(--color-text);
   line-height: 1.6;
+}
+
+.bioActions {
+  margin-top: 10px;
 }

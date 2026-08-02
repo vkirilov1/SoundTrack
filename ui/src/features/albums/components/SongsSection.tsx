@@ -74,7 +74,7 @@ function SongsSection({ songs, onSongFavoriteChange }: SongsSectionProps) {
             <span className={styles.duration}>
               {formatDuration(song.durationSeconds)}
             </span>
-            {currentUser && (
+            {currentUser && currentUser.role !== "ADMIN" && (
               <button
                 type="button"
                 className={styles.heartButton}

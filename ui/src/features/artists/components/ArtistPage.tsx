@@ -57,6 +57,14 @@ function ArtistPage() {
     );
   }
 
+  function handleBiographyChange(biography: string | null) {
+    setArtist((prev) => (prev ? { ...prev, biography } : prev));
+  }
+
+  function handlePhotoChange(artistPic: string | null) {
+    setArtist((prev) => (prev ? { ...prev, artistPic } : prev));
+  }
+
   if (loading) {
     return (
       <section className={styles.wrap}>
@@ -84,7 +92,11 @@ function ArtistPage() {
 
   return (
     <section className={styles.wrap}>
-      <ArtistCard artist={artist} />
+      <ArtistCard
+        artist={artist}
+        onBiographyChange={handleBiographyChange}
+        onPhotoChange={handlePhotoChange}
+      />
       <ArtistAlbums
         albums={artist.albums}
         onAlbumFavoriteChange={handleAlbumFavoriteChange}

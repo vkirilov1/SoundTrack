@@ -80,6 +80,14 @@ function AlbumPage() {
     );
   }
 
+  function handleDescriptionChange(description: string | null) {
+    setAlbum((prev) => (prev ? { ...prev, description } : prev));
+  }
+
+  function handleCoverChange(coverUrl: string | null) {
+    setAlbum((prev) => (prev ? { ...prev, coverUrl } : prev));
+  }
+
   if (loading) {
     return (
       <section className={styles.wrap}>
@@ -111,6 +119,8 @@ function AlbumPage() {
         album={album}
         commentInputRef={commentInputRef}
         onAlbumFavoriteChange={handleAlbumFavoriteChange}
+        onDescriptionChange={handleDescriptionChange}
+        onCoverChange={handleCoverChange}
       />
 
       <SongsSection

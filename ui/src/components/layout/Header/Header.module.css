@@ -93,6 +93,7 @@
   font-size: 13px;
   padding: 9px 16px;
   border-radius: var(--radius-full);
+  text-decoration: none;
   white-space: nowrap;
   transition:
     background 0.2s,
@@ -102,6 +103,8 @@
 .logoutButton:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  text-decoration: none;
 }
 
 @media (max-width: 640px) {

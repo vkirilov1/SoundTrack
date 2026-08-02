@@ -1,14 +1,10 @@
 package org.soundtrack.api.user.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.ImageStorageService;
 import org.soundtrack.api.user.dto.UpdateProfileRequest;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.domain.model.User;
@@ -25,6 +21,7 @@ public class UserService {
   private static final String DEFAULT_PHOTO = "userDefault.png";
 
   private final UserRepository userRepository;
+  private final ImageStorageService imageStorageService;
 
   @Value("${user.photo.storage.path}")
   private String userPhotoStoragePath;
@@ -61,16 +58,10 @@ public class UserService {
   @Transactional
   public UserProfileResponse updatePhoto(String email, MultipartFile file) throws IOException {
     User user = findUserByEmail(email);
-    validateImageFile(file);
 
-    Path storageRoot = Paths.get(userPhotoStoragePath).toAbsolutePath().normalize();
-    Files.createDirectories(storageRoot);
+    String filename = imageStorageService.store(file, userPhotoStoragePath, "user-" + user.getId());
 
-    String filename = "user-" + user.getId() + "-" + UUID.randomUUID() + extensionOf(file);
-    Path target = storageRoot.resolve(filename).normalize();
-
-    file.transferTo(target);
-    deleteStoredPhotoIfCustom(user, storageRoot);
+    deleteStoredPhotoIfCustom(user);
 
     user.setProfilePicture(filename);
 
@@ -81,43 +72,21 @@ public class UserService {
   public UserProfileResponse resetPhoto(String email) throws IOException {
     User user = findUserByEmail(email);
 
-    Path storageRoot = Paths.get(userPhotoStoragePath).toAbsolutePath().normalize();
-    deleteStoredPhotoIfCustom(user, storageRoot);
+    deleteStoredPhotoIfCustom(user);
 
     user.setProfilePicture(null);
 
     return toProfileResponse(userRepository.save(user));
   }
 
-  private void deleteStoredPhotoIfCustom(User user, Path storageRoot) throws IOException {
+  private void deleteStoredPhotoIfCustom(User user) throws IOException {
     String current = user.getProfilePicture();
 
     if (current == null || current.equals(DEFAULT_PHOTO)) {
       return;
     }
 
-    Path currentPath = storageRoot.resolve(current).normalize();
-
-    if (currentPath.startsWith(storageRoot)) {
-      Files.deleteIfExists(currentPath);
-    }
-  }
-
-  private void validateImageFile(MultipartFile file) {
-    if (file.isEmpty()) {
-      throw new InvalidOperationException("No file provided");
-    }
-
-    String contentType = file.getContentType();
-
-    if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-      throw new InvalidOperationException("Only JPEG or PNG images are allowed");
-    }
-  }
-
-  private String extensionOf(MultipartFile file) {
-    String contentType = file.getContentType();
-    return "image/png".equals(contentType) ? ".png" : ".jpg";
+    imageStorageService.deleteIfPresent(current, userPhotoStoragePath);
   }
 
   private User findUserByEmail(String email) {
@@ -132,6 +101,7 @@ public class UserService {
         user.getUsername(),
         user.getBio(),
         user.getProfilePicture(),
-        user.getJoinDate());
+        user.getJoinDate(),
+        user.getRole());
   }
 }

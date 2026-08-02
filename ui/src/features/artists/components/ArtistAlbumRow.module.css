@@ -37,10 +37,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
 }
 
 .title {
+  max-width: 100%;
   font-size: 19px;
   font-weight: 600;
   color: var(--color-ink);

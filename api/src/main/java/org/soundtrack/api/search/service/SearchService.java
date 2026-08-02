@@ -89,6 +89,7 @@ public class SearchService {
         user.getUsername(),
         user.getBio(),
         user.getProfilePicture(),
-        user.getJoinDate());
+        user.getJoinDate(),
+        user.getRole());
   }
 }

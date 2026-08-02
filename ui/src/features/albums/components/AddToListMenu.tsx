@@ -1,3 +1,4 @@
+import type { SubmitEvent } from "react";
 import type { AddStatus } from "../hooks/useAddToListMenu";
 import type { UserListSummary } from "../../../types/list";
 import styles from "./AddToListMenu.module.css";
@@ -11,7 +12,7 @@ interface AddToListMenuProps {
   onNewListNameChange: (value: string) => void;
   creatingList: boolean;
   onAddToList: (listId: number) => void;
-  onCreateList: (event: React.FormEvent) => void;
+  onCreateList: (event: SubmitEvent<HTMLFormElement>) => void;
 }
 
 function AddToListMenu({

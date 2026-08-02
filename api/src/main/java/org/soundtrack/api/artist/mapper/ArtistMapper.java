@@ -20,7 +20,10 @@ public class ArtistMapper {
         artist.getBiography(),
         artist.getArtistPic(),
         artist.getAlbums().stream()
-            .sorted(Comparator.comparing(Album::getReleaseDate).thenComparing(Album::getTitle, String.CASE_INSENSITIVE_ORDER).reversed())
+            .sorted(
+                Comparator.comparing(Album::getReleaseDate)
+                    .thenComparing(Album::getTitle, String.CASE_INSENSITIVE_ORDER)
+                    .reversed())
             .map(album -> toAlbumResponse(album, favoritedAlbumIds))
             .toList());
   }

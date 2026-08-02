@@ -99,7 +99,8 @@ public class UserFollowService {
         user.getUsername(),
         user.getBio(),
         user.getProfilePicture(),
-        user.getJoinDate());
+        user.getJoinDate(),
+        user.getRole());
   }
 
   private User getAuthenticatedUser() {

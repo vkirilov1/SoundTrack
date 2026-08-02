@@ -52,7 +52,7 @@ function AlbumActions({
       .finally(() => setFavoritePending(false));
   }
 
-  if (!currentUser) return null;
+  if (!currentUser || currentUser.role === "ADMIN") return null;
 
   return (
     <div className={styles.wrap}>

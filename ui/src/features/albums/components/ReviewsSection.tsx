@@ -1,4 +1,5 @@
 import { useEffect, useState, type RefObject } from "react";
+import type { SubmitEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   createAlbumReview,
@@ -8,9 +9,12 @@ import {
   updateAlbumReview,
 } from "../api/reviewApi";
 import { ApiError } from "../../../lib/api-error";
+import CheckIcon from "../../../components/CheckIcon/CheckIcon";
 import Pagination from "../../../components/Pagination/Pagination";
 import Spinner from "../../../components/Spinner/Spinner";
+import XIcon from "../../../components/XIcon/XIcon";
 import { useAuth } from "../../../features/auth/stores/useAuth";
+import { deleteReviewAsAdmin } from "../../edit-requests/api/adminContentApi";
 import type { AlbumReview } from "../types";
 import styles from "./ReviewsSection.module.css";
 import ReviewBody from "./ReviewBody";
@@ -98,46 +102,13 @@ function RatingPicker({ value, onChange }: RatingPickerProps) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={16}
-      height={16}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 13l4 4L19 7" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={16}
-      height={16}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
-
 function ReviewsSection({
   albumId,
   commentInputRef,
   onReviewPosted,
 }: ReviewsSectionProps) {
   const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === "ADMIN";
 
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [page, setPage] = useState(0);
@@ -156,6 +127,10 @@ function ReviewsSection({
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [reviewActionStatus, setReviewActionStatus] = useState<
+    Record<number, "idle" | "confirming" | "deleting">
+  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -246,7 +221,22 @@ function ReviewsSection({
       .finally(() => setDeleting(false));
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  function handleAdminDeleteReview(reviewId: number) {
+    setReviewActionStatus((prev) => ({ ...prev, [reviewId]: "deleting" }));
+    deleteReviewAsAdmin(reviewId)
+      .then(() => {
+        setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+        onReviewPosted();
+      })
+      .catch(() => {
+        setReviewActionStatus((prev) => ({
+          ...prev,
+          [reviewId]: "confirming",
+        }));
+      });
+  }
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
 
@@ -319,7 +309,7 @@ function ReviewsSection({
           </Link>{" "}
           to write a review.
         </p>
-      ) : myReviewLoading ? (
+      ) : isAdmin ? null : myReviewLoading ? (
         <div className={styles.myReviewLoading}>
           <Spinner size={20} label="Loading your review" />
         </div>
@@ -441,11 +431,68 @@ function ReviewsSection({
               <Spinner label="Loading reviews" />
             </div>
           ) : (
-            otherReviews.map((review) => (
-              <article key={review.id} className={styles.reviewRow}>
-                <ReviewBody review={review} />
-              </article>
-            ))
+            otherReviews.map((review) => {
+              const rowStatus = reviewActionStatus[review.id] ?? "idle";
+
+              return (
+                <article key={review.id} className={styles.reviewRow}>
+                  <ReviewBody review={review} />
+                  {isAdmin && (
+                    <div className={styles.adminReviewActions}>
+                      {rowStatus !== "idle" ? (
+                        <>
+                          <span className={styles.confirmText}>
+                            Delete this review?
+                          </span>
+                          <button
+                            type="button"
+                            className={`${styles.iconButton} ${styles.confirmDeleteIconButton}`}
+                            onClick={() => handleAdminDeleteReview(review.id)}
+                            disabled={rowStatus === "deleting"}
+                            aria-label="Confirm delete"
+                            title="Confirm delete"
+                          >
+                            {rowStatus === "deleting" ? (
+                              <Spinner size={14} label="Deleting" />
+                            ) : (
+                              <CheckIcon />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.iconButton} ${styles.cancelDeleteIconButton}`}
+                            onClick={() =>
+                              setReviewActionStatus((prev) => ({
+                                ...prev,
+                                [review.id]: "idle",
+                              }))
+                            }
+                            disabled={rowStatus === "deleting"}
+                            aria-label="Cancel delete"
+                            title="Cancel"
+                          >
+                            <XIcon />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          onClick={() =>
+                            setReviewActionStatus((prev) => ({
+                              ...prev,
+                              [review.id]: "confirming",
+                            }))
+                          }
+                        >
+                          Delete review
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })
           )}
         </div>
         {listLoading && (
