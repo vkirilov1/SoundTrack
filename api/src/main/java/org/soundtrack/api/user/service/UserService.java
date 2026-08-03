@@ -70,8 +70,20 @@ public class UserService {
 
   @Transactional
   public UserProfileResponse resetPhoto(String email) throws IOException {
-    User user = findUserByEmail(email);
+    return resetPhoto(findUserByEmail(email));
+  }
 
+  @Transactional
+  public UserProfileResponse resetPhotoById(Long userId) throws IOException {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+    return resetPhoto(user);
+  }
+
+  private UserProfileResponse resetPhoto(User user) throws IOException {
     deleteStoredPhotoIfCustom(user);
 
     user.setProfilePicture(null);

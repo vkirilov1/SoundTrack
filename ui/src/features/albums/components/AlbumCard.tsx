@@ -2,19 +2,18 @@ import { Link } from "react-router-dom";
 import { FULL_DATE_FORMAT } from "../../../utils/date";
 import styles from "./AlbumCard.module.css";
 import AlbumActions from "./AlbumActions";
+import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
 import { coverImageUrl } from "../../../utils/images";
-import { useState, type RefObject } from "react";
+import type { RefObject } from "react";
 import type { AlbumDetail } from "../types";
 import { useAuth } from "../../auth/stores/useAuth";
-import SuggestEditLink from "../../edit-requests/components/SuggestEditLink";
 import AdminPhotoEditButton from "../../edit-requests/components/AdminPhotoEditButton";
-import AdminDescriptionEditButton from "../../edit-requests/components/AdminDescriptionEditButton";
+import EditableDescription from "../../edit-requests/components/EditableDescription";
 import {
   updateAlbumDescription,
   uploadAlbumPhoto,
 } from "../../edit-requests/api/adminContentApi";
 
-const DESCRIPTION_PREVIEW_LENGTH = 180;
 const PRIMARY_GENRE_COUNT = 4;
 const SECONDARY_GENRE_COUNT = 8;
 
@@ -41,20 +40,7 @@ function AlbumCover({
 
   return (
     <span className={styles.coverPlaceholder} aria-hidden="true">
-      <svg
-        viewBox="0 0 24 24"
-        width={64}
-        height={64}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <path d="M21 15l-5-5L5 21" />
-      </svg>
+      <ImagePlaceholderIcon size={64} />
     </span>
   );
 }
@@ -68,8 +54,6 @@ function AlbumCard({
 }: AlbumCardProps) {
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  const [editingDescription, setEditingDescription] = useState(false);
 
   function focusReviewInput() {
     commentInputRef.current?.scrollIntoView({
@@ -94,14 +78,6 @@ function AlbumCard({
     PRIMARY_GENRE_COUNT,
     PRIMARY_GENRE_COUNT + SECONDARY_GENRE_COUNT,
   );
-
-  const description = album.description?.trim() || null;
-  const showReadMore =
-    description !== null && description.length > DESCRIPTION_PREVIEW_LENGTH;
-  const descriptionText =
-    description && showReadMore && !descriptionExpanded
-      ? `${description.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}…`
-      : description;
 
   return (
     <div className={styles.card}>
@@ -185,41 +161,18 @@ function AlbumCard({
         />
 
         <div className={styles.description}>
-          {!editingDescription &&
-            (description ? (
-              <p className={styles.descriptionText}>{descriptionText}</p>
-            ) : (
-              <p className={styles.descriptionEmpty}>No description yet.</p>
-            ))}
-
-          <div className={styles.descriptionActions}>
-            {!editingDescription && showReadMore && (
-              <button
-                type="button"
-                className={styles.readMoreButton}
-                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-              >
-                {descriptionExpanded ? "Show less" : "Read more"}
-              </button>
-            )}
-
-            {isAdmin ? (
-              <AdminDescriptionEditButton
-                currentDescription={album.description}
-                onSaveDescription={handleSaveDescription}
-                onEditingChange={setEditingDescription}
-              />
-            ) : (
-              currentUser && (
-                <SuggestEditLink
-                  targetType="ALBUM"
-                  targetId={album.id}
-                  currentDescription={album.description}
-                  onEditingChange={setEditingDescription}
-                />
-              )
-            )}
-          </div>
+          <EditableDescription
+            text={album.description}
+            targetType="ALBUM"
+            targetId={album.id}
+            onSave={handleSaveDescription}
+            classNames={{
+              paragraph: styles.descriptionText,
+              emptyParagraph: styles.descriptionEmpty,
+              actions: styles.descriptionActions,
+              readMoreButton: styles.readMoreButton,
+            }}
+          />
         </div>
       </div>
     </div>

@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getArtist } from "../api/artistApi";
 import { ApiError } from "../../../lib/api-error";
-import missingResourcesIcon from "../../../assets/MissingResources.png";
-import Spinner from "../../../components/Spinner/Spinner";
+import PageStatus from "../../../components/PageStatus/PageStatus";
 import type { ArtistDetail } from "../types";
 import styles from "./ArtistPage.module.css";
 import ArtistAlbums from "./ArtistAlbums";
@@ -68,9 +67,7 @@ function ArtistPage() {
   if (loading) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <Spinner />
-        </div>
+        <PageStatus variant="loading" />
       </section>
     );
   }
@@ -78,14 +75,7 @@ function ArtistPage() {
   if (notFound || !artist) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <img
-            src={missingResourcesIcon}
-            alt=""
-            className={styles.statusIcon}
-          />
-          <p>This artist doesn't exist.</p>
-        </div>
+        <PageStatus variant="not-found" message="This artist doesn't exist." />
       </section>
     );
   }

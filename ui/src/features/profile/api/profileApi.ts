@@ -1,48 +1,12 @@
-import type { UserProfile, FieldErrors } from "../../../types/auth";
+import type { UserProfile } from "../../../types/auth";
 import type { PagedResponse } from "../../../types/api";
 import type { UserListSummary } from "../../../types/list";
 import type { FavoriteAlbum, FavoriteSong, UserReview } from "../types";
-import { ApiError } from "../../../lib/api-error";
-import { apiFetch } from "../../../lib/api-client";
-
-async function throwApiError(response: Response): Promise<never> {
-  const body = await response.json().catch(() => ({}));
-
-  if (response.status === 400) {
-    throw new ApiError(
-      response.status,
-      "Please fix the highlighted fields.",
-      body as FieldErrors,
-    );
-  }
-
-  throw new ApiError(
-    response.status,
-    (body as { message?: string }).message ?? "Request failed.",
-  );
-}
-
-async function throwMessageApiError(response: Response): Promise<never> {
-  const body = await response.json().catch(() => ({}));
-
-  throw new ApiError(
-    response.status,
-    (body as { message?: string }).message ?? "Request failed.",
-  );
-}
-
-async function getJson<T>(path: string): Promise<T> {
-  const response = await apiFetch(path);
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<T>;
-}
+import { apiFetch, fetchJson } from "../../../lib/api-client";
+import { throwFieldApiError } from "../../../lib/api-error";
 
 export function getUserProfile(userId: number): Promise<UserProfile> {
-  return getJson(`/users/${userId}`);
+  return fetchJson(`/users/${userId}`);
 }
 
 export function getUserLists(
@@ -50,7 +14,7 @@ export function getUserLists(
   page = 0,
   size = 20,
 ): Promise<PagedResponse<UserListSummary>> {
-  return getJson(`/lists/user/${userId}?page=${page}&size=${size}`);
+  return fetchJson(`/lists/user/${userId}?page=${page}&size=${size}`);
 }
 
 export function getUserFavoriteAlbums(
@@ -58,7 +22,9 @@ export function getUserFavoriteAlbums(
   page = 0,
   size = 20,
 ): Promise<PagedResponse<FavoriteAlbum>> {
-  return getJson(`/favorites/albums/user/${userId}?page=${page}&size=${size}`);
+  return fetchJson(
+    `/favorites/albums/user/${userId}?page=${page}&size=${size}`,
+  );
 }
 
 export function getUserFavoriteSongs(
@@ -66,7 +32,7 @@ export function getUserFavoriteSongs(
   page = 0,
   size = 20,
 ): Promise<PagedResponse<FavoriteSong>> {
-  return getJson(`/favorites/songs/user/${userId}?page=${page}&size=${size}`);
+  return fetchJson(`/favorites/songs/user/${userId}?page=${page}&size=${size}`);
 }
 
 export function getUserReviews(
@@ -74,7 +40,7 @@ export function getUserReviews(
   page = 0,
   size = 20,
 ): Promise<PagedResponse<UserReview>> {
-  return getJson(`/users/${userId}/reviews?page=${page}&size=${size}`);
+  return fetchJson(`/users/${userId}/reviews?page=${page}&size=${size}`);
 }
 
 export async function updateProfile(payload: {
@@ -87,34 +53,19 @@ export async function updateProfile(payload: {
   });
 
   if (!response.ok) {
-    return throwApiError(response);
+    return throwFieldApiError(response);
   }
 
   return response.json() as Promise<UserProfile>;
 }
 
-export async function uploadProfilePhoto(file: File): Promise<UserProfile> {
+export function uploadProfilePhoto(file: File): Promise<UserProfile> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await apiFetch("/users/me/photo", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<UserProfile>;
+  return fetchJson("/users/me/photo", { method: "POST", body: formData });
 }
 
-export async function resetProfilePhoto(): Promise<UserProfile> {
-  const response = await apiFetch("/users/me/photo", { method: "DELETE" });
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<UserProfile>;
+export function resetProfilePhoto(): Promise<UserProfile> {
+  return fetchJson("/users/me/photo", { method: "DELETE" });
 }

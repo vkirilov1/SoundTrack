@@ -3,17 +3,11 @@ import type {
   RegisterRequest,
   UserProfile,
 } from "../../../types/auth";
-import { ApiError } from "../../../lib/api-error";
-import { apiFetch } from "../../../lib/api-client";
-
-async function throwApiError(response: Response): Promise<never> {
-  const body = await response.json().catch(() => ({}));
-
-  throw new ApiError(
-    response.status,
-    (body as { message?: string }).message ?? "Request failed.",
-  );
-}
+import { apiFetch, fetchJson } from "../../../lib/api-client";
+import {
+  throwFieldApiError,
+  throwMessageApiError,
+} from "../../../lib/api-error";
 
 export async function register(payload: RegisterRequest): Promise<UserProfile> {
   const response = await apiFetch("/auth/register", {
@@ -22,23 +16,17 @@ export async function register(payload: RegisterRequest): Promise<UserProfile> {
   });
 
   if (!response.ok) {
-    return throwApiError(response);
+    return throwFieldApiError(response);
   }
 
   return response.json() as Promise<UserProfile>;
 }
 
-export async function login(payload: LoginRequest): Promise<UserProfile> {
-  const response = await apiFetch("/auth/login", {
+export function login(payload: LoginRequest): Promise<UserProfile> {
+  return fetchJson("/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    return throwApiError(response);
-  }
-
-  return response.json() as Promise<UserProfile>;
 }
 
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
@@ -47,9 +35,8 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
   if (response.status === 401) {
     return null;
   }
-
   if (!response.ok) {
-    return throwApiError(response);
+    return throwMessageApiError(response);
   }
 
   return response.json() as Promise<UserProfile>;

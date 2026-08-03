@@ -1,115 +1,41 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
-import { search, searchUsers } from "../api/searchApi";
-import { userPhotoUrl } from "../../../utils/images";
-import type { UserProfile } from "../../../types/auth";
-import type { SearchResponse } from "../types";
+import {
+  useDebouncedSearch,
+  MIN_QUERY_LENGTH,
+} from "../hooks/useDebouncedSearch";
+import type { SearchMode } from "../hooks/useDebouncedSearch";
+import { useDropdownAnchor } from "../hooks/useDropdownAnchor";
 import styles from "./SearchBar.module.css";
 import SearchResultRow from "./SearchResultRow";
-
-const MIN_QUERY_LENGTH = 2;
-const DEBOUNCE_MS = 300;
-const EMPTY_MUSIC_RESULTS: SearchResponse = { albums: [], artists: [] };
-
-type Mode = "music" | "users";
+import UserResultRow from "./UserResultRow";
 
 function SearchBar() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<Mode>("music");
-  const [musicResults, setMusicResults] =
-    useState<SearchResponse>(EMPTY_MUSIC_RESULTS);
-  const [userResults, setUserResults] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [mode, setMode] = useState<SearchMode>("music");
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const requestIdRef = useRef(0);
 
-  useEffect(() => {
-    if (!open) return;
-
-    function handlePointerDown(event: MouseEvent) {
-      const target = event.target as Node;
-      const insideContainer = containerRef.current?.contains(target);
-      const insideDropdown = dropdownRef.current?.contains(target);
-      if (!insideContainer && !insideDropdown) {
-        setOpen(false);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
+  const closeDropdown = useCallback(() => setOpen(false), []);
+  const { containerRef, dropdownRef, anchorRect } = useDropdownAnchor(
+    open,
+    closeDropdown,
+  );
+  const { musicResults, userResults, loading, reset } = useDebouncedSearch(
+    query,
+    mode,
+  );
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    function updateRect() {
-      if (containerRef.current) {
-        setAnchorRect(containerRef.current.getBoundingClientRect());
-      }
-    }
-
-    const raf = requestAnimationFrame(updateRect);
-    window.addEventListener("resize", updateRect);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", updateRect);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    const trimmed = query.trim();
-
-    if (trimmed.length < MIN_QUERY_LENGTH) {
-      return;
-    }
-
-    requestIdRef.current += 1;
-    const requestId = requestIdRef.current;
-
-    const timer = setTimeout(() => {
-      setLoading(true);
-
-      const request = mode === "music" ? search(trimmed) : searchUsers(trimmed);
-
-      request.then((result) => {
-        if (requestId !== requestIdRef.current) return;
-
-        if (mode === "music") {
-          setMusicResults(result as SearchResponse);
-        } else {
-          setUserResults(result as UserProfile[]);
-        }
-        setLoading(false);
-      });
-    }, DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-  }, [query, mode]);
-
   function handleClose() {
     setOpen(false);
     setQuery("");
     setMode("music");
-    setMusicResults(EMPTY_MUSIC_RESULTS);
-    setUserResults([]);
+    reset();
   }
 
   const trimmedQuery = query.trim();
@@ -254,21 +180,11 @@ function SearchBar() {
             ) : userResults.length > 0 ? (
               <div className={styles.group}>
                 {userResults.map((user) => (
-                  <Link
+                  <UserResultRow
                     key={user.id}
-                    to={`/profile/${user.id}`}
-                    className={styles.resultRow}
-                    onClick={handleClose}
-                  >
-                    <img
-                      src={userPhotoUrl(
-                        user.profilePictureUrl ?? "userDefault.png",
-                      )}
-                      alt=""
-                      className={styles.resultAvatar}
-                    />
-                    <span className={styles.resultTitle}>{user.username}</span>
-                  </Link>
+                    user={user}
+                    onNavigate={handleClose}
+                  />
                 ))}
               </div>
             ) : (

@@ -1,77 +1,44 @@
 import type { AlbumReview, CreateAlbumReviewRequest } from "../types";
 import type { PagedResponse } from "../../../types/api";
-import { ApiError } from "../../../lib/api-error";
-import { apiFetch } from "../../../lib/api-client";
+import { apiFetch, fetchJson, fetchOk } from "../../../lib/api-client";
+import { throwMessageApiError } from "../../../lib/api-error";
 
-async function throwMessageApiError(response: Response): Promise<never> {
-  const body = await response.json().catch(() => ({}));
-
-  throw new ApiError(
-    response.status,
-    (body as { message?: string }).message ?? "Request failed.",
-  );
-}
-
-export async function getAlbumReviews(
+export function getAlbumReviews(
   albumId: number,
   page = 0,
   size = 20,
 ): Promise<PagedResponse<AlbumReview>> {
-  const response = await apiFetch(
-    `/albums/${albumId}/reviews?page=${page}&size=${size}`,
-  );
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<PagedResponse<AlbumReview>>;
+  return fetchJson(`/albums/${albumId}/reviews?page=${page}&size=${size}`);
 }
 
-export async function createAlbumReview(
+export function createAlbumReview(
   albumId: number,
   payload: CreateAlbumReviewRequest,
 ): Promise<AlbumReview> {
-  const response = await apiFetch(`/albums/${albumId}/reviews`, {
+  return fetchJson(`/albums/${albumId}/reviews`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<AlbumReview>;
 }
 
-export async function updateAlbumReview(
+export function updateAlbumReview(
   albumId: number,
   reviewId: number,
   payload: CreateAlbumReviewRequest,
 ): Promise<AlbumReview> {
-  const response = await apiFetch(`/albums/${albumId}/reviews/${reviewId}`, {
+  return fetchJson(`/albums/${albumId}/reviews/${reviewId}`, {
     method: "PUT",
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
-
-  return response.json() as Promise<AlbumReview>;
 }
 
-export async function deleteAlbumReview(
+export function deleteAlbumReview(
   albumId: number,
   reviewId: number,
 ): Promise<void> {
-  const response = await apiFetch(`/albums/${albumId}/reviews/${reviewId}`, {
+  return fetchOk(`/albums/${albumId}/reviews/${reviewId}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    return throwMessageApiError(response);
-  }
 }
 
 /** Returns the current user's own review for this album, or null if they haven't reviewed it. */
