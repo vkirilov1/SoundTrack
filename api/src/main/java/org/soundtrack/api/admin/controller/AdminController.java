@@ -17,6 +17,7 @@ import org.soundtrack.api.album.dto.AlbumResponse;
 import org.soundtrack.api.artist.dto.ArtistResponse;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.editrequest.dto.EditRequestResponse;
+import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +67,23 @@ public class AdminController {
   public void deleteUser(
       @Parameter(description = "Internal user ID") @PathVariable("userId") Long userId) {
     adminService.deleteUser(userId);
+  }
+
+  @DeleteMapping("/users/{userId}/photo")
+  @Operation(
+      summary = "Reset a user's profile photo",
+      description =
+          "Reverts the given user's profile photo to the default. For moderation of inappropriate images.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Photo reset"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "403", description = "Not an admin"),
+    @ApiResponse(responseCode = "404", description = "User not found")
+  })
+  public UserProfileResponse resetUserPhoto(
+      @Parameter(description = "Internal user ID") @PathVariable("userId") Long userId)
+      throws IOException {
+    return adminService.resetUserPhoto(userId);
   }
 
   @PutMapping("/albums/{albumId}")

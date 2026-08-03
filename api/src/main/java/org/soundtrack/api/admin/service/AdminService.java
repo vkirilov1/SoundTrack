@@ -16,6 +16,8 @@ import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.common.service.ImageStorageService;
 import org.soundtrack.api.editrequest.dto.EditRequestResponse;
 import org.soundtrack.api.editrequest.service.EditRequestService;
+import org.soundtrack.api.user.dto.UserProfileResponse;
+import org.soundtrack.api.user.service.UserService;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.Review;
@@ -44,6 +46,7 @@ public class AdminService {
   private final ArtistMapper artistMapper;
   private final ImageStorageService imageStorageService;
   private final EditRequestService editRequestService;
+  private final UserService userService;
 
   @Value("${cover.storage.path}")
   private String coverStoragePath;
@@ -87,6 +90,11 @@ public class AdminService {
 
     // 3. Delete the user. user_list rows cascade via ON DELETE CASCADE on user_list.owner_id.
     userRepository.delete(user);
+  }
+
+  @Transactional
+  public UserProfileResponse resetUserPhoto(Long userId) throws IOException {
+    return userService.resetPhotoById(userId);
   }
 
   @Transactional

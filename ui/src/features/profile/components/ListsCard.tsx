@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getUserFavoriteAlbums,
   getUserFavoriteSongs,
   getUserLists,
 } from "../api/profileApi";
-import missingResourcesIcon from "../../../assets/MissingResources.png";
 import Pagination from "../../../components/Pagination/Pagination";
-import Spinner from "../../../components/Spinner/Spinner";
+import PagedSection from "../../../components/PagedSection/PagedSection";
+import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
+import { usePagedList } from "../../../hooks/usePagedList";
 import { coverImageUrl } from "../../../utils/images";
-import type { UserListSummary } from "../../../types/list";
 import styles from "./ListsCard.module.css";
 
 interface ListsCardProps {
@@ -41,20 +41,7 @@ function ListIcon({ coverUrl, isFavorites }: ListIconProps) {
 
   return (
     <span className={styles.listIcon} aria-hidden="true">
-      <svg
-        viewBox="0 0 24 24"
-        width={26}
-        height={26}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <path d="M21 15l-5-5L5 21" />
-      </svg>
+      <ImagePlaceholderIcon size={26} />
     </span>
   );
 }
@@ -62,35 +49,37 @@ function ListIcon({ coverUrl, isFavorites }: ListIconProps) {
 function ListsCard({ userId }: ListsCardProps) {
   const invalidId = !Number.isFinite(userId);
 
-  const [lists, setLists] = useState<UserListSummary[]>([]);
-  const [listsPage, setListsPage] = useState(0);
-  const [listsTotalPages, setListsTotalPages] = useState(0);
+  const fetchLists = useCallback(
+    (page: number) => getUserLists(userId, page),
+    [userId],
+  );
+  const {
+    items: lists,
+    page: listsPage,
+    totalPages: listsTotalPages,
+    loading: listsLoading,
+    listLoading,
+    goToPage,
+  } = usePagedList(fetchLists, { enabled: !invalidId });
+
   const [favoritesCount, setFavoritesCount] = useState(0);
-  const [loading, setLoading] = useState(() => !invalidId);
-  const [listsLoading, setListsLoading] = useState(false);
+  const [favoritesLoading, setFavoritesLoading] = useState(() => !invalidId);
 
   useEffect(() => {
     if (invalidId) return;
 
     let cancelled = false;
 
-    Promise.all([
-      getUserLists(userId),
-      getUserFavoriteAlbums(userId),
-      getUserFavoriteSongs(userId),
-    ])
-      .then(([listsRes, favoriteAlbumsRes, favoriteSongsRes]) => {
+    Promise.all([getUserFavoriteAlbums(userId), getUserFavoriteSongs(userId)])
+      .then(([favoriteAlbumsRes, favoriteSongsRes]) => {
         if (cancelled) return;
-        setLists(listsRes.content);
-        setListsPage(listsRes.page);
-        setListsTotalPages(listsRes.totalPages);
         setFavoritesCount(
           favoriteAlbumsRes.totalElements + favoriteSongsRes.totalElements,
         );
       })
       .catch(() => {})
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setFavoritesLoading(false);
       });
 
     return () => {
@@ -98,86 +87,51 @@ function ListsCard({ userId }: ListsCardProps) {
     };
   }, [userId, invalidId]);
 
-  const handlePageChange = (page: number) => {
-    if (page === listsPage) return;
-    setListsLoading(true);
-    getUserLists(userId, page)
-      .then((listsRes) => {
-        setLists(listsRes.content);
-        setListsPage(listsRes.page);
-        setListsTotalPages(listsRes.totalPages);
-      })
-      .catch(() => {})
-      .finally(() => setListsLoading(false));
-  };
-
   const showFavorites = listsPage === 0;
 
   return (
     <>
-      <div className={styles.sectionWrap}>
-        <div
-          className={
-            listsLoading
-              ? `${styles.sectionContent} ${styles.blurred}`
-              : styles.sectionContent
-          }
-        >
-          {loading ? (
-            <div className={styles.empty}>
-              <Spinner label="Loading lists" />
-            </div>
-          ) : !showFavorites && lists.length === 0 ? (
-            <div className={styles.empty}>
-              <img
-                src={missingResourcesIcon}
-                alt=""
-                className={styles.emptyIcon}
-              />
-              <p>No lists yet.</p>
-            </div>
-          ) : (
-            <ul className={styles.listRows}>
-              {showFavorites && (
-                <li className={styles.listRow}>
-                  <ListIcon isFavorites />
-                  <div className={styles.listInfo}>
-                    <span className={styles.favoritesTitle}>Favorites</span>
-                  </div>
-                  <span className={styles.listMeta}>
-                    {favoritesCount} {favoritesCount === 1 ? "item" : "items"}
-                  </span>
-                </li>
-              )}
-              {lists.map((list) => (
-                <li key={list.id} className={styles.listRow}>
-                  <ListIcon coverUrl={list.coverUrl} />
-                  <div className={styles.listInfo}>
-                    <span className={styles.listTitle}>{list.name}</span>
-                    {list.description && (
-                      <span className={styles.listDescription}>
-                        {list.description}
-                      </span>
-                    )}
-                  </div>
-                  <span className={styles.listMeta}>
-                    {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
-                  </span>
-                </li>
-              ))}
-            </ul>
+      <PagedSection
+        loading={listsLoading || favoritesLoading}
+        listLoading={listLoading}
+        isEmpty={!showFavorites && lists.length === 0}
+        emptyMessage="No lists yet."
+        spinnerLabel="Loading lists"
+      >
+        <ul className={styles.listRows}>
+          {showFavorites && (
+            <li className={styles.listRow}>
+              <ListIcon isFavorites />
+              <div className={styles.listInfo}>
+                <span className={styles.favoritesTitle}>Favorites</span>
+              </div>
+              <span className={styles.listMeta}>
+                {favoritesCount} {favoritesCount === 1 ? "item" : "items"}
+              </span>
+            </li>
           )}
-        </div>
-        {listsLoading && (
-          <div className={styles.loadingOverlay}>
-            <Spinner label="Loading lists" />
-          </div>
-        )}
-      </div>
+          {lists.map((list) => (
+            <li key={list.id} className={styles.listRow}>
+              <ListIcon coverUrl={list.coverUrl} />
+              <div className={styles.listInfo}>
+                <span className={styles.listTitle}>{list.name}</span>
+                {list.description && (
+                  <span className={styles.listDescription}>
+                    {list.description}
+                  </span>
+                )}
+              </div>
+              <span className={styles.listMeta}>
+                {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </PagedSection>
       <Pagination
         page={listsPage}
         totalPages={listsTotalPages}
-        onPageChange={handlePageChange}
+        onPageChange={goToPage}
       />
     </>
   );

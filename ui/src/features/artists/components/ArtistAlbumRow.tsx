@@ -7,6 +7,7 @@ import {
 import { useAddToListMenu } from "../../albums/hooks/useAddToListMenu";
 import AddToListMenu from "../../albums/components/AddToListMenu";
 import HeartIcon from "../../../components/HeartIcon/HeartIcon";
+import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
 import { useAuth } from "../../auth/stores/useAuth";
 import { coverImageUrl } from "../../../utils/images";
 import type { ArtistAlbum } from "../types";
@@ -20,20 +21,7 @@ interface ArtistAlbumRowProps {
 function CoverPlaceholder() {
   return (
     <span className={styles.coverPlaceholder} aria-hidden="true">
-      <svg
-        viewBox="0 0 24 24"
-        width={38}
-        height={38}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <path d="M21 15l-5-5L5 21" />
-      </svg>
+      <ImagePlaceholderIcon size={38} />
     </span>
   );
 }

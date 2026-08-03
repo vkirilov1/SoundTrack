@@ -1,11 +1,10 @@
-import { useState } from "react";
 import type { ArtistDetail } from "../types";
 import { artistImageUrl } from "../../../utils/images";
+import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
 import styles from "./ArtistCard.module.css";
 import { useAuth } from "../../auth/stores/useAuth";
-import SuggestEditLink from "../../edit-requests/components/SuggestEditLink";
 import AdminPhotoEditButton from "../../edit-requests/components/AdminPhotoEditButton";
-import AdminDescriptionEditButton from "../../edit-requests/components/AdminDescriptionEditButton";
+import EditableDescription from "../../edit-requests/components/EditableDescription";
 import {
   updateArtistDescription,
   uploadArtistPhoto,
@@ -25,8 +24,6 @@ function ArtistCard({
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
   const meta = [artist.type, artist.country].filter(Boolean).join(", ");
-  const biography = artist.biography?.trim() || null;
-  const [editingBio, setEditingBio] = useState(false);
 
   async function handleSaveDescription(text: string) {
     const updated = await updateArtistDescription(
@@ -55,20 +52,7 @@ function ArtistCard({
           />
         ) : (
           <span className={styles.photoPlaceholder} aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              width={64}
-              height={64}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="3" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
-            </svg>
+            <ImagePlaceholderIcon size={64} />
           </span>
         )}
         {isAdmin && (
@@ -83,28 +67,17 @@ function ArtistCard({
 
       {meta && <p className={styles.meta}>{meta}</p>}
 
-      {!editingBio && (
-        <p className={styles.bio}>{biography ?? "No description yet."}</p>
-      )}
-
-      <div className={styles.bioActions}>
-        {isAdmin ? (
-          <AdminDescriptionEditButton
-            currentDescription={artist.biography}
-            onSaveDescription={handleSaveDescription}
-            onEditingChange={setEditingBio}
-          />
-        ) : (
-          currentUser && (
-            <SuggestEditLink
-              targetType="ARTIST"
-              targetId={artist.id}
-              currentDescription={artist.biography}
-              onEditingChange={setEditingBio}
-            />
-          )
-        )}
-      </div>
+      <EditableDescription
+        text={artist.biography}
+        targetType="ARTIST"
+        targetId={artist.id}
+        onSave={handleSaveDescription}
+        classNames={{
+          paragraph: styles.bio,
+          actions: styles.bioActions,
+          readMoreButton: styles.readMoreButton,
+        }}
+      />
     </div>
   );
 }

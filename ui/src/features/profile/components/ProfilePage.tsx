@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getUserProfile } from "../api/profileApi";
 import { ApiError } from "../../../lib/api-error";
-import missingResourcesIcon from "../../../assets/MissingResources.png";
 import EditIcon from "../../../components/EditIcon/EditIcon";
-import Spinner from "../../../components/Spinner/Spinner";
+import PageStatus from "../../../components/PageStatus/PageStatus";
 import { useAuth } from "../../../features/auth/stores/useAuth";
 import { MONTH_YEAR_FORMAT } from "../../../utils/date";
 import { userPhotoUrl } from "../../../utils/images";
@@ -13,6 +12,8 @@ import styles from "./ProfilePage.module.css";
 import ListsCard from "./ListsCard";
 import ReviewsCard from "./ReviewsCard";
 import RequestsCard from "../../edit-requests/components/RequestsCard";
+import AdminResetPhotoButton from "../../edit-requests/components/AdminResetPhotoButton";
+import { resetUserPhotoAsAdmin } from "../../edit-requests/api/adminContentApi";
 
 const ProfilePageStates = {
   Reviews: 0,
@@ -24,6 +25,7 @@ function ProfilePage() {
   const id = Number(userId);
   const invalidId = !Number.isFinite(id);
   const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === "ADMIN";
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentPageState, setCurrentPageState] = useState(
@@ -34,6 +36,15 @@ function ProfilePage() {
 
   const isOwnAdminProfile =
     currentUser?.id === id && currentUser?.role === "ADMIN";
+  const canModeratePhoto = isAdmin && currentUser?.id !== id;
+
+  function handleResetPhoto() {
+    return resetUserPhotoAsAdmin(id).then((updated) => {
+      setProfile((prev) =>
+        prev ? { ...prev, profilePictureUrl: updated.profilePictureUrl } : prev,
+      );
+    });
+  }
 
   useEffect(() => {
     if (invalidId) return;
@@ -64,9 +75,7 @@ function ProfilePage() {
   if (loading) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <Spinner />
-        </div>
+        <PageStatus variant="loading" />
       </section>
     );
   }
@@ -74,14 +83,7 @@ function ProfilePage() {
   if (notFound || !profile) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <img
-            src={missingResourcesIcon}
-            alt=""
-            className={styles.statusIcon}
-          />
-          <p>This user doesn't exist.</p>
-        </div>
+        <PageStatus variant="not-found" message="This user doesn't exist." />
       </section>
     );
   }
@@ -103,6 +105,9 @@ function ProfilePage() {
           alt={profile.username}
           className={styles.avatar}
         />
+        {canModeratePhoto && (
+          <AdminResetPhotoButton onReset={handleResetPhoto} />
+        )}
         <h1 className={styles.name}>{profile.username}</h1>
         {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
         <p className={styles.joinDate}>

@@ -1,120 +1,80 @@
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { getUserReviews } from "../api/profileApi";
-import missingResourcesIcon from "../../../assets/MissingResources.png";
 import Pagination from "../../../components/Pagination/Pagination";
-import Spinner from "../../../components/Spinner/Spinner";
+import PagedSection from "../../../components/PagedSection/PagedSection";
 import StarRating from "../../../components/StarRating/StarRating";
+import { useAuth } from "../../auth/stores/useAuth";
+import { usePagedList } from "../../../hooks/usePagedList";
 import { MONTH_YEAR_FORMAT } from "../../../utils/date";
-import type { UserReview } from "../types";
 import styles from "./ReviewsCard.module.css";
 import { Link } from "react-router-dom";
+import AdminReviewDeleteControl from "../../edit-requests/components/AdminReviewDeleteControl";
 
 interface ReviewsCardProps {
   userId: number;
 }
 
 function ReviewsCard({ userId }: ReviewsCardProps) {
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === "ADMIN";
   const invalidId = !Number.isFinite(userId);
 
-  const [reviews, setReviews] = useState<UserReview[]>([]);
-  const [reviewsPage, setReviewsPage] = useState(0);
-  const [reviewsTotalPages, setReviewsTotalPages] = useState(0);
-  const [loading, setLoading] = useState(() => !invalidId);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const fetchReviews = useCallback(
+    (page: number) => getUserReviews(userId, page),
+    [userId],
+  );
+  const {
+    items: reviews,
+    setItems: setReviews,
+    page,
+    totalPages,
+    loading,
+    listLoading,
+    goToPage,
+  } = usePagedList(fetchReviews, { enabled: !invalidId });
 
-  useEffect(() => {
-    if (invalidId) return;
-
-    let cancelled = false;
-
-    getUserReviews(userId)
-      .then((reviewsRes) => {
-        if (cancelled) return;
-        setReviews(reviewsRes.content);
-        setReviewsPage(reviewsRes.page);
-        setReviewsTotalPages(reviewsRes.totalPages);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, invalidId]);
-
-  const handlePageChange = (page: number) => {
-    if (page === reviewsPage) return;
-    setReviewsLoading(true);
-    getUserReviews(userId, page)
-      .then((reviewsRes) => {
-        setReviews(reviewsRes.content);
-        setReviewsPage(reviewsRes.page);
-        setReviewsTotalPages(reviewsRes.totalPages);
-      })
-      .catch(() => {})
-      .finally(() => setReviewsLoading(false));
-  };
+  function handleAdminReviewDeleted(reviewId: number) {
+    setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+  }
 
   return (
     <>
-      <div className={styles.sectionWrap}>
-        <div
-          className={
-            reviewsLoading
-              ? `${styles.sectionContent} ${styles.blurred}`
-              : styles.sectionContent
-          }
-        >
-          {loading ? (
-            <div className={styles.empty}>
-              <Spinner label="Loading reviews" />
-            </div>
-          ) : reviews.length === 0 ? (
-            <div className={styles.empty}>
-              <img
-                src={missingResourcesIcon}
-                alt=""
-                className={styles.emptyIcon}
-              />
-              <p>No reviews yet.</p>
-            </div>
-          ) : (
-            <ul className={styles.reviewRows}>
-              {reviews.map((review) => (
-                <li key={review.id} className={styles.reviewRow}>
-                  <div className={styles.reviewHeader}>
-                    <span className={styles.reviewTitle}>{review.title}</span>
-                    <div className={styles.reviewRating}>
-                      <StarRating rating={review.rating} />
-                      <span className={styles.reviewDate}>
-                        {MONTH_YEAR_FORMAT.format(new Date(review.createdAt))}
-                      </span>
-                    </div>
-                  </div>
-                  <span className={styles.reviewAlbum}>
-                    <Link to={`/album/${review.albumId}`}>
-                      {review.albumTitle}
-                    </Link>
+      <PagedSection
+        loading={loading}
+        listLoading={listLoading}
+        isEmpty={reviews.length === 0}
+        emptyMessage="No reviews yet."
+        spinnerLabel="Loading reviews"
+      >
+        <ul className={styles.reviewRows}>
+          {reviews.map((review) => (
+            <li key={review.id} className={styles.reviewRow}>
+              <div className={styles.reviewHeader}>
+                <span className={styles.reviewTitle}>{review.title}</span>
+                <div className={styles.reviewRating}>
+                  <StarRating rating={review.rating} />
+                  <span className={styles.reviewDate}>
+                    {MONTH_YEAR_FORMAT.format(new Date(review.createdAt))}
                   </span>
-                  <p className={styles.reviewComment}>{review.comment}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {reviewsLoading && (
-          <div className={styles.loadingOverlay}>
-            <Spinner label="Loading reviews" />
-          </div>
-        )}
-      </div>
-      <Pagination
-        page={reviewsPage}
-        totalPages={reviewsTotalPages}
-        onPageChange={handlePageChange}
-      />
+                </div>
+              </div>
+              <span className={styles.reviewAlbum}>
+                <Link to={`/album/${review.albumId}`}>{review.albumTitle}</Link>
+              </span>
+              <p className={styles.reviewComment}>{review.comment}</p>
+              {isAdmin && (
+                <div className={styles.adminReviewActions}>
+                  <AdminReviewDeleteControl
+                    reviewId={review.id}
+                    onDeleted={handleAdminReviewDeleted}
+                  />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </PagedSection>
+      <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
     </>
   );
 }

@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getAlbum } from "../api/albumApi";
 import { ApiError } from "../../../lib/api-error";
-import missingResourcesIcon from "../../../assets/MissingResources.png";
-import Spinner from "../../../components/Spinner/Spinner";
+import PageStatus from "../../../components/PageStatus/PageStatus";
 import type { AlbumDetail } from "../types";
 import styles from "./AlbumPage.module.css";
 import ReviewsSection from "./ReviewsSection";
@@ -91,9 +90,7 @@ function AlbumPage() {
   if (loading) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <Spinner />
-        </div>
+        <PageStatus variant="loading" />
       </section>
     );
   }
@@ -101,14 +98,7 @@ function AlbumPage() {
   if (notFound || !album) {
     return (
       <section className={styles.wrap}>
-        <div className={styles.status}>
-          <img
-            src={missingResourcesIcon}
-            alt=""
-            className={styles.statusIcon}
-          />
-          <p>This album doesn't exist.</p>
-        </div>
+        <PageStatus variant="not-found" message="This album doesn't exist." />
       </section>
     );
   }

@@ -1,0 +1,61 @@
+.deleteButton {
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #b3261e;
+}
+
+.deleteButton:hover {
+  color: #8f1c15;
+}
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.confirmText {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.iconButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.confirmDeleteIconButton {
+  background: #b3261e;
+  color: #ffffff;
+}
+
+.confirmDeleteIconButton:hover:not(:disabled) {
+  background: #8f1c15;
+}
+
+.cancelDeleteIconButton {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.cancelDeleteIconButton:hover:not(:disabled) {
+  background: var(--color-border);
+  color: var(--color-ink);
+  opacity: 0.85;
+}

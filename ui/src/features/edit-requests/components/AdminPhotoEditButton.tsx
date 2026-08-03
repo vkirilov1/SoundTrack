@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
 import EditIcon from "../../../components/EditIcon/EditIcon";
-import { ApiError } from "../../../lib/api-error";
+import { usePhotoUpload } from "../../../hooks/usePhotoUpload";
 import styles from "./AdminPhotoEditButton.module.css";
 
 interface AdminPhotoEditButtonProps {
@@ -12,28 +11,8 @@ function AdminPhotoEditButton({
   onSavePhoto,
   label = "Change photo",
 }: AdminPhotoEditButtonProps) {
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setSaving(true);
-    setError(null);
-
-    onSavePhoto(file)
-      .catch((err: unknown) => {
-        setError(
-          err instanceof ApiError ? err.message : "Couldn't upload photo.",
-        );
-      })
-      .finally(() => {
-        setSaving(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      });
-  }
+  const { fileInputRef, uploading, error, handleFileChange } =
+    usePhotoUpload(onSavePhoto);
 
   return (
     <div className={styles.wrap}>
@@ -41,7 +20,7 @@ function AdminPhotoEditButton({
         type="button"
         className={styles.button}
         onClick={() => fileInputRef.current?.click()}
-        disabled={saving}
+        disabled={uploading}
         aria-label={label}
         title={label}
       >

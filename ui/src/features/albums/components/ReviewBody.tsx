@@ -1,6 +1,6 @@
 import { SHORT_DATE_FORMAT } from "../../../utils/date";
 import { userPhotoUrl } from "../../../utils/images";
-import styles from "./ReviewsSection.module.css";
+import styles from "./ReviewBody.module.css";
 import type { AlbumReview } from "../types";
 import { Link } from "react-router-dom";
 
