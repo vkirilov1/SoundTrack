@@ -1,6 +1,6 @@
-import EditIcon from "../../../components/EditIcon/EditIcon";
+import EditIcon from "../../../components/icons/EditIcon";
+import TextButton from "../../../components/buttons/TextButton";
 import InlineTextEditForm from "./InlineTextEditForm";
-import styles from "./AdminDescriptionEditButton.module.css";
 
 interface AdminDescriptionEditButtonProps {
   currentDescription: string | null;
@@ -23,25 +23,18 @@ function AdminDescriptionEditButton({
       errorFallback="Couldn't save."
       autoFocusTextarea
       renderTrigger={(open) => (
-        <button
-          type="button"
-          className={styles.editButton}
+        <TextButton
           onClick={open}
           aria-label="Edit description"
           title="Edit description"
+          display="inline-flex"
+          alignItems="center"
+          gap="6px"
         >
           <EditIcon size={14} />
           <span>Edit description</span>
-        </button>
+        </TextButton>
       )}
-      classNames={{
-        form: styles.form,
-        textarea: styles.textarea,
-        error: styles.error,
-        actions: styles.actions,
-        cancelButton: styles.cancelButton,
-        submitButton: styles.saveButton,
-      }}
     />
   );
 }

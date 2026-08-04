@@ -1,10 +1,12 @@
 import { useState } from "react";
-import styles from "./PasswordInput.module.css";
+import { Box, chakra, Input, type InputProps } from "@chakra-ui/react";
 
-interface PasswordInputProps {
+interface PasswordInputProps extends Omit<
+  InputProps,
+  "value" | "onChange" | "type"
+> {
   value: string;
   onChange: (value: string) => void;
-  className?: string;
 }
 
 function EyeIcon() {
@@ -44,29 +46,44 @@ function EyeOffIcon() {
   );
 }
 
-function PasswordInput({ value, onChange, className }: PasswordInputProps) {
+function PasswordInput({ value, onChange, ...rest }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className={styles.wrap}>
-      <input
+    <Box position="relative" display="flex" w="100%">
+      <Input
         type={visible ? "text" : "password"}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={className}
-        style={{ paddingRight: 40 }}
+        w="100%"
+        pr="40px"
+        {...rest}
       />
-      <button
+      <chakra.button
         type="button"
-        className={styles.toggle}
         onClick={() => setVisible((prev) => !prev)}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
         tabIndex={-1}
+        position="absolute"
+        top="50%"
+        right="8px"
+        transform="translateY(-50%)"
+        display="inline-flex"
+        alignItems="center"
+        justifyContent="center"
+        w="28px"
+        h="28px"
+        bg="none"
+        border="none"
+        borderRadius="full"
+        color="text"
+        cursor="pointer"
+        _hover={{ color: "ink", bg: "border" }}
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
-      </button>
-    </div>
+      </chakra.button>
+    </Box>
   );
 }
 

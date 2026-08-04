@@ -1,17 +1,11 @@
 import { useState } from "react";
+import { Box, Text } from "@chakra-ui/react";
 import { useAuth } from "../../auth/stores/useAuth";
 import { useReadMore } from "../../../hooks/useReadMore";
+import TextButton from "../../../components/buttons/TextButton";
 import type { EditRequestTargetType } from "../types";
 import AdminDescriptionEditButton from "./AdminDescriptionEditButton";
 import SuggestEditLink from "./SuggestEditLink";
-
-interface EditableDescriptionClassNames {
-  paragraph: string;
-  /** Defaults to `paragraph` when the text is empty. */
-  emptyParagraph?: string;
-  actions: string;
-  readMoreButton: string;
-}
 
 interface EditableDescriptionProps {
   text: string | null;
@@ -19,48 +13,71 @@ interface EditableDescriptionProps {
   targetType: EditRequestTargetType;
   targetId: number;
   onSave: (text: string) => Promise<unknown>;
-  classNames: EditableDescriptionClassNames;
+
+  maxW?: string;
+  align?: "left" | "center";
 }
 
-/**
- * Read-more-truncated description text plus its edit affordance: an inline
- * edit form for admins, a "suggest an edit" request for everyone else. Used
- * on both album and artist pages, which each supply their own CSS classes
- * since the surrounding layouts (max-width, alignment) differ per page.
- */
 function EditableDescription({
   text,
   emptyText = "No description yet.",
   targetType,
   targetId,
   onSave,
-  classNames,
+  maxW,
+  align = "left",
 }: EditableDescriptionProps) {
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
   const [editing, setEditing] = useState(false);
   const { displayText, showToggle, expanded, toggle } = useReadMore(text);
+  const centered = align === "center";
 
   return (
     <>
       {!editing &&
         (displayText ? (
-          <p className={classNames.paragraph}>{displayText}</p>
+          <Text
+            maxW={maxW}
+            mx={centered ? "auto" : undefined}
+            fontSize="14px"
+            lineHeight="1.6"
+            color="text"
+            textAlign="left"
+            overflowWrap="break-word"
+            wordBreak="break-word"
+          >
+            {displayText}
+          </Text>
         ) : (
-          <p className={classNames.emptyParagraph ?? classNames.paragraph}>
+          <Text
+            maxW={maxW}
+            mx={centered ? "auto" : undefined}
+            fontSize="14px"
+            fontStyle="italic"
+            color="text"
+            opacity="0.7"
+            textAlign="left"
+          >
             {emptyText}
-          </p>
+          </Text>
         ))}
 
-      <div className={classNames.actions}>
+      <Box
+        mt="10px"
+        w="100%"
+        maxW={maxW}
+        mx={centered ? "auto" : undefined}
+        display="flex"
+        flexWrap="wrap"
+        alignItems="center"
+        justifyContent={centered ? "center" : "flex-start"}
+        gap="16px"
+      >
         {!editing && showToggle && (
-          <button
-            type="button"
-            className={classNames.readMoreButton}
-            onClick={toggle}
-          >
+          <TextButton onClick={toggle}>
             {expanded ? "Show less" : "Read more"}
-          </button>
+          </TextButton>
         )}
 
         {isAdmin ? (
@@ -79,7 +96,7 @@ function EditableDescription({
             />
           )
         )}
-      </div>
+      </Box>
     </>
   );
 }

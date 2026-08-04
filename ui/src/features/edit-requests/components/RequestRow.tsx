@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
-import CheckIcon from "../../../components/CheckIcon/CheckIcon";
-import XIcon from "../../../components/XIcon/XIcon";
+import { Box, HStack, IconButton, Image, Link, Text } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
+import CheckIcon from "../../../components/icons/CheckIcon";
+import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
+import XIcon from "../../../components/icons/XIcon";
 import { artistImageUrl, coverImageUrl } from "../../../utils/images";
 import { SHORT_DATE_FORMAT } from "../../../utils/date";
 import type { EditRequest } from "../types";
-import styles from "./RequestRow.module.css";
 
 interface RequestRowProps {
   request: EditRequest;
@@ -30,73 +31,144 @@ function RequestRow({
       ? coverImageUrl(request.targetPhotoUrl)
       : artistImageUrl(request.targetPhotoUrl)
     : null;
+  const working = status === "working";
 
   return (
-    <li className={styles.row}>
-      <div className={styles.rowMain}>
+    <Box
+      as="li"
+      pb="20px"
+      borderBottom="1px solid"
+      borderColor="border"
+      _last={{ pb: 0, borderBottom: "none" }}
+    >
+      <HStack align="flex-start" gap="16px">
         {imageSrc ? (
-          <img src={imageSrc} alt="" className={styles.thumb} />
+          <Image
+            src={imageSrc}
+            alt=""
+            flexShrink="0"
+            boxSize="72px"
+            borderRadius="md"
+            objectFit="cover"
+            bg="border"
+          />
         ) : (
-          <span className={styles.thumbPlaceholder} aria-hidden="true" />
+          <Box
+            as="span"
+            aria-hidden="true"
+            flexShrink="0"
+            boxSize="72px"
+            borderRadius="md"
+            bg="border"
+          />
         )}
 
-        <div className={styles.info}>
-          <Link to={targetHref} className={styles.targetName}>
-            {request.targetName}
+        <Box flex="1" minW="0" display="flex" flexDirection="column" gap="2px">
+          <Link
+            asChild
+            fontSize="16px"
+            fontWeight="600"
+            color="ink"
+            textDecoration="none"
+            _hover={{ color: "accentHover" }}
+          >
+            <RouterLink to={targetHref}>{request.targetName}</RouterLink>
           </Link>
-          <span className={styles.type}>
+          <Text fontSize="12px" color="accent" fontWeight="600">
             {request.targetType === "ALBUM" ? "Album" : "Artist"} description
-          </span>
-          <span className={styles.submittedBy}>
-            Submitted by {request.requestedByUsername} on{" "}
-            {SHORT_DATE_FORMAT.format(new Date(request.createdAt))}
-          </span>
-          <p className={styles.content}>{request.proposedDescription}</p>
-        </div>
+          </Text>
+          <Text fontSize="12px" color="text" opacity="0.7">
+            Submitted by{" "}
+            <Link
+              asChild
+              color="text"
+              fontWeight="600"
+              textDecoration="none"
+              _hover={{ color: "ink" }}
+            >
+              <RouterLink to={`/profile/${request.requestedByUserId}`}>
+                {request.requestedByUsername}
+              </RouterLink>
+            </Link>{" "}
+            on {SHORT_DATE_FORMAT.format(new Date(request.createdAt))}
+          </Text>
+          <Text
+            mt="6px"
+            fontSize="14px"
+            lineHeight="1.5"
+            color="text"
+            whiteSpace="pre-wrap"
+          >
+            {request.proposedDescription}
+          </Text>
+        </Box>
 
         {request.status === "PENDING" ? (
-          <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.approveButton}
+          <HStack flexShrink="0" gap="8px">
+            <IconButton
               onClick={() => onApprove(request.id)}
-              disabled={status === "working"}
+              disabled={working}
               aria-label="Approve"
               title="Approve"
+              w="32px"
+              h="32px"
+              minW="32px"
+              borderRadius="full"
+              border="1px solid"
+              borderColor="border"
+              bg="none"
+              color="success"
+              _hover={
+                working
+                  ? undefined
+                  : { borderColor: "success", bg: "rgba(26, 127, 55, 0.08)" }
+              }
+              _disabled={{ opacity: 0.6, cursor: "default" }}
             >
               <CheckIcon size={16} />
-            </button>
-            <button
-              type="button"
-              className={styles.rejectButton}
+            </IconButton>
+            <IconButton
               onClick={() => onReject(request.id)}
-              disabled={status === "working"}
+              disabled={working}
               aria-label="Reject"
               title="Reject"
+              w="32px"
+              h="32px"
+              minW="32px"
+              borderRadius="full"
+              border="1px solid"
+              borderColor="border"
+              bg="none"
+              color="danger"
+              _hover={
+                working
+                  ? undefined
+                  : { borderColor: "danger", bg: "rgba(179, 38, 30, 0.08)" }
+              }
+              _disabled={{ opacity: 0.6, cursor: "default" }}
             >
               <XIcon size={16} />
-            </button>
-          </div>
+            </IconButton>
+          </HStack>
         ) : (
-          <span
-            className={
-              request.status === "APPROVED"
-                ? styles.approvedLabel
-                : styles.rejectedLabel
-            }
+          <Text
+            flexShrink="0"
+            fontSize="12px"
+            fontWeight="600"
+            color={request.status === "APPROVED" ? "success" : "danger"}
           >
             {request.status === "APPROVED" ? "Approved" : "Rejected"} by{" "}
             {request.reviewedByUsername}
-          </span>
+          </Text>
         )}
-      </div>
+      </HStack>
 
       {actionError && (
-        <div className={styles.actionError} role="alert">
-          {actionError}
-        </div>
+        <Box mt="12px" ml="88px" role="alert">
+          <FormErrorBanner>{actionError}</FormErrorBanner>
+        </Box>
       )}
-    </li>
+    </Box>
   );
 }
 

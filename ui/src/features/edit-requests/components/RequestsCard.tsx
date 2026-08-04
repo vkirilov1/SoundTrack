@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { VStack } from "@chakra-ui/react";
 import {
   approveEditRequest,
   getEditRequests,
@@ -9,7 +10,6 @@ import PagedSection from "../../../components/PagedSection/PagedSection";
 import { ApiError } from "../../../lib/api-error";
 import { usePagedList } from "../../../hooks/usePagedList";
 import RequestRow from "./RequestRow";
-import styles from "./RequestsCard.module.css";
 
 type ActionStatus = "idle" | "working";
 
@@ -89,7 +89,14 @@ function RequestsCard() {
         emptyMessage="No requests yet."
         spinnerLabel="Loading requests"
       >
-        <ul className={styles.list}>
+        <VStack
+          as="ul"
+          mt="16px"
+          listStyle="none"
+          p="0"
+          align="stretch"
+          gap="20px"
+        >
           {requests.map((request) => (
             <RequestRow
               key={request.id}
@@ -100,7 +107,7 @@ function RequestsCard() {
               onReject={handleReject}
             />
           ))}
-        </ul>
+        </VStack>
       </PagedSection>
       <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
     </>

@@ -1,7 +1,8 @@
 import type { SubmitEvent } from "react";
+import { Box, chakra, Text } from "@chakra-ui/react";
 import type { AddStatus } from "../hooks/useAddToListMenu";
 import type { UserListSummary } from "../../../types/list";
-import styles from "./AddToListMenu.module.css";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
 
 interface AddToListMenuProps {
   lists: UserListSummary[] | null;
@@ -27,58 +28,128 @@ function AddToListMenu({
   onCreateList,
 }: AddToListMenuProps) {
   return (
-    <div className={styles.menu}>
+    <Box
+      position="absolute"
+      top="calc(100% + 8px)"
+      left="0"
+      zIndex="10"
+      w="240px"
+      bg="bg"
+      border="1px solid"
+      borderColor="border"
+      borderRadius="md"
+      boxShadow="0 12px 28px rgba(0, 0, 0, 0.12)"
+      p="10px"
+    >
       {listsLoading ? (
-        <p className={styles.menuHint}>Loading your lists…</p>
+        <Text m="4px 2px" fontSize="13px" color="text">
+          Loading your lists…
+        </Text>
       ) : lists && lists.length > 0 ? (
-        <ul className={styles.menuList}>
+        <chakra.ul listStyle="none" m="0" p="0" maxH="200px" overflowY="auto">
           {lists.map((list) => {
             const status = addStatus[list.id] ?? "idle";
             return (
               <li key={list.id}>
-                <button
+                <chakra.button
                   type="button"
-                  className={styles.menuItem}
                   onClick={() => onAddToList(list.id)}
                   disabled={status === "adding" || status === "added"}
+                  w="100%"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  gap="8px"
+                  font="inherit"
+                  fontSize="13px"
+                  color="ink"
+                  bg="none"
+                  border="none"
+                  borderRadius="md"
+                  p="8px"
+                  cursor="pointer"
+                  textAlign="left"
+                  _hover={
+                    status === "adding" || status === "added"
+                      ? undefined
+                      : { bg: "border" }
+                  }
+                  _disabled={{ cursor: "default" }}
                 >
-                  <span>{list.name}</span>
-                  <span className={styles.menuItemStatus}>
+                  <Box
+                    as="span"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    whiteSpace="nowrap"
+                  >
+                    {list.name}
+                  </Box>
+                  <Box as="span" flexShrink="0" fontSize="11px" color="accent">
                     {status === "adding"
                       ? "Adding…"
                       : status === "added"
                         ? "Added ✓"
                         : ""}
-                  </span>
-                </button>
+                  </Box>
+                </chakra.button>
               </li>
             );
           })}
-        </ul>
+        </chakra.ul>
       ) : (
-        <p className={styles.menuHint}>You don't have any lists yet.</p>
+        <Text m="4px 2px" fontSize="13px" color="text">
+          You don't have any lists yet.
+        </Text>
       )}
 
-      {menuError && <p className={styles.menuError}>{menuError}</p>}
+      {menuError && (
+        <Text m="6px 2px 0" fontSize="12px" color="danger">
+          {menuError}
+        </Text>
+      )}
 
-      <form className={styles.createForm} onSubmit={onCreateList}>
-        <input
+      <chakra.form
+        onSubmit={onCreateList}
+        mt="8px"
+        pt="8px"
+        borderTop="1px solid"
+        borderColor="border"
+        display="flex"
+        gap="6px"
+      >
+        <chakra.input
           type="text"
-          className={styles.createInput}
           placeholder="New list name"
           value={newListName}
           maxLength={255}
           onChange={(event) => onNewListNameChange(event.target.value)}
+          flex="1"
+          minW="0"
+          font="inherit"
+          fontSize="12px"
+          color="ink"
+          bg="bg"
+          border="1px solid"
+          borderColor="border"
+          borderRadius="md"
+          px="8px"
+          py="6px"
+          outline="none"
+          _focus={{ borderColor: "accent" }}
         />
-        <button
+        <PrimaryButton
           type="submit"
-          className={styles.createButton}
           disabled={creatingList || !newListName.trim()}
+          flexShrink="0"
+          fontSize="12px"
+          px="12px"
+          py="6px"
+          h="auto"
         >
           Create
-        </button>
-      </form>
-    </div>
+        </PrimaryButton>
+      </chakra.form>
+    </Box>
   );
 }
 

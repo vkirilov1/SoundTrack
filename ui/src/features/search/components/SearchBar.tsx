@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { keyframes } from "@emotion/react";
+import { Box, chakra, Text, VStack } from "@chakra-ui/react";
 import {
   useDebouncedSearch,
   MIN_QUERY_LENGTH,
 } from "../hooks/useDebouncedSearch";
 import type { SearchMode } from "../hooks/useDebouncedSearch";
 import { useDropdownAnchor } from "../hooks/useDropdownAnchor";
-import styles from "./SearchBar.module.css";
 import SearchResultRow from "./SearchResultRow";
 import UserResultRow from "./UserResultRow";
+
+const searchSlideIn = keyframes`
+  from { opacity: 0; transform: scaleX(0.85); }
+  to { opacity: 1; transform: scaleX(1); }
+`;
 
 function SearchBar() {
   const [open, setOpen] = useState(false);
@@ -44,18 +50,27 @@ function SearchBar() {
     musicResults.albums.length > 0 || musicResults.artists.length > 0;
 
   return (
-    <div
-      className={
-        open ? `${styles.container} ${styles.containerOpen}` : styles.container
-      }
+    <Box
+      position="relative"
+      display="flex"
+      alignItems="center"
+      flex={open ? "1" : undefined}
+      maxW={open ? "700px" : undefined}
       ref={containerRef}
     >
       {!open ? (
-        <button
+        <chakra.button
           type="button"
-          className={styles.searchButton}
-          aria-label="Search"
           onClick={() => setOpen(true)}
+          aria-label="Search"
+          display="inline-flex"
+          alignItems="center"
+          justifyContent="center"
+          bg="none"
+          border="none"
+          color="white"
+          p="4px"
+          cursor="pointer"
         >
           <svg
             width="18"
@@ -78,10 +93,22 @@ function SearchBar() {
               strokeLinecap="round"
             />
           </svg>
-        </button>
+        </chakra.button>
       ) : (
-        <div className={styles.inputWrap}>
-          <input
+        <Box
+          display="flex"
+          alignItems="center"
+          gap="8px"
+          w="100%"
+          bg="transparent"
+          pt="6px"
+          pr="8px"
+          pb="6px"
+          pl="14px"
+          transformOrigin="right center"
+          css={{ animation: `${searchSlideIn} 0.10s ease-out` }}
+        >
+          <chakra.input
             ref={inputRef}
             type="text"
             value={query}
@@ -89,13 +116,30 @@ function SearchBar() {
             placeholder={
               mode === "music" ? "Search albums and artists" : "Search users"
             }
-            className={styles.input}
+            flex="1"
+            minW="0"
+            fontSize="14px"
+            color="white"
+            bg="none"
+            border="none"
+            outline="none"
+            css={{ "&::placeholder": { color: "rgba(255, 255, 255, 0.6)" } }}
           />
-          <button
+          <chakra.button
             type="button"
-            className={styles.clearButton}
-            aria-label="Close search"
             onClick={handleClose}
+            aria-label="Close search"
+            flexShrink="0"
+            display="inline-flex"
+            alignItems="center"
+            justifyContent="center"
+            boxSize="22px"
+            bg="none"
+            border="none"
+            borderRadius="full"
+            color="rgba(255, 255, 255, 0.8)"
+            cursor="pointer"
+            _hover={{ bg: "rgba(255, 255, 255, 0.15)", color: "white" }}
           >
             <svg
               width="12"
@@ -111,16 +155,24 @@ function SearchBar() {
                 strokeLinecap="round"
               />
             </svg>
-          </button>
-        </div>
+          </chakra.button>
+        </Box>
       )}
 
       {open &&
         anchorRect &&
         createPortal(
-          <div
-            className={styles.dropdown}
+          <Box
             ref={dropdownRef}
+            zIndex={1000}
+            maxH="420px"
+            overflowY="auto"
+            bg="bg"
+            border="1px solid"
+            borderColor="border"
+            borderRadius="md"
+            boxShadow="0 12px 28px rgba(0, 0, 0, 0.15)"
+            p="8px"
             style={{
               position: "fixed",
               top: anchorRect.bottom + 8,
@@ -128,28 +180,71 @@ function SearchBar() {
               width: anchorRect.width,
             }}
           >
-            <button
+            <chakra.button
               type="button"
-              className={styles.modeToggle}
               onClick={() =>
                 setMode((prev) => (prev === "music" ? "users" : "music"))
               }
+              display="block"
+              w="100%"
+              textAlign="left"
+              bg="none"
+              border="none"
+              borderBottom="1px solid"
+              borderColor="border"
+              fontSize="12px"
+              color="accent"
+              px="6px"
+              pt="6px"
+              pb="10px"
+              mb="8px"
+              cursor="pointer"
             >
               {mode === "music"
                 ? "Search for users instead"
                 : "Search for albums & artists instead"}
-            </button>
+            </chakra.button>
 
             {showHint ? (
-              <p className={styles.hint}>Keep typing to search…</p>
+              <Text
+                m="0"
+                px="6px"
+                py="16px"
+                textAlign="center"
+                fontSize="13px"
+                color="text"
+              >
+                Keep typing to search…
+              </Text>
             ) : loading ? (
-              <p className={styles.hint}>Searching…</p>
+              <Text
+                m="0"
+                px="6px"
+                py="16px"
+                textAlign="center"
+                fontSize="13px"
+                color="text"
+              >
+                Searching…
+              </Text>
             ) : mode === "music" ? (
               hasMusicResults ? (
-                <>
+                <VStack align="stretch" gap="12px">
                   {musicResults.albums.length > 0 && (
-                    <div className={styles.group}>
-                      <span className={styles.groupLabel}>Albums</span>
+                    <Box>
+                      <Text
+                        display="block"
+                        px="6px"
+                        pb="6px"
+                        fontSize="11px"
+                        fontWeight="600"
+                        textTransform="uppercase"
+                        letterSpacing="0.5px"
+                        color="text"
+                        opacity="0.7"
+                      >
+                        Albums
+                      </Text>
                       {musicResults.albums.map((result) => (
                         <SearchResultRow
                           key={`album-${result.id}`}
@@ -157,11 +252,23 @@ function SearchBar() {
                           onNavigate={handleClose}
                         />
                       ))}
-                    </div>
+                    </Box>
                   )}
                   {musicResults.artists.length > 0 && (
-                    <div className={styles.group}>
-                      <span className={styles.groupLabel}>Artists</span>
+                    <Box>
+                      <Text
+                        display="block"
+                        px="6px"
+                        pb="6px"
+                        fontSize="11px"
+                        fontWeight="600"
+                        textTransform="uppercase"
+                        letterSpacing="0.5px"
+                        color="text"
+                        opacity="0.7"
+                      >
+                        Artists
+                      </Text>
                       {musicResults.artists.map((result) => (
                         <SearchResultRow
                           key={`artist-${result.id}`}
@@ -169,16 +276,23 @@ function SearchBar() {
                           onNavigate={handleClose}
                         />
                       ))}
-                    </div>
+                    </Box>
                   )}
-                </>
+                </VStack>
               ) : (
-                <p className={styles.hint}>
+                <Text
+                  m="0"
+                  px="6px"
+                  py="16px"
+                  textAlign="center"
+                  fontSize="13px"
+                  color="text"
+                >
                   No results for &ldquo;{trimmedQuery}&rdquo;
-                </p>
+                </Text>
               )
             ) : userResults.length > 0 ? (
-              <div className={styles.group}>
+              <Box>
                 {userResults.map((user) => (
                   <UserResultRow
                     key={user.id}
@@ -186,16 +300,23 @@ function SearchBar() {
                     onNavigate={handleClose}
                   />
                 ))}
-              </div>
+              </Box>
             ) : (
-              <p className={styles.hint}>
+              <Text
+                m="0"
+                px="6px"
+                py="16px"
+                textAlign="center"
+                fontSize="13px"
+                color="text"
+              >
                 No users found for &ldquo;{trimmedQuery}&rdquo;
-              </p>
+              </Text>
             )}
-          </div>,
+          </Box>,
           document.body,
         )}
-    </div>
+    </Box>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
-import { Link } from "react-router-dom";
+import { Box, Heading, HStack, Link, Text, VStack } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   createAlbumReview,
   deleteAlbumReview,
@@ -14,7 +15,6 @@ import { useAuth } from "../../../features/auth/stores/useAuth";
 import { usePagedList } from "../../../hooks/usePagedList";
 import AdminReviewDeleteControl from "../../edit-requests/components/AdminReviewDeleteControl";
 import type { AlbumReview } from "../types";
-import styles from "./ReviewsSection.module.css";
 import MyReviewCard from "./MyReviewCard";
 import ReviewBody from "./ReviewBody";
 import ReviewForm from "./ReviewForm";
@@ -99,20 +99,28 @@ function ReviewsSection({
     : reviews;
 
   return (
-    <section className={styles.wrap}>
-      <h2 className={styles.heading}>Reviews</h2>
+    <Box as="section" mt="40px">
+      <Heading as="h2" fontSize="22px">
+        Reviews
+      </Heading>
 
       {!currentUser ? (
-        <p className={styles.loginPrompt}>
-          <Link to="/login" className={styles.link}>
-            Log in
+        <Text mt="16px" fontSize="14px" color="text">
+          <Link
+            asChild
+            color="accent"
+            fontWeight="600"
+            textDecoration="none"
+            _hover={{ color: "accentHover" }}
+          >
+            <RouterLink to="/login">Log in</RouterLink>
           </Link>{" "}
           to write a review.
-        </p>
+        </Text>
       ) : isAdmin ? null : myReviewLoading ? (
-        <div className={styles.myReviewLoading}>
+        <HStack mt="16px" justify="center" py="12px">
           <Spinner size={20} label="Loading your review" />
-        </div>
+        </HStack>
       ) : myReview && !isEditingMyReview ? (
         <MyReviewCard
           review={myReview}
@@ -141,25 +149,30 @@ function ReviewsSection({
         isEmpty={otherReviews.length === 0}
         spinnerLabel="Loading reviews"
       >
-        <div className={styles.reviewList}>
+        <VStack mt="28px" align="stretch" gap="28px">
           {otherReviews.map((review) => (
-            <article key={review.id} className={styles.reviewRow}>
+            <Box
+              as="article"
+              key={review.id}
+              display="flex"
+              flexDirection="column"
+            >
               <ReviewBody review={review} />
               {isAdmin && (
-                <div className={styles.adminReviewActions}>
+                <HStack mt="10px" align="center" gap="10px">
                   <AdminReviewDeleteControl
                     reviewId={review.id}
                     onDeleted={handleAdminReviewDeleted}
                   />
-                </div>
+                </HStack>
               )}
-            </article>
+            </Box>
           ))}
-        </div>
+        </VStack>
       </PagedSection>
 
       <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
-    </section>
+    </Box>
   );
 }
 

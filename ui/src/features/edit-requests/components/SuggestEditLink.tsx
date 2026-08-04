@@ -1,7 +1,7 @@
+import TextButton from "../../../components/buttons/TextButton";
 import { submitEditRequest } from "../api/editRequestApi";
 import type { EditRequestTargetType } from "../types";
 import InlineTextEditForm from "./InlineTextEditForm";
-import styles from "./SuggestEditLink.module.css";
 
 interface SuggestEditLinkProps {
   targetType: EditRequestTargetType;
@@ -27,19 +27,8 @@ function SuggestEditLink({
       disallowEmpty
       successMessage="Thanks! Your suggestion is pending review."
       renderTrigger={(open) => (
-        <button type="button" className={styles.link} onClick={open}>
-          Suggest an edit
-        </button>
+        <TextButton onClick={open}>Suggest an edit</TextButton>
       )}
-      classNames={{
-        form: styles.form,
-        textarea: styles.textarea,
-        error: styles.error,
-        actions: styles.actions,
-        cancelButton: styles.cancelButton,
-        submitButton: styles.submitButton,
-        successMessage: styles.submitted,
-      }}
     />
   );
 }

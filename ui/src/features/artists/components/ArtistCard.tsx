@@ -1,7 +1,7 @@
+import { Box, Heading, Image, Text } from "@chakra-ui/react";
 import type { ArtistDetail } from "../types";
 import { artistImageUrl } from "../../../utils/images";
-import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
-import styles from "./ArtistCard.module.css";
+import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
 import { useAuth } from "../../auth/stores/useAuth";
 import AdminPhotoEditButton from "../../edit-requests/components/AdminPhotoEditButton";
 import EditableDescription from "../../edit-requests/components/EditableDescription";
@@ -42,18 +42,39 @@ function ArtistCard({
   }
 
   return (
-    <div className={styles.card}>
-      <div className={styles.photoWrap}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      textAlign="center"
+    >
+      <Box position="relative">
         {artist.artistPic ? (
-          <img
+          <Image
             src={artistImageUrl(artist.artistPic)}
             alt={artist.name}
-            className={styles.photo}
+            boxSize="180px"
+            borderRadius="md"
+            objectFit="cover"
+            bg="border"
+            mx="auto"
           />
         ) : (
-          <span className={styles.photoPlaceholder} aria-hidden="true">
+          <Box
+            as="span"
+            aria-hidden="true"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            boxSize="180px"
+            border="1.5px solid"
+            borderColor="border"
+            borderRadius="md"
+            color="text"
+            opacity="0.55"
+          >
             <ImagePlaceholderIcon size={64} />
-          </span>
+          </Box>
         )}
         {isAdmin && (
           <AdminPhotoEditButton
@@ -61,24 +82,29 @@ function ArtistCard({
             label="Change photo"
           />
         )}
-      </div>
+      </Box>
 
-      <h1 className={styles.name}>{artist.name}</h1>
+      <Heading as="h1" mt="20px" fontSize="26px">
+        {artist.name}
+      </Heading>
 
-      {meta && <p className={styles.meta}>{meta}</p>}
+      {meta && (
+        <Text mt="6px" fontSize="13px" color="text" opacity="0.7">
+          {meta}
+        </Text>
+      )}
 
-      <EditableDescription
-        text={artist.biography}
-        targetType="ARTIST"
-        targetId={artist.id}
-        onSave={handleSaveDescription}
-        classNames={{
-          paragraph: styles.bio,
-          actions: styles.bioActions,
-          readMoreButton: styles.readMoreButton,
-        }}
-      />
-    </div>
+      <Box mt="16px" w="100%">
+        <EditableDescription
+          text={artist.biography}
+          targetType="ARTIST"
+          targetId={artist.id}
+          onSave={handleSaveDescription}
+          maxW="580px"
+          align="center"
+        />
+      </Box>
+    </Box>
   );
 }
 

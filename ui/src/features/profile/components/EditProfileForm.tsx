@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { Box, chakra, Field, Heading, Input, Textarea } from "@chakra-ui/react";
 import {
   resetProfilePhoto,
   updateProfile,
@@ -10,8 +11,9 @@ import { ApiError } from "../../../lib/api-error";
 import { useAuth } from "../../../features/auth/stores/useAuth";
 import { userPhotoUrl } from "../../../utils/images";
 import type { FieldErrors } from "../../../types/auth";
+import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import AvatarUploadCard from "./AvatarUploadCard";
-import styles from "./EditProfileForm.module.css";
 
 function EditProfileForm() {
   const navigate = useNavigate();
@@ -68,8 +70,18 @@ function EditProfileForm() {
   }
 
   return (
-    <section className={styles.wrap}>
-      <h1 className={styles.heading}>It's You!</h1>
+    <Box
+      as="section"
+      w="100%"
+      maxW="contentWidth"
+      mx="auto"
+      px="24px"
+      pt="56px"
+      pb="80px"
+    >
+      <Heading as="h1" fontSize="32px" mb="32px">
+        It's You!
+      </Heading>
 
       <AvatarUploadCard
         avatarSrc={userPhotoUrl(user.profilePictureUrl ?? "userDefault.png")}
@@ -78,44 +90,72 @@ function EditProfileForm() {
         onReset={() => resetProfilePhoto().then(updateUser)}
       />
 
-      <form className={styles.form} onSubmit={handleSaveProfile} noValidate>
-        <h2 className={styles.subheading}>Profile Data</h2>
+      <chakra.form
+        onSubmit={handleSaveProfile}
+        noValidate
+        display="flex"
+        flexDirection="column"
+        maxW="480px"
+        gap="20px"
+      >
+        <Heading as="h2" fontSize="22px" mb="4px">
+          Profile Data
+        </Heading>
 
-        {formError && <p className={styles.formError}>{formError}</p>}
+        {formError && <FormErrorBanner>{formError}</FormErrorBanner>}
 
-        <label className={styles.field}>
-          <span className={styles.label}>Display Name</span>
-          <input
-            type="text"
+        <Field.Root invalid={!!fieldErrors.username}>
+          <Field.Label fontSize="15px" color="ink">
+            Display Name
+          </Field.Label>
+          <Input
             value={username}
             maxLength={20}
             onChange={(e) => setUsername(e.target.value)}
-            className={styles.input}
+            borderColor="border"
+            _focus={{ borderColor: "accent" }}
           />
           {fieldErrors.username && (
-            <span className={styles.error}>{fieldErrors.username}</span>
+            <Field.ErrorText fontSize="13px" color="danger">
+              {fieldErrors.username}
+            </Field.ErrorText>
           )}
-        </label>
+        </Field.Root>
 
-        <label className={styles.field}>
-          <span className={styles.label}>About you</span>
-          <textarea
+        <Field.Root invalid={!!fieldErrors.bio}>
+          <Field.Label fontSize="15px" color="ink">
+            About you
+          </Field.Label>
+          <Textarea
             value={bio}
             maxLength={1024}
             onChange={(e) => setBio(e.target.value)}
-            className={styles.textarea}
             rows={4}
+            minH="90px"
+            maxH="240px"
+            resize="vertical"
+            borderColor="border"
+            _focus={{ borderColor: "accent" }}
           />
           {fieldErrors.bio && (
-            <span className={styles.error}>{fieldErrors.bio}</span>
+            <Field.ErrorText fontSize="13px" color="danger">
+              {fieldErrors.bio}
+            </Field.ErrorText>
           )}
-        </label>
+        </Field.Root>
 
-        <button type="submit" className={styles.saveButton} disabled={saving}>
+        <PrimaryButton
+          type="submit"
+          disabled={saving}
+          fontSize="15px"
+          p="14px"
+          h="auto"
+          mt="8px"
+        >
           {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </form>
-    </section>
+        </PrimaryButton>
+      </chakra.form>
+    </Box>
   );
 }
 

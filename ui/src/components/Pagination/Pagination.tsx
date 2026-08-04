@@ -1,5 +1,5 @@
-import { useState, type KeyboardEvent } from "react";
-import styles from "./Pagination.module.css";
+import { useState, type CSSProperties, type KeyboardEvent } from "react";
+import { chakra, HStack } from "@chakra-ui/react";
 
 interface PaginationProps {
   page: number;
@@ -36,6 +36,23 @@ function buildPageItems(current: number, total: number): PageItem[] {
   return items;
 }
 
+const baseButtonStyle = {
+  border: "none",
+  bg: "none",
+  color: "text",
+  fontSize: "15px",
+  lineHeight: "1",
+  px: "10px",
+  py: "6px",
+  borderRadius: "md",
+  cursor: "pointer",
+  transition: "color 0.15s ease, background-color 0.15s ease",
+  outline: "none",
+  _focusVisible: { boxShadow: "0 0 0 2px var(--chakra-colors-text)" },
+} as const;
+
+const hoverStyle = { color: "ink", bg: "border" };
+
 function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
   const [jumping, setJumping] = useState(false);
   const [jumpValue, setJumpValue] = useState("");
@@ -61,79 +78,120 @@ function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
   };
 
   const items = buildPageItems(page, totalPages);
+  const isFirstPage = page === 0;
+  const isLastPage = page === totalPages - 1;
 
   return (
-    <nav className={styles.pagination} aria-label="Pagination">
-      <button
+    <HStack
+      as="nav"
+      aria-label="Pagination"
+      mt="24px"
+      justify="center"
+      gap="6px"
+    >
+      <chakra.button
         type="button"
-        className={styles.arrow}
-        disabled={page === 0}
+        {...baseButtonStyle}
+        fontSize="18px"
+        fontWeight="600"
+        px="12px"
+        disabled={isFirstPage}
         onClick={() => onPageChange(page - 1)}
         aria-label="Previous page"
+        color={isFirstPage ? "border" : "text"}
+        cursor={isFirstPage ? "default" : "pointer"}
+        _hover={isFirstPage ? undefined : hoverStyle}
       >
         ‹
-      </button>
+      </chakra.button>
 
       {items.map((item) => {
         if (typeof item === "number") {
           const isActive = item === page;
           return (
-            <button
+            <chakra.button
               key={item}
               type="button"
-              className={
-                isActive
-                  ? `${styles.pageButton} ${styles.active}`
-                  : styles.pageButton
-              }
+              {...baseButtonStyle}
+              color={isActive ? "ink" : "text"}
+              fontWeight={isActive ? "600" : "400"}
+              bg={isActive ? "border" : "none"}
               onClick={() => onPageChange(item)}
               aria-current={isActive ? "page" : undefined}
+              _hover={hoverStyle}
             >
               {item + 1}
-            </button>
+            </chakra.button>
           );
         }
 
         if (jumping) {
           return (
-            <input
+            <chakra.input
               key={item.key}
               type="number"
               min={1}
               max={totalPages}
-              className={styles.jumpInput}
               value={jumpValue}
               autoFocus
               onChange={(event) => setJumpValue(event.target.value)}
               onKeyDown={handleJumpKeyDown}
               onBlur={commitJump}
+              w="44px"
+              px="6px"
+              py="5px"
+              fontSize="14px"
+              textAlign="center"
+              color="ink"
+              border="1px solid"
+              borderColor="border"
+              borderRadius="md"
+              bg="bg"
+              outline="none"
+              _focusVisible={{
+                boxShadow: "0 0 0 2px var(--chakra-colors-accent)",
+              }}
+              style={
+                {
+                  MozAppearance: "textfield",
+                } as CSSProperties
+              }
             />
           );
         }
 
         return (
-          <button
+          <chakra.button
             key={item.key}
             type="button"
-            className={styles.ellipsis}
+            {...baseButtonStyle}
+            fontWeight="600"
+            letterSpacing="1px"
             onClick={() => setJumping(true)}
             aria-label="Jump to page"
+            _hover={hoverStyle}
           >
             …
-          </button>
+          </chakra.button>
         );
       })}
 
-      <button
+      <chakra.button
         type="button"
-        className={styles.arrow}
-        disabled={page === totalPages - 1}
+        {...baseButtonStyle}
+        fontSize="18px"
+        fontWeight="600"
+        px="12px"
+        disabled={isLastPage}
         onClick={() => onPageChange(page + 1)}
         aria-label="Next page"
+        color={isLastPage ? "border" : "text"}
+        cursor={isLastPage ? "default" : "pointer"}
+        _hover={isLastPage ? undefined : hoverStyle}
       >
         ›
-      </button>
-    </nav>
+      </chakra.button>
+    </HStack>
   );
 }
 

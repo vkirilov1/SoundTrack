@@ -1,10 +1,10 @@
 import { Fragment, useState } from "react";
-import { Link } from "react-router-dom";
+import { Box, chakra, Heading, HStack, Link, Text } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import { addFavoriteSong, removeFavoriteSong } from "../api/favoriteApi";
-import HeartIcon from "../../../components/HeartIcon/HeartIcon";
+import HeartToggleButton from "../../../components/HeartToggleButton/HeartToggleButton";
 import { useAuth } from "../../../features/auth/stores/useAuth";
 import type { AlbumSong } from "../types";
-import styles from "./SongsSection.module.css";
 
 interface SongsSectionProps {
   songs: AlbumSong[];
@@ -47,51 +47,95 @@ function SongsSection({ songs, onSongFavoriteChange }: SongsSectionProps) {
   }
 
   return (
-    <section className={styles.wrap}>
-      <h2 className={styles.heading}>Songs</h2>
-      <ul className={styles.list}>
+    <Box as="section" mt="40px">
+      <Heading as="h2" fontSize="22px">
+        Songs
+      </Heading>
+      <chakra.ul
+        listStyle="none"
+        m="16px 0 0"
+        p="0"
+        display="flex"
+        flexDirection="column"
+      >
         {songs.map((song) => (
-          <li key={song.id} className={styles.row}>
-            <span className={styles.position}>{song.position}</span>
-            <div className={styles.info}>
-              <span className={styles.title}>{song.title}</span>
+          <HStack
+            as="li"
+            key={song.id}
+            gap="14px"
+            py="10px"
+            px="4px"
+            borderBottom="1px solid"
+            borderColor="border"
+            _last={{ borderBottom: "none" }}
+          >
+            <Text
+              as="span"
+              flexShrink="0"
+              w="22px"
+              textAlign="right"
+              fontSize="13px"
+              color="text"
+              opacity="0.7"
+            >
+              {song.position}
+            </Text>
+            <Box flex="1" minW="0" display="flex" flexDirection="column">
+              <Text
+                as="span"
+                fontSize="14px"
+                fontWeight="600"
+                color="ink"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+              >
+                {song.title}
+              </Text>
               {song.artists.length > 0 && (
-                <span>
+                <Box as="span">
                   {song.artists.map((artist, index) => (
                     <Fragment key={artist.id}>
                       <Link
-                        to={`/artist/${artist.id}`}
-                        className={styles.artistLink}
+                        asChild
+                        fontSize="12px"
+                        color="text"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                        textDecoration="none"
+                        _hover={{ color: "accentHover" }}
                       >
-                        {artist.name}
+                        <RouterLink to={`/artist/${artist.id}`}>
+                          {artist.name}
+                        </RouterLink>
                       </Link>
                       {index < song.artists.length - 1 && ", "}
                     </Fragment>
                   ))}
-                </span>
+                </Box>
               )}
-            </div>
-            <span className={styles.duration}>
+            </Box>
+            <Text
+              as="span"
+              flexShrink="0"
+              fontSize="13px"
+              color="text"
+              opacity="0.8"
+            >
               {formatDuration(song.durationSeconds)}
-            </span>
+            </Text>
             {currentUser && currentUser.role !== "ADMIN" && (
-              <button
-                type="button"
-                className={styles.heartButton}
+              <HeartToggleButton
+                filled={song.favorited}
                 onClick={() => handleToggle(song)}
                 disabled={pendingIds.has(song.id)}
-                aria-label={
-                  song.favorited ? "Remove from favorites" : "Add to favorites"
-                }
-                aria-pressed={song.favorited}
-              >
-                <HeartIcon filled={song.favorited} size={18} />
-              </button>
+              />
             )}
-          </li>
+          </HStack>
         ))}
-      </ul>
-    </section>
+      </chakra.ul>
+    </Box>
   );
 }
 

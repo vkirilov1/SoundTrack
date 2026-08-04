@@ -1,12 +1,14 @@
+import { Box, Heading } from "@chakra-ui/react";
 import chatPlaceholder from "../../../../assets/chatPlaceholder.png";
 import listsPlaceholder from "../../../../assets/listsPlaceholder.png";
 import FeatureRow from "./FeatureRow";
-import styles from "./ConnectSection.module.css";
 
 function ConnectSection() {
   return (
-    <section className={styles.connect}>
-      <h2 className={styles.heading}>Connect</h2>
+    <Box w="100%" maxW="contentWidth" mx="auto" py="64px" px="24px">
+      <Heading as="h2" fontSize="28px">
+        Connect
+      </Heading>
 
       <FeatureRow
         title="Chat Live"
@@ -24,7 +26,7 @@ function ConnectSection() {
         imageVariant="highlight"
         reverse
       />
-    </section>
+    </Box>
   );
 }
 

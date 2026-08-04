@@ -1,7 +1,5 @@
-import styles from "./StarRating.module.css";
-
-const STAR_PATH =
-  "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
+import { Box, HStack } from "@chakra-ui/react";
+import { STAR_PATH } from "../../utils/svgPaths";
 
 interface StarRatingProps {
   rating: number;
@@ -14,41 +12,54 @@ function StarRating({ rating, size = 16 }: StarRatingProps) {
   );
 
   return (
-    <span
-      className={styles.stars}
+    <HStack
+      as="span"
       role="img"
       aria-label={`${rating.toFixed(1)} out of 5 stars`}
+      gap="1px"
+      flexShrink="0"
     >
       {fractions.map((fraction, index) => (
-        <span
+        <Box
           key={index}
-          className={styles.star}
-          style={{ width: size, height: size }}
+          position="relative"
+          display="inline-block"
+          w={`${size}px`}
+          h={`${size}px`}
+          color="starEmpty"
         >
           <svg
             viewBox="0 0 24 24"
             width={size}
             height={size}
-            className={styles.starBg}
+            fill="currentColor"
+            style={{ display: "block" }}
           >
             <path d={STAR_PATH} />
           </svg>
-          <span
-            className={styles.starClip}
-            style={{ width: `${fraction * 100}%` }}
+          <Box
+            position="absolute"
+            top="0"
+            left="0"
+            h="100%"
+            overflow="hidden"
+            display="block"
+            w={`${fraction * 100}%`}
+            color="star"
           >
             <svg
               viewBox="0 0 24 24"
               width={size}
               height={size}
-              className={styles.starFg}
+              fill="currentColor"
+              style={{ display: "block" }}
             >
               <path d={STAR_PATH} />
             </svg>
-          </span>
-        </span>
+          </Box>
+        </Box>
       ))}
-    </span>
+    </HStack>
   );
 }
 

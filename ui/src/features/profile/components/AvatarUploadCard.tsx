@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { Box, chakra, Text, VStack } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
 import { usePhotoUpload } from "../../../hooks/usePhotoUpload";
-import styles from "./AvatarUploadCard.module.css";
+import Avatar from "../../../components/Avatar/Avatar";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
+import UnderlineTextButton from "../../../components/buttons/UnderlineTextButton";
 
 interface AvatarUploadCardProps {
   avatarSrc: string;
@@ -54,48 +57,73 @@ function AvatarUploadCard({
   const photoError = uploadError ?? resetError;
 
   return (
-    <div className={styles.photoRow}>
-      <div className={styles.avatarCol}>
-        <img
-          src={preview ?? avatarSrc}
-          alt={username}
-          className={styles.avatar}
-        />
-        <button
-          type="button"
-          className={styles.resetLink}
-          onClick={handleResetPhoto}
-          disabled={resetting}
-        >
+    <Box
+      display="flex"
+      flexDirection={{ base: "column", sm: "row" }}
+      alignItems={{ base: "center", sm: "flex-start" }}
+      gap="48px"
+      mb="48px"
+    >
+      <VStack align="center" gap="12px">
+        <Avatar src={preview ?? avatarSrc} alt={username} size="140px" />
+        <UnderlineTextButton onClick={handleResetPhoto} disabled={resetting}>
           {resetting ? "Resetting…" : "Reset to Default"}
-        </button>
-      </div>
+        </UnderlineTextButton>
+      </VStack>
 
-      <div className={styles.uploadCol}>
-        <label className={styles.chooseFile}>
+      <VStack align="flex-start" gap="12px" maxW="360px" pt="4px">
+        <chakra.label
+          display="inline-flex"
+          alignItems="center"
+          px="20px"
+          py="12px"
+          bg="border"
+          color="#8a8a92"
+          fontSize="13px"
+          fontWeight="600"
+          textTransform="uppercase"
+          letterSpacing="0.4px"
+          borderRadius="md"
+          cursor="pointer"
+        >
           Choose File
-          <input
+          <chakra.input
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png"
             onChange={handleFileChange}
-            className={styles.hiddenInput}
+            position="absolute"
+            w="1px"
+            h="1px"
+            p="0"
+            m="-1px"
+            overflow="hidden"
+            css={{ clip: "rect(0, 0, 0, 0)" }}
+            whiteSpace="nowrap"
+            border="0"
           />
-        </label>
-        <p className={styles.hint}>
+        </chakra.label>
+        <Text fontSize="13px" color="text" m="0">
           Image will be cropped to a circular shape, similar to the example
-        </p>
-        {photoError && <p className={styles.error}>{photoError}</p>}
-        <button
-          type="button"
-          className={styles.uploadButton}
+        </Text>
+        {photoError && (
+          <Text fontSize="13px" color="danger" m="0">
+            {photoError}
+          </Text>
+        )}
+        <PrimaryButton
           onClick={confirmUpload}
           disabled={!selectedFile || uploading}
+          fontSize="14px"
+          px="24px"
+          py="12px"
+          h="auto"
+          _disabled={{ opacity: 0.6, cursor: "default" }}
         >
           {uploading ? "Uploading…" : "Upload"}
-        </button>
-      </div>
-    </div>
+        </PrimaryButton>
+      </VStack>
+    </Box>
   );
 }
 

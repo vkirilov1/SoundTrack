@@ -1,6 +1,6 @@
+import { Box, Heading, chakra } from "@chakra-ui/react";
 import type { ArtistAlbum } from "../types";
 import ArtistAlbumRow from "./ArtistAlbumRow";
-import styles from "./ArtistAlbums.module.css";
 
 interface ArtistAlbumsProps {
   albums: ArtistAlbum[];
@@ -11,9 +11,11 @@ function ArtistAlbums({ albums, onAlbumFavoriteChange }: ArtistAlbumsProps) {
   if (albums.length === 0) return null;
 
   return (
-    <section className={styles.wrap}>
-      <h2 className={styles.heading}>Albums</h2>
-      <ul className={styles.list}>
+    <Box as="section" mt="48px">
+      <Heading as="h2" fontSize="22px">
+        Albums
+      </Heading>
+      <chakra.ul listStyle="none" m="16px 0 0" p="0">
         {albums.map((album) => (
           <ArtistAlbumRow
             key={album.id}
@@ -21,8 +23,8 @@ function ArtistAlbums({ albums, onAlbumFavoriteChange }: ArtistAlbumsProps) {
             onFavoriteChange={onAlbumFavoriteChange}
           />
         ))}
-      </ul>
-    </section>
+      </chakra.ul>
+    </Box>
   );
 }
 

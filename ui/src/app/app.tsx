@@ -1,4 +1,4 @@
-import Layout from "../components/layout/Layout/Layout";
+import Layout from "../components/layout/Layout";
 import AppRouter from "./router";
 
 function App() {

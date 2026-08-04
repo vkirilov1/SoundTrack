@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Box, chakra, HStack, Image, Link, Text } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   addFavoriteAlbum,
   removeFavoriteAlbum,
 } from "../../albums/api/favoriteApi";
 import { useAddToListMenu } from "../../albums/hooks/useAddToListMenu";
 import AddToListMenu from "../../albums/components/AddToListMenu";
-import HeartIcon from "../../../components/HeartIcon/HeartIcon";
-import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
+import HeartToggleButton from "../../../components/HeartToggleButton/HeartToggleButton";
+import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
 import { useAuth } from "../../auth/stores/useAuth";
 import { coverImageUrl } from "../../../utils/images";
 import type { ArtistAlbum } from "../types";
-import styles from "./ArtistAlbumRow.module.css";
 
 interface ArtistAlbumRowProps {
   album: ArtistAlbum;
@@ -20,9 +20,22 @@ interface ArtistAlbumRowProps {
 
 function CoverPlaceholder() {
   return (
-    <span className={styles.coverPlaceholder} aria-hidden="true">
+    <Box
+      as="span"
+      aria-hidden="true"
+      flexShrink="0"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      boxSize="96px"
+      border="1.5px solid"
+      borderColor="border"
+      borderRadius="md"
+      color="text"
+      opacity="0.55"
+    >
       <ImagePlaceholderIcon size={38} />
-    </span>
+    </Box>
   );
 }
 
@@ -81,53 +94,92 @@ function ArtistAlbumRow({ album, onFavoriteChange }: ArtistAlbumRowProps) {
   const year = new Date(album.releaseDate).getFullYear();
 
   return (
-    <li className={styles.row}>
+    <HStack
+      as="li"
+      gap="20px"
+      py="18px"
+      px="4px"
+      borderBottom="1px solid"
+      borderColor="border"
+      _last={{ borderBottom: "none" }}
+    >
       {album.coverUrl ? (
-        <img
+        <Image
           src={coverImageUrl(album.coverUrl)}
           alt=""
-          className={styles.cover}
+          flexShrink="0"
+          boxSize="96px"
+          borderRadius="md"
+          objectFit="cover"
+          bg="border"
         />
       ) : (
         <CoverPlaceholder />
       )}
 
-      <div className={styles.info}>
-        <Link to={`/album/${album.id}`} className={styles.title}>
-          {album.title}
+      <Box
+        flex="1"
+        minW="0"
+        display="flex"
+        flexDirection="column"
+        alignItems="flex-start"
+        gap="4px"
+      >
+        <Link
+          asChild
+          maxW="100%"
+          fontSize="19px"
+          fontWeight="600"
+          color="ink"
+          textDecoration="none"
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+          _hover={{ color: "accentHover" }}
+        >
+          <RouterLink to={`/album/${album.id}`}>{album.title}</RouterLink>
         </Link>
-        <span className={styles.year}>{year}</span>
-      </div>
+        <Text fontSize="14px" color="text" opacity="0.7">
+          {year}
+        </Text>
+      </Box>
 
       {album.rating > 0 && (
-        <span className={styles.rating}>{album.rating.toFixed(1)}</span>
+        <Text flexShrink="0" fontSize="17px" fontWeight="700" color="accent">
+          {album.rating.toFixed(1)}
+        </Text>
       )}
 
       {currentUser && currentUser.role !== "ADMIN" && (
         <>
-          <button
-            type="button"
-            className={styles.heartButton}
+          <HeartToggleButton
+            filled={album.favorited}
             onClick={handleToggleFavorite}
             disabled={favoritePending}
-            aria-pressed={album.favorited}
-            aria-label={
-              album.favorited ? "Remove from favorites" : "Add to favorites"
-            }
-          >
-            <HeartIcon filled={album.favorited} size={18} />
-          </button>
+          />
 
-          <div className={styles.menuWrap} ref={menuRef}>
-            <button
+          <Box position="relative" flexShrink="0" ref={menuRef}>
+            <chakra.button
               type="button"
-              className={styles.addButton}
               onClick={openMenu}
               aria-haspopup="true"
               aria-label="Add to list"
+              display="inline-flex"
+              alignItems="center"
+              justifyContent="center"
+              w="30px"
+              h="30px"
+              bg="none"
+              border="1px solid"
+              borderColor="border"
+              borderRadius="full"
+              color="text"
+              cursor="pointer"
+              transition="background 0.15s ease, color 0.15s ease, border-color 0.15s ease"
+              _hover={{ borderColor: "accent", color: "accent" }}
             >
               <PlusIcon />
-            </button>
+            </chakra.button>
 
             {menuOpen && (
               <AddToListMenu
@@ -142,10 +194,10 @@ function ArtistAlbumRow({ album, onFavoriteChange }: ArtistAlbumRowProps) {
                 onCreateList={handleCreateList}
               />
             )}
-          </div>
+          </Box>
         </>
       )}
-    </li>
+    </HStack>
   );
 }
 
