@@ -13,6 +13,7 @@ public record EditRequestResponse(
     String proposedDescription,
     EditRequestStatus status,
     String requestedByUsername,
+    Long requestedByUserId,
     String reviewedByUsername,
     LocalDateTime reviewedAt,
     LocalDateTime createdAt) {}

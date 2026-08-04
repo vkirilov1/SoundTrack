@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Box, HStack } from "@chakra-ui/react";
 import ConfirmDeleteControl from "../../../components/ConfirmDeleteControl/ConfirmDeleteControl";
+import TextButton from "../../../components/buttons/TextButton";
 import type { AlbumReview } from "../types";
 import ReviewBody from "./ReviewBody";
-import styles from "./MyReviewCard.module.css";
 
 interface MyReviewCardProps {
   review: AlbumReview;
@@ -16,21 +17,26 @@ function MyReviewCard({ review, onEdit, onDelete }: MyReviewCardProps) {
   >("idle");
 
   return (
-    <div className={styles.myReviewCard}>
+    <Box
+      mt="16px"
+      p="16px"
+      bg="bg"
+      border="1px solid"
+      borderColor="accent"
+      borderRadius="md"
+    >
       <ReviewBody review={review} />
-      <div className={styles.myReviewActions}>
+      <HStack mt="14px" align="center" gap="10px">
         {deleteStatus === "idle" && (
-          <button type="button" className={styles.editButton} onClick={onEdit}>
-            Edit
-          </button>
+          <TextButton onClick={onEdit}>Edit</TextButton>
         )}
         <ConfirmDeleteControl
           confirmMessage="Delete this review?"
           onDelete={onDelete}
           onStatusChange={setDeleteStatus}
         />
-      </div>
-    </div>
+      </HStack>
+    </Box>
   );
 }
 

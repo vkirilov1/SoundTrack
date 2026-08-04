@@ -1,78 +1,109 @@
 import { useState } from "react";
-import styles from "./RatingPicker.module.css";
+import { Box, chakra, HStack } from "@chakra-ui/react";
+import { STAR_PATH } from "../../../utils/svgPaths";
 
 interface RatingPickerProps {
   value: number | null;
   onChange: (value: number) => void;
 }
 
-const STAR_PATH =
-  "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
-
 function RatingPicker({ value, onChange }: RatingPickerProps) {
   const [hovered, setHovered] = useState<number | null>(null);
   const shown = hovered ?? value ?? 0;
 
   return (
-    <div
-      className={styles.ratingPicker}
+    <HStack
+      flexShrink="0"
+      gap="4px"
       role="radiogroup"
       aria-label="Rating"
       onMouseLeave={() => setHovered(null)}
     >
-      <button
+      <chakra.button
         type="button"
-        className={
-          value === 0
-            ? `${styles.zeroButton} ${styles.zeroActive}`
-            : styles.zeroButton
-        }
         aria-label="0 out of 5 stars"
         onMouseEnter={() => setHovered(0)}
         onClick={() => onChange(0)}
+        display="inline-flex"
+        alignItems="center"
+        justifyContent="center"
+        w="20px"
+        h="22px"
+        mr="2px"
+        fontSize="12px"
+        fontWeight="600"
+        color={value === 0 ? "star" : "starEmpty"}
+        bg="none"
+        border="none"
+        cursor="pointer"
       >
         0
-      </button>
+      </chakra.button>
       {[1, 2, 3, 4, 5].map((star) => {
         const fraction = Math.min(1, Math.max(0, shown - (star - 1)));
         return (
-          <span key={star} className={styles.starWrap}>
+          <Box
+            key={star}
+            position="relative"
+            display="inline-block"
+            w="22px"
+            h="22px"
+          >
             <svg
               viewBox="0 0 24 24"
               width={22}
               height={22}
-              className={styles.starBg}
+              style={{ display: "block" }}
             >
-              <path d={STAR_PATH} fill="var(--color-star-empty)" />
+              <path d={STAR_PATH} fill="var(--chakra-colors-star-empty)" />
             </svg>
-            <span
-              className={styles.starClip}
-              style={{ width: `${fraction * 100}%` }}
+            <Box
+              position="absolute"
+              top="0"
+              left="0"
+              h="100%"
+              overflow="hidden"
+              display="block"
+              w={`${fraction * 100}%`}
             >
               <svg viewBox="0 0 24 24" width={22} height={22}>
-                <path d={STAR_PATH} fill="var(--color-star)" />
+                <path d={STAR_PATH} fill="var(--chakra-colors-star)" />
               </svg>
-            </span>
-            <button
+            </Box>
+            <chakra.button
               type="button"
-              className={styles.starHalf}
-              style={{ left: 0 }}
               aria-label={`${star - 0.5} out of 5 stars`}
               onMouseEnter={() => setHovered(star - 0.5)}
               onClick={() => onChange(star - 0.5)}
+              position="absolute"
+              top="0"
+              left="0"
+              w="50%"
+              h="100%"
+              bg="none"
+              border="none"
+              p="0"
+              cursor="pointer"
             />
-            <button
+            <chakra.button
               type="button"
-              className={styles.starHalf}
-              style={{ right: 0 }}
               aria-label={`${star} out of 5 stars`}
               onMouseEnter={() => setHovered(star)}
               onClick={() => onChange(star)}
+              position="absolute"
+              top="0"
+              right="0"
+              w="50%"
+              h="100%"
+              bg="none"
+              border="none"
+              p="0"
+              cursor="pointer"
             />
-          </span>
+          </Box>
         );
       })}
-    </div>
+    </HStack>
   );
 }
 

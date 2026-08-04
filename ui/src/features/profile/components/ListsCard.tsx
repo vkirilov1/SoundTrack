@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Box, HStack, Image, Text, VStack } from "@chakra-ui/react";
 import {
   getUserFavoriteAlbums,
   getUserFavoriteSongs,
@@ -6,10 +7,10 @@ import {
 } from "../api/profileApi";
 import Pagination from "../../../components/Pagination/Pagination";
 import PagedSection from "../../../components/PagedSection/PagedSection";
-import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
+import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
+import HeartIcon from "../../../components/icons/HeartIcon";
 import { usePagedList } from "../../../hooks/usePagedList";
 import { coverImageUrl } from "../../../utils/images";
-import styles from "./ListsCard.module.css";
 
 interface ListsCardProps {
   userId: number;
@@ -23,26 +24,48 @@ interface ListIconProps {
 function ListIcon({ coverUrl, isFavorites }: ListIconProps) {
   if (isFavorites) {
     return (
-      <span className={styles.favoritesIcon} aria-hidden="true">
-        <svg viewBox="0 0 24 24" width={42} height={42} fill="#e11d48">
-          <g transform="translate(0 -1028.4)">
-            <path d="m7 1031.4c-1.5355 0-3.0784 0.5-4.25 1.7-2.3431 2.4-2.2788 6.1 0 8.5l9.25 9.8 9.25-9.8c2.279-2.4 2.343-6.1 0-8.5-2.343-2.3-6.157-2.3-8.5 0l-0.75 0.8-0.75-0.8c-1.172-1.2-2.7145-1.7-4.25-1.7z" />
-          </g>
-        </svg>
-      </span>
+      <Box
+        flexShrink="0"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        boxSize="90px"
+        borderRadius="md"
+      >
+        <HeartIcon filled size={42} />
+      </Box>
     );
   }
 
   if (coverUrl) {
     return (
-      <img src={coverImageUrl(coverUrl)} alt="" className={styles.listCover} />
+      <Image
+        src={coverImageUrl(coverUrl)}
+        alt=""
+        flexShrink="0"
+        boxSize="90px"
+        borderRadius="md"
+        objectFit="cover"
+        bg="border"
+      />
     );
   }
 
   return (
-    <span className={styles.listIcon} aria-hidden="true">
+    <Box
+      flexShrink="0"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      boxSize="90px"
+      border="1.5px solid"
+      borderColor="ink"
+      borderRadius="md"
+      color="ink"
+      opacity="0.55"
+    >
       <ImagePlaceholderIcon size={26} />
-    </span>
+    </Box>
   );
 }
 
@@ -88,6 +111,13 @@ function ListsCard({ userId }: ListsCardProps) {
   }, [userId, invalidId]);
 
   const showFavorites = listsPage === 0;
+  const rowStyle = {
+    gap: "16px",
+    pb: "20px",
+    borderBottom: "1px solid",
+    borderColor: "border",
+    _last: { pb: 0, borderBottom: "none" },
+  } as const;
 
   return (
     <>
@@ -98,35 +128,76 @@ function ListsCard({ userId }: ListsCardProps) {
         emptyMessage="No lists yet."
         spinnerLabel="Loading lists"
       >
-        <ul className={styles.listRows}>
+        <VStack
+          as="ul"
+          listStyle="none"
+          m="0"
+          mt="16px"
+          p="0"
+          gap="20px"
+          align="stretch"
+        >
           {showFavorites && (
-            <li className={styles.listRow}>
+            <HStack as="li" {...rowStyle}>
               <ListIcon isFavorites />
-              <div className={styles.listInfo}>
-                <span className={styles.favoritesTitle}>Favorites</span>
-              </div>
-              <span className={styles.listMeta}>
+              <VStack flex="1" minW="0" gap="2px" align="stretch">
+                <Text as="span" color="accent">
+                  Favorites
+                </Text>
+              </VStack>
+              <Text
+                as="span"
+                flexShrink="0"
+                fontSize="13px"
+                color="text"
+                opacity="0.7"
+              >
                 {favoritesCount} {favoritesCount === 1 ? "item" : "items"}
-              </span>
-            </li>
+              </Text>
+            </HStack>
           )}
           {lists.map((list) => (
-            <li key={list.id} className={styles.listRow}>
+            <HStack as="li" key={list.id} {...rowStyle}>
               <ListIcon coverUrl={list.coverUrl} />
-              <div className={styles.listInfo}>
-                <span className={styles.listTitle}>{list.name}</span>
+              <VStack flex="1" minW="0" gap="2px" align="stretch">
+                <Text
+                  as="span"
+                  minW="0"
+                  fontSize="17px"
+                  fontWeight="600"
+                  color="ink"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  whiteSpace="nowrap"
+                >
+                  {list.name}
+                </Text>
                 {list.description && (
-                  <span className={styles.listDescription}>
+                  <Text
+                    as="span"
+                    minW="0"
+                    fontSize="14px"
+                    color="text"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    whiteSpace="nowrap"
+                  >
                     {list.description}
-                  </span>
+                  </Text>
                 )}
-              </div>
-              <span className={styles.listMeta}>
+              </VStack>
+              <Text
+                as="span"
+                flexShrink="0"
+                fontSize="13px"
+                color="text"
+                opacity="0.7"
+              >
                 {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
-              </span>
-            </li>
+              </Text>
+            </HStack>
           ))}
-        </ul>
+        </VStack>
       </PagedSection>
       <Pagination
         page={listsPage}

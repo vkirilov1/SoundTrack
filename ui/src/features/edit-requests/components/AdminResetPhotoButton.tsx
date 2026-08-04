@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Text, VStack } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
-import styles from "./AdminResetPhotoButton.module.css";
+import UnderlineTextButton from "../../../components/buttons/UnderlineTextButton";
 
 interface AdminResetPhotoButtonProps {
   onReset: () => Promise<unknown>;
@@ -26,17 +27,20 @@ function AdminResetPhotoButton({
   }
 
   return (
-    <div className={styles.wrap}>
-      <button
-        type="button"
-        className={styles.button}
+    <VStack mt="8px" align="center" gap="4px">
+      <UnderlineTextButton
         onClick={handleClick}
         disabled={resetting}
+        fontSize="13px"
       >
         {resetting ? "Resetting…" : label}
-      </button>
-      {error && <p className={styles.error}>{error}</p>}
-    </div>
+      </UnderlineTextButton>
+      {error && (
+        <Text fontSize="12px" color="danger" m="0">
+          {error}
+        </Text>
+      )}
+    </VStack>
   );
 }
 

@@ -1,16 +1,15 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { SubmitEvent } from "react";
+import { chakra, HStack, Text, Textarea } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
-
-interface InlineTextEditFormClassNames {
-  form: string;
-  textarea: string;
-  error: string;
-  actions: string;
-  cancelButton: string;
-  submitButton: string;
-  successMessage?: string;
-}
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
+import SecondaryButton from "../../../components/buttons/SecondaryButton";
 
 interface InlineTextEditFormProps {
   currentText: string | null;
@@ -25,7 +24,6 @@ interface InlineTextEditFormProps {
   autoFocusTextarea?: boolean;
   /** Shown in place of the trigger after a successful submit, instead of resetting back to it. */
   successMessage?: string;
-  classNames: InlineTextEditFormClassNames;
 }
 
 function InlineTextEditForm({
@@ -39,17 +37,36 @@ function InlineTextEditForm({
   disallowEmpty = false,
   autoFocusTextarea = false,
   successMessage,
-  classNames,
 }: InlineTextEditFormProps) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(currentText ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [succeeded, setSucceeded] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     onEditingChange?.(editing);
   }, [editing, onEditingChange]);
+
+  // Auto-grow the textarea to fit its content, so opening the form shows the
+  // full existing text right away instead of clipping it to a few rows. Runs
+  // again on the next frame since the first measurement can land before the
+  // surrounding layout (max-width column, flex sizing) has fully settled.
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    function resize() {
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    }
+
+    resize();
+    const raf = requestAnimationFrame(resize);
+    return () => cancelAnimationFrame(raf);
+  }, [text, editing]);
 
   function open() {
     setText(currentText ?? "");
@@ -80,7 +97,11 @@ function InlineTextEditForm({
   }
 
   if (succeeded && successMessage) {
-    return <p className={classNames.successMessage}>{successMessage}</p>;
+    return (
+      <Text fontSize="12px" color="text">
+        {successMessage}
+      </Text>
+    );
   }
 
   if (!editing) {
@@ -88,34 +109,55 @@ function InlineTextEditForm({
   }
 
   return (
-    <form className={classNames.form} onSubmit={handleSubmit}>
-      <textarea
-        className={classNames.textarea}
+    <chakra.form onSubmit={handleSubmit} w="100%">
+      <Textarea
+        ref={textareaRef}
         value={text}
         maxLength={3400}
         onChange={(event) => setText(event.target.value)}
-        rows={4}
         autoFocus={autoFocusTextarea}
+        w="100%"
+        minH="96px"
+        maxH="480px"
+        fontSize="13px"
+        color="ink"
+        bg="bg"
+        borderColor="border"
+        borderRadius="md"
+        p="8px"
+        resize="vertical"
+        _focus={{ outline: "none", borderColor: "accent" }}
       />
-      {error && <p className={classNames.error}>{error}</p>}
-      <div className={classNames.actions}>
-        <button
-          type="button"
-          className={classNames.cancelButton}
+      {error && (
+        <Text mt="6px" fontSize="12px" color="danger">
+          {error}
+        </Text>
+      )}
+      <HStack mt="8px" justify="flex-end" gap="8px">
+        <SecondaryButton
           onClick={() => setEditing(false)}
           disabled={submitting}
+          fontSize="12px"
+          px="12px"
+          py="6px"
         >
           Cancel
-        </button>
-        <button
+        </SecondaryButton>
+        <PrimaryButton
           type="submit"
-          className={classNames.submitButton}
           disabled={disabled}
+          fontSize="12px"
+          fontWeight="600"
+          textTransform="none"
+          letterSpacing="normal"
+          px="12px"
+          py="6px"
+          h="auto"
         >
           {submitting ? submittingLabel : submitLabel}
-        </button>
-      </div>
-    </form>
+        </PrimaryButton>
+      </HStack>
+    </chakra.form>
   );
 }
 

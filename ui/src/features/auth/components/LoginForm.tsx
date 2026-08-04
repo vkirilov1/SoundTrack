@@ -1,10 +1,22 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import {
+  Box,
+  Field,
+  Heading,
+  Input,
+  Link,
+  Text,
+  chakra,
+} from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
+import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import { useAuth } from "../stores/useAuth";
-import styles from "./LoginForm.module.css";
+import AuthFormShell from "./AuthFormShell";
+import AuthSwitchLink from "./AuthSwitchLink";
 
 interface FormState {
   email: string;
@@ -74,62 +86,99 @@ function LoginForm() {
   }
 
   return (
-    <section className={styles.wrap}>
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <h1 className={styles.heading}>Log in to your account</h1>
+    <AuthFormShell onSubmit={handleSubmit}>
+      <Heading as="h1" fontSize="28px" mb="4px">
+        Log in to your account
+      </Heading>
 
-        {formError && <p className={styles.formError}>{formError}</p>}
+      {formError && <FormErrorBanner>{formError}</FormErrorBanner>}
 
-        <label className={styles.field}>
-          <span className={styles.label}>Email</span>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => updateField("email", e.target.value)}
-            className={styles.input}
+      <Field.Root invalid={!!fieldErrors.email}>
+        <Field.Label fontSize="15px" color="ink">
+          Email
+        </Field.Label>
+        <Input
+          type="email"
+          value={form.email}
+          onChange={(e) => updateField("email", e.target.value)}
+          borderColor="border"
+          _focus={{ outline: "none", borderColor: "accent" }}
+        />
+        {fieldErrors.email && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.email}
+          </Field.ErrorText>
+        )}
+      </Field.Root>
+
+      <Field.Root invalid={!!fieldErrors.password}>
+        <Field.Label fontSize="15px" color="ink">
+          Password
+        </Field.Label>
+        <PasswordInput
+          value={form.password}
+          onChange={(value) => updateField("password", value)}
+          borderColor="border"
+          _focus={{ outline: "none", borderColor: "accent" }}
+        />
+        {fieldErrors.password && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.password}
+          </Field.ErrorText>
+        )}
+      </Field.Root>
+
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        gap="12px"
+      >
+        <chakra.label
+          display="flex"
+          alignItems="center"
+          gap="8px"
+          fontSize="14px"
+          color="ink"
+        >
+          <chakra.input
+            type="checkbox"
+            checked={form.rememberMe}
+            onChange={(e) => updateField("rememberMe", e.target.checked)}
+            boxSize="16px"
+            css={{ accentColor: "var(--chakra-colors-checkbox)" }}
           />
-          {fieldErrors.email && (
-            <span className={styles.error}>{fieldErrors.email}</span>
-          )}
-        </label>
+          <Text as="span">Remember Me</Text>
+        </chakra.label>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Password</span>
-          <PasswordInput
-            value={form.password}
-            onChange={(value) => updateField("password", value)}
-            className={styles.input}
-          />
-          {fieldErrors.password && (
-            <span className={styles.error}>{fieldErrors.password}</span>
-          )}
-        </label>
+        <Link
+          asChild
+          fontSize="14px"
+          textDecoration="underline"
+          color="text"
+          whiteSpace="nowrap"
+        >
+          <RouterLink to="/forgot-password">Forgotten Password?</RouterLink>
+        </Link>
+      </Box>
 
-        <div className={styles.optionsRow}>
-          <label className={styles.rememberMe}>
-            <input
-              type="checkbox"
-              checked={form.rememberMe}
-              onChange={(e) => updateField("rememberMe", e.target.checked)}
-              className={styles.checkbox}
-            />
-            <span>Remember Me</span>
-          </label>
+      <PrimaryButton
+        type="submit"
+        disabled={submitting}
+        fontSize="15px"
+        p="14px"
+        h="auto"
+        mt="8px"
+      >
+        {submitting ? "Logging In…" : "Log In"}
+      </PrimaryButton>
 
-          <Link to="/forgot-password" className={styles.forgotPassword}>
-            Forgotten Password?
-          </Link>
-        </div>
-
-        <button type="submit" className={styles.submit} disabled={submitting}>
-          {submitting ? "Logging In…" : "Log In"}
-        </button>
-
-        <p className={styles.switch}>
-          Don't have an account? <Link to="/register">Sign up</Link>.
-        </p>
-      </form>
-    </section>
+      <AuthSwitchLink
+        prompt="Don't have an account?"
+        linkText="Sign up"
+        to="/register"
+      />
+    </AuthFormShell>
   );
 }
 

@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import Avatar from "../../../components/Avatar/Avatar";
 import { userPhotoUrl } from "../../../utils/images";
 import type { UserProfile } from "../../../types/auth";
-import styles from "./UserResultRow.module.css";
+import ResultRowLink, { ResultTitle } from "./ResultRowLink";
 
 interface UserResultRowProps {
   user: UserProfile;
@@ -10,18 +10,14 @@ interface UserResultRowProps {
 
 function UserResultRow({ user, onNavigate }: UserResultRowProps) {
   return (
-    <Link
-      to={`/profile/${user.id}`}
-      className={styles.resultRow}
-      onClick={onNavigate}
-    >
-      <img
+    <ResultRowLink to={`/profile/${user.id}`} onNavigate={onNavigate}>
+      <Avatar
         src={userPhotoUrl(user.profilePictureUrl ?? "userDefault.png")}
         alt=""
-        className={styles.resultAvatar}
+        size="32px"
       />
-      <span className={styles.resultTitle}>{user.username}</span>
-    </Link>
+      <ResultTitle>{user.username}</ResultTitle>
+    </ResultRowLink>
   );
 }
 

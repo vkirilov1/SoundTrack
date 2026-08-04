@@ -11,6 +11,7 @@ export interface EditRequest {
   proposedDescription: string;
   status: EditRequestStatus;
   requestedByUsername: string;
+  requestedByUserId: number;
   reviewedByUsername: string | null;
   reviewedAt: string | null;
   createdAt: string;

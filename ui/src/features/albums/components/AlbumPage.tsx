@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Box } from "@chakra-ui/react";
 import { getAlbum } from "../api/albumApi";
 import { ApiError } from "../../../lib/api-error";
 import PageStatus from "../../../components/PageStatus/PageStatus";
 import type { AlbumDetail } from "../types";
-import styles from "./AlbumPage.module.css";
 import ReviewsSection from "./ReviewsSection";
 import SongsSection from "./SongsSection";
 import AlbumCard from "./AlbumCard";
@@ -87,24 +87,34 @@ function AlbumPage() {
     setAlbum((prev) => (prev ? { ...prev, coverUrl } : prev));
   }
 
+  const wrapProps = {
+    as: "section" as const,
+    w: "100%",
+    maxW: "contentWidth",
+    mx: "auto",
+    px: "24px",
+    pt: "56px",
+    pb: "80px",
+  };
+
   if (loading) {
     return (
-      <section className={styles.wrap}>
+      <Box {...wrapProps}>
         <PageStatus variant="loading" />
-      </section>
+      </Box>
     );
   }
 
   if (notFound || !album) {
     return (
-      <section className={styles.wrap}>
+      <Box {...wrapProps}>
         <PageStatus variant="not-found" message="This album doesn't exist." />
-      </section>
+      </Box>
     );
   }
 
   return (
-    <section className={styles.wrap}>
+    <Box {...wrapProps}>
       <AlbumCard
         album={album}
         commentInputRef={commentInputRef}
@@ -123,7 +133,7 @@ function AlbumPage() {
         commentInputRef={commentInputRef}
         onReviewPosted={handleReviewPosted}
       />
-    </section>
+    </Box>
   );
 }
 

@@ -1,8 +1,17 @@
-import { Link } from "react-router-dom";
+import {
+  Box,
+  Heading,
+  HStack,
+  Image,
+  Link,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import { FULL_DATE_FORMAT } from "../../../utils/date";
-import styles from "./AlbumCard.module.css";
 import AlbumActions from "./AlbumActions";
-import ImagePlaceholderIcon from "../../../components/ImagePlaceholderIcon/ImagePlaceholderIcon";
+import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
+import TextButton from "../../../components/buttons/TextButton";
 import { coverImageUrl } from "../../../utils/images";
 import type { RefObject } from "react";
 import type { AlbumDetail } from "../types";
@@ -16,6 +25,8 @@ import {
 
 const PRIMARY_GENRE_COUNT = 4;
 const SECONDARY_GENRE_COUNT = 8;
+
+const coverSize = { base: "100%", sm: "260px" };
 
 interface AlbumCardProps {
   album: AlbumDetail;
@@ -34,14 +45,37 @@ function AlbumCover({
 }) {
   if (coverUrl) {
     return (
-      <img src={coverImageUrl(coverUrl)} alt={title} className={styles.cover} />
+      <Image
+        src={coverImageUrl(coverUrl)}
+        alt={title}
+        flexShrink="0"
+        w={coverSize}
+        h="260px"
+        borderRadius="md"
+        objectFit="cover"
+        bg="border"
+      />
     );
   }
 
   return (
-    <span className={styles.coverPlaceholder} aria-hidden="true">
+    <Box
+      as="span"
+      aria-hidden="true"
+      flexShrink="0"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      w={coverSize}
+      h="260px"
+      border="1.5px solid"
+      borderColor="border"
+      borderRadius="md"
+      color="text"
+      opacity="0.55"
+    >
       <ImagePlaceholderIcon size={64} />
-    </span>
+    </Box>
   );
 }
 
@@ -80,8 +114,18 @@ function AlbumCard({
   );
 
   return (
-    <div className={styles.card}>
-      <div className={styles.coverWrap}>
+    <Box
+      display="flex"
+      flexDirection={{ base: "column", sm: "row" }}
+      gap="32px"
+      p="32px"
+      bg="bg"
+      border="1px solid"
+      borderColor="border"
+      borderRadius="lg"
+      boxShadow="0 12px 28px rgba(0, 0, 0, 0.06)"
+    >
+      <Box position="relative" flexShrink="0">
         <AlbumCover coverUrl={album.coverUrl} title={album.title} />
         {isAdmin && (
           <AdminPhotoEditButton
@@ -89,69 +133,109 @@ function AlbumCard({
             label="Change cover"
           />
         )}
-      </div>
+      </Box>
 
-      <div className={styles.info}>
-        <h1 className={styles.title}>{album.title}</h1>
+      <Box flex="1" minW="0" display="flex" flexDirection="column">
+        <Heading
+          as="h1"
+          fontSize="28px"
+          overflowWrap="break-word"
+          wordBreak="break-word"
+        >
+          {album.title}
+        </Heading>
 
-        <p className={styles.artists}>
+        <Text
+          mt="6px"
+          fontSize="16px"
+          overflowWrap="break-word"
+          wordBreak="break-word"
+        >
           {album.artists.map((artist, index) => (
-            <span key={artist.id}>
+            <Box as="span" key={artist.id}>
               {index > 0 && ", "}
-              <Link to={`/artist/${artist.id}`} className={styles.artistLink}>
-                {artist.name}
+              <Link
+                asChild
+                color="accent"
+                textDecoration="none"
+                fontWeight="600"
+                _hover={{ color: "accentHover" }}
+              >
+                <RouterLink to={`/artist/${artist.id}`}>
+                  {artist.name}
+                </RouterLink>
               </Link>
-            </span>
+            </Box>
           ))}
-        </p>
+        </Text>
 
-        <p className={styles.releaseDate}>
+        <Text mt="4px" fontSize="14px" color="text">
           {FULL_DATE_FORMAT.format(new Date(album.releaseDate))}
-        </p>
+        </Text>
 
         {album.genres.length > 0 && (
-          <div className={styles.genres}>
-            <div className={styles.genreRow}>
+          <VStack mt="16px" align="stretch" gap="8px">
+            <HStack flexWrap="wrap" gap="8px">
               {primaryGenres.map((genre) => (
-                <span key={genre} className={styles.genrePill}>
+                <Text
+                  as="span"
+                  key={genre}
+                  fontSize="13px"
+                  fontWeight="600"
+                  color="ink"
+                  bg="border"
+                  px="14px"
+                  py="6px"
+                  borderRadius="full"
+                >
                   {genre}
-                </span>
+                </Text>
               ))}
-            </div>
+            </HStack>
             {secondaryGenres.length > 0 && (
-              <div className={styles.genreRow}>
+              <HStack flexWrap="wrap" gap="8px">
                 {secondaryGenres.map((genre) => (
-                  <span key={genre} className={styles.genrePillSmall}>
+                  <Text
+                    as="span"
+                    key={genre}
+                    fontSize="12px"
+                    color="text"
+                    bg="border"
+                    opacity="0.7"
+                    px="10px"
+                    py="4px"
+                    borderRadius="full"
+                  >
                     {genre}
-                  </span>
+                  </Text>
                 ))}
-              </div>
+              </HStack>
             )}
-          </div>
+          </VStack>
         )}
 
         {album.reviewsCount === 0 ? (
-          <p className={styles.noReviews}>
+          <Text mt="18px" fontSize="14px" color="text">
             No reviews yet, be the{" "}
-            <button
-              type="button"
-              className={styles.noReviewsLink}
+            <TextButton
+              fontSize="inherit"
+              fontWeight="700"
               onClick={focusReviewInput}
             >
               first
-            </button>
-          </p>
+            </TextButton>
+          </Text>
         ) : (
-          <p className={styles.rating}>
-            <span className={styles.ratingValue}>
+          <Text mt="18px">
+            <Text as="span" fontSize="22px" fontWeight="700" color="accent">
               {album.rating.toFixed(2)}/5
-            </span>
-            <span className={styles.ratingMeta}>
+            </Text>
+            <Text as="span" fontSize="14px" color="text">
               {" "}
               based on {album.reviewsCount}{" "}
               {album.reviewsCount === 1 ? "review" : "reviews"}
-            </span>
-          </p>
+            </Text>
+          </Text>
         )}
 
         <AlbumActions
@@ -160,22 +244,16 @@ function AlbumCard({
           onFavoriteChange={onAlbumFavoriteChange}
         />
 
-        <div className={styles.description}>
+        <Box mt="18px">
           <EditableDescription
             text={album.description}
             targetType="ALBUM"
             targetId={album.id}
             onSave={handleSaveDescription}
-            classNames={{
-              paragraph: styles.descriptionText,
-              emptyParagraph: styles.descriptionEmpty,
-              actions: styles.descriptionActions,
-              readMoreButton: styles.readMoreButton,
-            }}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 

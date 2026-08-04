@@ -1,9 +1,11 @@
 import { useState, type RefObject } from "react";
 import type { SubmitEvent } from "react";
+import { chakra, HStack, Text } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
+import SecondaryButton from "../../../components/buttons/SecondaryButton";
 import type { AlbumReview, CreateAlbumReviewRequest } from "../types";
 import RatingPicker from "./RatingPicker";
-import styles from "./ReviewForm.module.css";
 
 const MIN_COMMENT_LENGTH = 200;
 
@@ -79,58 +81,99 @@ function ReviewForm({
   const commentLength = comment.trim().length;
 
   return (
-    <form className={styles.composeForm} onSubmit={handleSubmit}>
-      <div className={styles.composeRow}>
-        <input
+    <chakra.form onSubmit={handleSubmit} mt="16px">
+      <HStack align="center" justify="space-between" gap="16px" mb="8px">
+        <chakra.input
           type="text"
-          className={styles.titleInput}
           placeholder="Title"
           value={title}
           maxLength={255}
           onChange={(event) => setTitle(event.target.value)}
+          flex="1"
+          minW="0"
+          font="inherit"
+          fontSize="14px"
+          fontWeight="600"
+          color="ink"
+          bg="none"
+          border="none"
+          borderBottom="1px solid"
+          borderColor="border"
+          px="2px"
+          py="6px"
+          outline="none"
+          _focus={{ borderColor: "accent" }}
+          css={{
+            "&::placeholder": {
+              fontWeight: 400,
+              color: "var(--chakra-colors-text)",
+              opacity: 0.7,
+            },
+          }}
         />
         <RatingPicker value={rating} onChange={setRating} />
-      </div>
-      <textarea
+      </HStack>
+      <chakra.textarea
         ref={commentInputRef}
-        className={styles.commentInput}
         placeholder="Drop a thought..."
         value={comment}
         maxLength={3400}
         onChange={(event) => setComment(event.target.value)}
+        display="block"
+        w="100%"
+        minH="96px"
+        maxH="240px"
+        resize="vertical"
+        font="inherit"
+        fontSize="14px"
+        color="ink"
+        bg="bg"
+        border="1px solid"
+        borderColor="border"
+        borderRadius="md"
+        px="14px"
+        py="12px"
+        outline="none"
+        _focus={{ borderColor: "accent" }}
+        css={{
+          "&::placeholder": {
+            color: "var(--chakra-colors-text)",
+            opacity: 0.7,
+          },
+        }}
       />
-      <div className={styles.commentMeta}>
-        <span
-          className={
-            commentLength < MIN_COMMENT_LENGTH
-              ? styles.charCountShort
-              : styles.charCount
-          }
+      <HStack mt="6px" justify="flex-end">
+        <Text
+          fontSize="12px"
+          color={commentLength < MIN_COMMENT_LENGTH ? "danger" : "text"}
+          opacity={commentLength < MIN_COMMENT_LENGTH ? undefined : "0.7"}
         >
           {commentLength}/{MIN_COMMENT_LENGTH} minimum
-        </span>
-      </div>
-      {formError && <p className={styles.formError}>{formError}</p>}
-      <div className={styles.composeFooter}>
+        </Text>
+      </HStack>
+      {formError && (
+        <Text mt="8px" fontSize="13px" color="danger">
+          {formError}
+        </Text>
+      )}
+      <HStack mt="12px" justify="flex-end" gap="10px">
         {isEditing && (
-          <button
-            type="button"
-            className={styles.cancelButton}
-            onClick={onCancel}
-            disabled={submitting}
-          >
+          <SecondaryButton onClick={onCancel} disabled={submitting}>
             Cancel
-          </button>
+          </SecondaryButton>
         )}
-        <button
+        <PrimaryButton
           type="submit"
-          className={styles.postButton}
           disabled={submitting}
+          fontSize="13px"
+          px="28px"
+          py="10px"
+          h="auto"
         >
           {submitting ? "Posting…" : isEditing ? "Save" : "Post"}
-        </button>
-      </div>
-    </form>
+        </PrimaryButton>
+      </HStack>
+    </chakra.form>
   );
 }
 

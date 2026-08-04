@@ -18,6 +18,7 @@ public class EditRequestMapper {
         request.getProposedDescription(),
         request.getStatus(),
         request.getRequestedBy().getUsername(),
+        request.getRequestedBy().getId(),
         request.getReviewedBy() != null ? request.getReviewedBy().getUsername() : null,
         request.getReviewedAt(),
         request.getCreatedAt());

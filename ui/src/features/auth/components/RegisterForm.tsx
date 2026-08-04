@@ -1,10 +1,14 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { chakra, Field, Heading, Input, Link } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
+import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import { useAuth } from "../stores/useAuth";
-import styles from "./RegisterForm.module.css";
+import AuthFormShell from "./AuthFormShell";
+import AuthSwitchLink from "./AuthSwitchLink";
 
 interface FormState {
   username: string;
@@ -25,6 +29,11 @@ const INITIAL_FORM: FormState = {
 type FieldName =
   "username" | "email" | "password" | "confirmPassword" | "terms";
 type FieldErrorState = Partial<Record<FieldName, string>>;
+
+const fieldStyle = {
+  borderColor: "border",
+  _focus: { outline: "none", borderColor: "accent" },
+} as const;
 
 function RegisterForm() {
   const navigate = useNavigate();
@@ -116,90 +125,126 @@ function RegisterForm() {
   }
 
   return (
-    <section className={styles.wrap}>
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <h1 className={styles.heading}>Create your account</h1>
+    <AuthFormShell onSubmit={handleSubmit}>
+      <Heading as="h1" fontSize="28px" mb="4px">
+        Create your account
+      </Heading>
 
-        {formError && <p className={styles.formError}>{formError}</p>}
+      {formError && <FormErrorBanner>{formError}</FormErrorBanner>}
 
-        <label className={styles.field}>
-          <span className={styles.label}>Username</span>
-          <input
-            type="text"
-            value={form.username}
-            maxLength={20}
-            onChange={(e) => updateField("username", e.target.value)}
-            placeholder=""
-            className={styles.input}
-          />
-          {fieldErrors.username && (
-            <span className={styles.error}>{fieldErrors.username}</span>
-          )}
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Email</span>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => updateField("email", e.target.value)}
-            placeholder=""
-            className={styles.input}
-          />
-          {fieldErrors.email && (
-            <span className={styles.error}>{fieldErrors.email}</span>
-          )}
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Password</span>
-          <PasswordInput
-            value={form.password}
-            onChange={(value) => updateField("password", value)}
-            className={styles.input}
-          />
-          {fieldErrors.password && (
-            <span className={styles.error}>{fieldErrors.password}</span>
-          )}
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Confirm Password</span>
-          <PasswordInput
-            value={form.confirmPassword}
-            onChange={(value) => updateField("confirmPassword", value)}
-            className={styles.input}
-          />
-          {fieldErrors.confirmPassword && (
-            <span className={styles.error}>{fieldErrors.confirmPassword}</span>
-          )}
-        </label>
-
-        <label className={styles.terms}>
-          <input
-            type="checkbox"
-            checked={form.agreeToTerms}
-            onChange={(e) => updateField("agreeToTerms", e.target.checked)}
-            className={styles.checkbox}
-          />
-          <span>
-            I agree to the <a href="/terms">Terms Of Use</a> and{" "}
-            <a href="/privacy">Privacy Policy</a>.
-          </span>
-        </label>
-        {fieldErrors.terms && (
-          <span className={styles.error}>{fieldErrors.terms}</span>
+      <Field.Root invalid={!!fieldErrors.username}>
+        <Field.Label fontSize="15px" color="ink">
+          Username
+        </Field.Label>
+        <Input
+          type="text"
+          value={form.username}
+          maxLength={20}
+          onChange={(e) => updateField("username", e.target.value)}
+          {...fieldStyle}
+        />
+        {fieldErrors.username && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.username}
+          </Field.ErrorText>
         )}
+      </Field.Root>
 
-        <button type="submit" className={styles.submit} disabled={submitting}>
-          {submitting ? "Signing Up…" : "Sign Up"}
-        </button>
+      <Field.Root invalid={!!fieldErrors.email}>
+        <Field.Label fontSize="15px" color="ink">
+          Email
+        </Field.Label>
+        <Input
+          type="email"
+          value={form.email}
+          onChange={(e) => updateField("email", e.target.value)}
+          {...fieldStyle}
+        />
+        {fieldErrors.email && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.email}
+          </Field.ErrorText>
+        )}
+      </Field.Root>
 
-        <p className={styles.switch}>
-          Have an account? <Link to="/login">Log in</Link>.
-        </p>
-      </form>
-    </section>
+      <Field.Root invalid={!!fieldErrors.password}>
+        <Field.Label fontSize="15px" color="ink">
+          Password
+        </Field.Label>
+        <PasswordInput
+          value={form.password}
+          onChange={(value) => updateField("password", value)}
+          {...fieldStyle}
+        />
+        {fieldErrors.password && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.password}
+          </Field.ErrorText>
+        )}
+      </Field.Root>
+
+      <Field.Root invalid={!!fieldErrors.confirmPassword}>
+        <Field.Label fontSize="15px" color="ink">
+          Confirm Password
+        </Field.Label>
+        <PasswordInput
+          value={form.confirmPassword}
+          onChange={(value) => updateField("confirmPassword", value)}
+          {...fieldStyle}
+        />
+        {fieldErrors.confirmPassword && (
+          <Field.ErrorText fontSize="13px" color="danger">
+            {fieldErrors.confirmPassword}
+          </Field.ErrorText>
+        )}
+      </Field.Root>
+
+      <chakra.label
+        display="flex"
+        alignItems="flex-start"
+        gap="10px"
+        fontSize="14px"
+        color="ink"
+      >
+        <chakra.input
+          type="checkbox"
+          checked={form.agreeToTerms}
+          onChange={(e) => updateField("agreeToTerms", e.target.checked)}
+          boxSize="16px"
+          mt="3px"
+          css={{ accentColor: "var(--chakra-colors-checkbox)" }}
+        />
+        <chakra.span>
+          I agree to the{" "}
+          <Link asChild textDecoration="underline">
+            <RouterLink to="/terms">Terms Of Use</RouterLink>
+          </Link>{" "}
+          and{" "}
+          <Link asChild textDecoration="underline">
+            <RouterLink to="/privacy">Privacy Policy</RouterLink>
+          </Link>
+          .
+        </chakra.span>
+      </chakra.label>
+      {fieldErrors.terms && (
+        <chakra.span fontSize="13px" color="danger">
+          {fieldErrors.terms}
+        </chakra.span>
+      )}
+
+      <PrimaryButton
+        type="submit"
+        disabled={submitting}
+        fontSize="15px"
+        p="14px"
+        h="auto"
+        mt="8px"
+      >
+        {submitting ? "Signing Up…" : "Sign Up"}
+      </PrimaryButton>
+
+      <AuthSwitchLink prompt="Have an account?" linkText="Log in" to="/login" />
+    </AuthFormShell>
   );
 }
 

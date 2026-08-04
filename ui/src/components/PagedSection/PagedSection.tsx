@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
+import { Box, Image, Text, VStack } from "@chakra-ui/react";
 import missingResourcesIcon from "../../assets/MissingResources.png";
 import Spinner from "../Spinner/Spinner";
-import styles from "./PagedSection.module.css";
 
 interface PagedSectionProps {
   loading: boolean;
@@ -22,37 +22,56 @@ function PagedSection({
   children,
 }: PagedSectionProps) {
   return (
-    <div className={styles.sectionWrap}>
-      <div
-        className={
-          listLoading
-            ? `${styles.sectionContent} ${styles.blurred}`
-            : styles.sectionContent
-        }
+    <Box position="relative">
+      <Box
+        transition="filter 0.15s ease"
+        filter={listLoading ? "blur(4px)" : undefined}
+        pointerEvents={listLoading ? "none" : undefined}
       >
         {loading ? (
-          <div className={styles.empty}>
+          <VStack
+            gap="8px"
+            mt="16px"
+            py="20px"
+            fontSize="14px"
+            color="text"
+            textAlign="center"
+          >
             <Spinner label={spinnerLabel} />
-          </div>
+          </VStack>
         ) : isEmpty && emptyMessage ? (
-          <div className={styles.empty}>
-            <img
+          <VStack
+            gap="8px"
+            mt="16px"
+            py="20px"
+            fontSize="14px"
+            color="text"
+            textAlign="center"
+          >
+            <Image
               src={missingResourcesIcon}
               alt=""
-              className={styles.emptyIcon}
+              boxSize="40px"
+              opacity="0.55"
             />
-            <p>{emptyMessage}</p>
-          </div>
+            <Text m="0">{emptyMessage}</Text>
+          </VStack>
         ) : (
           children
         )}
-      </div>
+      </Box>
       {listLoading && (
-        <div className={styles.loadingOverlay}>
+        <Box
+          position="absolute"
+          inset="0"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           <Spinner label={spinnerLabel} />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 

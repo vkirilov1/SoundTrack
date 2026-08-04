@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import CheckIcon from "../CheckIcon/CheckIcon";
+import { HStack, IconButton, Text } from "@chakra-ui/react";
+import CheckIcon from "../icons/CheckIcon";
 import Spinner from "../Spinner/Spinner";
-import XIcon from "../XIcon/XIcon";
-import styles from "./ConfirmDeleteControl.module.css";
+import TextButton from "../buttons/TextButton";
+import XIcon from "../icons/XIcon";
 
 type DeleteStatus = "idle" | "confirming" | "deleting";
 
@@ -33,44 +34,54 @@ function ConfirmDeleteControl({
 
   if (status === "idle") {
     return (
-      <button
-        type="button"
-        className={styles.deleteButton}
-        onClick={() => setStatus("confirming")}
-      >
+      <TextButton tone="danger" onClick={() => setStatus("confirming")}>
         {label}
-      </button>
+      </TextButton>
     );
   }
 
   return (
-    <div className={styles.confirmRow}>
-      <span className={styles.confirmText}>{confirmMessage}</span>
-      <button
-        type="button"
-        className={`${styles.iconButton} ${styles.confirmDeleteIconButton}`}
+    <HStack align="center" gap="10px">
+      <Text fontSize="13px" color="text">
+        {confirmMessage}
+      </Text>
+      <IconButton
         onClick={handleDelete}
         disabled={status === "deleting"}
         aria-label="Confirm delete"
         title="Confirm delete"
+        w="30px"
+        h="30px"
+        minW="30px"
+        borderRadius="full"
+        bg="danger"
+        color="white"
+        _hover={{ bg: "dangerHover" }}
+        _disabled={{ opacity: 0.6, cursor: "default" }}
       >
         {status === "deleting" ? (
           <Spinner size={14} label="Deleting" />
         ) : (
           <CheckIcon />
         )}
-      </button>
-      <button
-        type="button"
-        className={`${styles.iconButton} ${styles.cancelDeleteIconButton}`}
+      </IconButton>
+      <IconButton
         onClick={() => setStatus("idle")}
         disabled={status === "deleting"}
         aria-label="Cancel delete"
         title="Cancel"
+        w="30px"
+        h="30px"
+        minW="30px"
+        borderRadius="full"
+        bg="border"
+        color="text"
+        _hover={{ bg: "border", color: "ink", opacity: 0.85 }}
+        _disabled={{ opacity: 0.6, cursor: "default" }}
       >
         <XIcon />
-      </button>
-    </div>
+      </IconButton>
+    </HStack>
   );
 }
 

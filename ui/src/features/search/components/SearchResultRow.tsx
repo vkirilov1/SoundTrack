@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import { Box, Image, Text, VStack } from "@chakra-ui/react";
 import { artistImageUrl, coverImageUrl } from "../../../utils/images";
 import type { SearchResult } from "../types";
-import styles from "./SearchResultRow.module.css";
+import ResultRowLink, { ResultTitle } from "./ResultRowLink";
 
 interface SearchResultRowProps {
   result: SearchResult;
@@ -18,19 +18,42 @@ function SearchResultRow({ result, onNavigate }: SearchResultRowProps) {
     : null;
 
   return (
-    <Link to={href} className={styles.resultRow} onClick={onNavigate}>
+    <ResultRowLink to={href} onNavigate={onNavigate}>
       {imageSrc ? (
-        <img src={imageSrc} alt="" className={styles.resultThumb} />
+        <Image
+          src={imageSrc}
+          alt=""
+          flexShrink="0"
+          boxSize="36px"
+          borderRadius="md"
+          objectFit="cover"
+          bg="border"
+        />
       ) : (
-        <span className={styles.resultThumbPlaceholder} aria-hidden="true" />
+        <Box
+          aria-hidden="true"
+          flexShrink="0"
+          boxSize="36px"
+          borderRadius="md"
+          bg="border"
+        />
       )}
-      <span className={styles.resultText}>
-        <span className={styles.resultTitle}>{result.title}</span>
+      <VStack minW="0" align="stretch" gap="0">
+        <ResultTitle>{result.title}</ResultTitle>
         {result.subtitle && (
-          <span className={styles.resultSubtitle}>{result.subtitle}</span>
+          <Text
+            as="span"
+            fontSize="12px"
+            color="text"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {result.subtitle}
+          </Text>
         )}
-      </span>
-    </Link>
+      </VStack>
+    </ResultRowLink>
   );
 }
 

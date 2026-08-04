@@ -1,4 +1,6 @@
 import { useCallback } from "react";
+import { Box, Link, Text, VStack } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import { getUserReviews } from "../api/profileApi";
 import Pagination from "../../../components/Pagination/Pagination";
 import PagedSection from "../../../components/PagedSection/PagedSection";
@@ -6,8 +8,6 @@ import StarRating from "../../../components/StarRating/StarRating";
 import { useAuth } from "../../auth/stores/useAuth";
 import { usePagedList } from "../../../hooks/usePagedList";
 import { MONTH_YEAR_FORMAT } from "../../../utils/date";
-import styles from "./ReviewsCard.module.css";
-import { Link } from "react-router-dom";
 import AdminReviewDeleteControl from "../../edit-requests/components/AdminReviewDeleteControl";
 
 interface ReviewsCardProps {
@@ -46,33 +46,91 @@ function ReviewsCard({ userId }: ReviewsCardProps) {
         emptyMessage="No reviews yet."
         spinnerLabel="Loading reviews"
       >
-        <ul className={styles.reviewRows}>
+        <VStack
+          as="ul"
+          listStyle="none"
+          m="0"
+          mt="16px"
+          p="0"
+          gap="20px"
+          align="stretch"
+        >
           {reviews.map((review) => (
-            <li key={review.id} className={styles.reviewRow}>
-              <div className={styles.reviewHeader}>
-                <span className={styles.reviewTitle}>{review.title}</span>
-                <div className={styles.reviewRating}>
+            <Box
+              as="li"
+              key={review.id}
+              display="flex"
+              flexDirection="column"
+              gap="4px"
+              pb="20px"
+              borderBottom="1px solid"
+              borderColor="border"
+              _last={{ pb: 0, borderBottom: "none" }}
+            >
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                gap="12px"
+              >
+                <Text
+                  as="span"
+                  minW="0"
+                  fontSize="15px"
+                  fontWeight="600"
+                  color="ink"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  whiteSpace="nowrap"
+                >
+                  {review.title}
+                </Text>
+                <VStack flexShrink="0" align="flex-end" gap="2px">
                   <StarRating rating={review.rating} />
-                  <span className={styles.reviewDate}>
+                  <Text
+                    as="span"
+                    fontSize="11px"
+                    lineHeight="1.3"
+                    color="text"
+                    opacity="0.7"
+                    whiteSpace="nowrap"
+                  >
                     {MONTH_YEAR_FORMAT.format(new Date(review.createdAt))}
-                  </span>
-                </div>
-              </div>
-              <span className={styles.reviewAlbum}>
-                <Link to={`/album/${review.albumId}`}>{review.albumTitle}</Link>
-              </span>
-              <p className={styles.reviewComment}>{review.comment}</p>
+                  </Text>
+                </VStack>
+              </Box>
+              <Text as="span" fontSize="13px" fontWeight="500" color="accent">
+                <Link
+                  asChild
+                  color="inherit"
+                  textDecoration="none"
+                  _hover={{ color: "accentHover" }}
+                >
+                  <RouterLink to={`/album/${review.albumId}`}>
+                    {review.albumTitle}
+                  </RouterLink>
+                </Link>
+              </Text>
+              <Text
+                mt="2px"
+                fontSize="14px"
+                lineHeight="1.5"
+                color="text"
+                lineClamp={3}
+              >
+                {review.comment}
+              </Text>
               {isAdmin && (
-                <div className={styles.adminReviewActions}>
+                <Box mt="6px">
                   <AdminReviewDeleteControl
                     reviewId={review.id}
                     onDeleted={handleAdminReviewDeleted}
                   />
-                </div>
+                </Box>
               )}
-            </li>
+            </Box>
           ))}
-        </ul>
+        </VStack>
       </PagedSection>
       <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
     </>

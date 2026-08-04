@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BrowserRouter } from "react-router-dom";
+import { Provider as ChakraProvider } from "../components/ui/provider";
 import AuthProvider from "../features/auth/stores/AuthProvider";
 
 interface AppProviderProps {
@@ -8,9 +9,11 @@ interface AppProviderProps {
 
 function AppProvider({ children }: AppProviderProps) {
   return (
-    <BrowserRouter>
-      <AuthProvider>{children}</AuthProvider>
-    </BrowserRouter>
+    <ChakraProvider>
+      <BrowserRouter>
+        <AuthProvider>{children}</AuthProvider>
+      </BrowserRouter>
+    </ChakraProvider>
   );
 }
 
