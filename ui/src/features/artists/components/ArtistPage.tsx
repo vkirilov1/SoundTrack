@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Box } from "@chakra-ui/react";
 import { getArtist } from "../api/artistApi";
 import { ApiError } from "../../../lib/api-error";
+import PageContainer from "../../../components/PageContainer/PageContainer";
 import PageStatus from "../../../components/PageStatus/PageStatus";
 import type { ArtistDetail } from "../types";
 import ArtistAlbums from "./ArtistAlbums";
@@ -64,34 +64,24 @@ function ArtistPage() {
     setArtist((prev) => (prev ? { ...prev, artistPic } : prev));
   }
 
-  const wrapProps = {
-    as: "section" as const,
-    w: "100%",
-    maxW: "contentWidth",
-    mx: "auto",
-    px: "24px",
-    pt: "56px",
-    pb: "80px",
-  };
-
   if (loading) {
     return (
-      <Box {...wrapProps}>
+      <PageContainer>
         <PageStatus variant="loading" />
-      </Box>
+      </PageContainer>
     );
   }
 
   if (notFound || !artist) {
     return (
-      <Box {...wrapProps}>
+      <PageContainer>
         <PageStatus variant="not-found" message="This artist doesn't exist." />
-      </Box>
+      </PageContainer>
     );
   }
 
   return (
-    <Box {...wrapProps}>
+    <PageContainer>
       <ArtistCard
         artist={artist}
         onBiographyChange={handleBiographyChange}
@@ -101,7 +91,7 @@ function ArtistPage() {
         albums={artist.albums}
         onAlbumFavoriteChange={handleAlbumFavoriteChange}
       />
-    </Box>
+    </PageContainer>
   );
 }
 

@@ -116,7 +116,7 @@ public class AdminService {
       album.setDescription(request.getDescription());
     }
 
-    return albumMapper.toResponse(album, false, Set.of());
+    return albumMapper.toResponse(album, false, Set.of(), null);
   }
 
   @Transactional
@@ -135,7 +135,7 @@ public class AdminService {
 
     album.setCoverUrl(filename);
 
-    return albumMapper.toResponse(album, false, Set.of());
+    return albumMapper.toResponse(album, false, Set.of(), null);
   }
 
   @Transactional

@@ -2,7 +2,7 @@ import { chakra, type HTMLChakraProps } from "@chakra-ui/react";
 
 /**
  * Generic Button used for Resetting data
- * Centralizes color/weight/case/radius; size and spacing stay per call site since those differ by context.
+ * Centralizes common design. Size and spacing stay per call site since those differ by context.
  */
 function UnderlineTextButton({ disabled, ...rest }: HTMLChakraProps<"button">) {
   return (
