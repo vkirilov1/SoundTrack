@@ -21,8 +21,11 @@ public class AlbumMapper {
    * @param favorited whether the current caller has this album favorited (false for anonymous
    *     callers or contexts with no meaningful "current user", e.g. admin edits)
    * @param favoritedSongIds ids of this album's songs the current caller has favorited
+   * @param yearRank this album's rank on its release year's chart, or null (see {@link
+   *     org.soundtrack.api.album.service.AlbumService})
    */
-  public AlbumResponse toResponse(Album album, boolean favorited, Set<Long> favoritedSongIds) {
+  public AlbumResponse toResponse(
+      Album album, boolean favorited, Set<Long> favoritedSongIds, Integer yearRank) {
 
     return new AlbumResponse(
         album.getId(),
@@ -41,7 +44,8 @@ public class AlbumMapper {
             .toList(),
         album.getSongs().stream().map(song -> toSongResponse(song, favoritedSongIds)).toList(),
         album.getDescription(),
-        favorited);
+        favorited,
+        yearRank);
   }
 
   private ArtistResponse toArtistResponse(Artist artist) {

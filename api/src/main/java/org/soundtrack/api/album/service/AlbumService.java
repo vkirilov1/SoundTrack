@@ -1,9 +1,11 @@
 package org.soundtrack.api.album.service;
 
+import java.time.LocalDate;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.album.dto.AlbumResponse;
 import org.soundtrack.api.album.mapper.AlbumMapper;
+import org.soundtrack.api.chart.WeightedRating;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.User;
@@ -44,7 +46,36 @@ public class AlbumService {
             ? favoriteSongRepository.findFavoritedSongIdsByUserIdAndAlbumId(userId, id)
             : Set.of();
 
-    return albumMapper.toResponse(album, favorited, favoritedSongIds);
+    Integer yearRank = getYearRankOrNull(album);
+
+    return albumMapper.toResponse(album, favorited, favoritedSongIds, yearRank);
+  }
+
+  /**
+   * This album's 1-based rank on its release year's chart, or null if it's unreviewed or falls
+   * outside the chart's top {@link WeightedRating#MAX_CHART_RESULTS} - mirrors {@link
+   * AlbumRepository#findByReleaseDateBetweenOrderByWeightedRating}'s own ordering so the badge
+   * always matches what the Year's chart page itself would show.
+   */
+  private Integer getYearRankOrNull(Album album) {
+    if (album.getReviewsCount() <= 0) {
+      return null;
+    }
+
+    int year = album.getReleaseDate().getYear();
+    LocalDate start = LocalDate.of(year, 1, 1);
+    LocalDate end = LocalDate.of(year, 12, 31);
+
+    double globalMean = albumRepository.findGlobalAverageRating();
+    double ownScore = WeightedRating.score(album.getRating(), album.getReviewsCount(), globalMean);
+
+    long higherScoredCount =
+        albumRepository.countByReleaseDateBetweenWithHigherWeightedRating(
+            start, end, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, ownScore);
+
+    long rank = higherScoredCount + 1;
+
+    return rank <= WeightedRating.MAX_CHART_RESULTS ? (int) rank : null;
   }
 
   /**

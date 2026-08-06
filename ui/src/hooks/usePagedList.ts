@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PagedResponse } from "../types/api";
 
 interface UsePagedListOptions {
@@ -20,11 +20,16 @@ export function usePagedList<T>(
   const [totalPages, setTotalPages] = useState(0);
   const [rawLoading, setRawLoading] = useState(true);
   const [listLoading, setListLoading] = useState(false);
+  const hasLoadedOnce = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
 
     let cancelled = false;
+
+    if (hasLoadedOnce.current) {
+      setListLoading(true);
+    }
 
     fetchPage(0)
       .then((res) => {
@@ -35,7 +40,10 @@ export function usePagedList<T>(
       })
       .catch(() => {})
       .finally(() => {
-        if (!cancelled) setRawLoading(false);
+        if (cancelled) return;
+        hasLoadedOnce.current = true;
+        setRawLoading(false);
+        setListLoading(false);
       });
 
     return () => {

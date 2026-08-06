@@ -57,7 +57,7 @@ function EditableDescription({
             fontStyle="italic"
             color="text"
             opacity="0.7"
-            textAlign="left"
+            textAlign={targetType === "ARTIST" ? "center" : "left"}
           >
             {emptyText}
           </Text>

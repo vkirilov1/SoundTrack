@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import AlbumRoute from "./routes/album";
+import AlbumYearRoute from "./routes/album-year";
 import ArtistRoute from "./routes/artist";
+import GenreRoute from "./routes/genre";
 import HomeRoute from "./routes/home";
 import LoginRoute from "./routes/login";
 import NotFoundRoute from "./routes/not-found";
@@ -16,8 +18,10 @@ function AppRouter() {
       <Route path="/login" element={<LoginRoute />} />
       <Route path="/profile/edit" element={<ProfileEditRoute />} />
       <Route path="/profile/:userId" element={<ProfileRoute />} />
+      <Route path="/album/year/:year" element={<AlbumYearRoute />} />
       <Route path="/album/:albumId" element={<AlbumRoute />} />
       <Route path="/artist/:artistId" element={<ArtistRoute />} />
+      <Route path="/genre/:name" element={<GenreRoute />} />
       <Route path="*" element={<NotFoundRoute />} />
     </Routes>
   );

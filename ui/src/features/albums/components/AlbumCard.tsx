@@ -8,7 +8,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { FULL_DATE_FORMAT } from "../../../utils/date";
+import { MONTH_DAY_FORMAT, YEAR_FORMAT } from "../../../utils/date";
+import { formatCompactCount } from "../../../utils/format";
 import AlbumActions from "./AlbumActions";
 import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
 import TextButton from "../../../components/buttons/TextButton";
@@ -113,6 +114,8 @@ function AlbumCard({
     PRIMARY_GENRE_COUNT + SECONDARY_GENRE_COUNT,
   );
 
+  const releaseYear = YEAR_FORMAT.format(new Date(album.releaseDate));
+
   return (
     <Box
       display="flex"
@@ -170,15 +173,21 @@ function AlbumCard({
         </Text>
 
         <Text mt="4px" fontSize="14px" color="text">
-          {FULL_DATE_FORMAT.format(new Date(album.releaseDate))}
+          {MONTH_DAY_FORMAT.format(new Date(album.releaseDate))},{" "}
+          <Link asChild textDecoration="none" _hover={{ color: "accentHover" }}>
+            {" "}
+            <RouterLink to={`/album/year/${releaseYear}`}>
+              {releaseYear}
+            </RouterLink>
+          </Link>
         </Text>
 
         {album.genres.length > 0 && (
           <VStack mt="16px" align="stretch" gap="8px">
             <HStack flexWrap="wrap" gap="8px">
               {primaryGenres.map((genre) => (
-                <Text
-                  as="span"
+                <Link
+                  asChild
                   key={genre}
                   fontSize="13px"
                   fontWeight="600"
@@ -187,16 +196,20 @@ function AlbumCard({
                   px="14px"
                   py="6px"
                   borderRadius="full"
+                  textDecoration="none"
+                  _hover={{ bg: "accent", color: "white" }}
                 >
-                  {genre}
-                </Text>
+                  <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
+                    {genre}
+                  </RouterLink>
+                </Link>
               ))}
             </HStack>
             {secondaryGenres.length > 0 && (
               <HStack flexWrap="wrap" gap="8px">
                 {secondaryGenres.map((genre) => (
-                  <Text
-                    as="span"
+                  <Link
+                    asChild
                     key={genre}
                     fontSize="12px"
                     color="text"
@@ -205,9 +218,13 @@ function AlbumCard({
                     px="10px"
                     py="4px"
                     borderRadius="full"
+                    textDecoration="none"
+                    _hover={{ bg: "accent", color: "white", opacity: "1" }}
                   >
-                    {genre}
-                  </Text>
+                    <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
+                      {genre}
+                    </RouterLink>
+                  </Link>
                 ))}
               </HStack>
             )}
@@ -230,11 +247,35 @@ function AlbumCard({
             <Text as="span" fontSize="22px" fontWeight="700" color="accent">
               {album.rating.toFixed(2)}/5
             </Text>
-            <Text as="span" fontSize="14px" color="text">
+
+            <Text as="span" fontSize="12px" color="gray.400">
               {" "}
-              based on {album.reviewsCount}{" "}
+              based on{" "}
+              <Text as="span" fontWeight="700" color="ink">
+                {formatCompactCount(album.reviewsCount)}
+              </Text>{" "}
               {album.reviewsCount === 1 ? "review" : "reviews"}
             </Text>
+
+            {album.yearRank && (
+              <Text as="span" ml="10px" fontSize="18px">
+                <Text as="span" fontWeight="700" color="accent">
+                  #{album.yearRank}
+                </Text>{" "}
+                for{" "}
+                <Link
+                  asChild
+                  color="ink"
+                  fontWeight="700"
+                  textDecoration="none"
+                  _hover={{ color: "accent" }}
+                >
+                  <RouterLink to={`/album/year/${releaseYear}`}>
+                    {releaseYear}
+                  </RouterLink>
+                </Link>
+              </Text>
+            )}
           </Text>
         )}
 

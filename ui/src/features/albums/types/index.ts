@@ -24,6 +24,8 @@ export interface AlbumDetail {
   songs: AlbumSong[];
   description: string | null;
   favorited: boolean;
+  /** This album's rank on its release year's chart (1 = highest), null if unreviewed or outside the top 1000. */
+  yearRank: number | null;
 }
 
 export interface AlbumReview {
