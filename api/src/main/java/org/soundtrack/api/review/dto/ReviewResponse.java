@@ -23,4 +23,6 @@ public class ReviewResponse {
   private String profilePictureUrl;
 
   private LocalDateTime createdAt;
+
+  private boolean followedAuthor;
 }

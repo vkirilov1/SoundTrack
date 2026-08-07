@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,6 +19,23 @@ import org.springframework.stereotype.Repository;
 public interface AlbumRepository extends JpaRepository<Album, Long> {
   @Query("SELECT a.mbid FROM Album a WHERE a.mbid IN :mbids")
   Set<String> findExistingMbids(@Param("mbids") Set<String> mbids);
+
+  boolean existsByMbid(String mbid);
+
+  boolean existsByReleaseid(String releaseid);
+
+  /**
+   * Same as {@link #findById}, but takes a {@code SELECT ... FOR UPDATE} row lock. Every write path
+   * that recomputes {@code rating}/{@code reviewsCount} from the album's current values (review
+   * create/update/delete) must read the album through this method rather than {@code findById}: two
+   * concurrent requests reading the same unlocked row would both compute their new average from the
+   * same stale snapshot, and the second commit would silently overwrite the first's - a classic
+   * lost update. Locking here serializes concurrent writers on the same album so the second one
+   * always reads the first's committed result before recomputing.
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT a FROM Album a WHERE a.id = :id")
+  Optional<Album> findByIdForUpdate(@Param("id") Long id);
 
   @EntityGraph(
       attributePaths = {

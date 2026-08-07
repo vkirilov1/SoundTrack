@@ -21,6 +21,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
   Page<Review> findByAlbumId(Long albumId, Pageable pageable);
 
+  /**
+   * Same reviews as {@link #findByAlbumId}, but reviews from users {@code viewerId} follows are
+   * pinned to the top regardless of date - the ad hoc join only matches a follow row for the
+   * viewer, so its presence (or absence) becomes the primary sort key. Falls back to the plain
+   * createdAt order for reviews from anyone the viewer doesn't follow, same as before.
+   */
+  @Query(
+      "SELECT r FROM Review r LEFT JOIN UserFollow uf ON uf.following.id = r.user.id AND uf.follower.id = :viewerId "
+          + "WHERE r.album.id = :albumId "
+          + "ORDER BY CASE WHEN uf.id IS NOT NULL THEN 0 ELSE 1 END ASC, r.createdAt DESC")
+  Page<Review> findByAlbumIdOrderByFollowedFirst(
+      @Param("albumId") Long albumId, @Param("viewerId") Long viewerId, Pageable pageable);
+
   @EntityGraph(attributePaths = {"album"})
   @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
   List<Review> findByUserId(@Param("userId") Long userId);

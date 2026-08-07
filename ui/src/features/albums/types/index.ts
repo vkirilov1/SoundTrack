@@ -37,6 +37,7 @@ export interface AlbumReview {
   userId: number;
   profilePictureUrl: string | null;
   createdAt: string;
+  followedAuthor: boolean;
 }
 
 export interface CreateAlbumReviewRequest {

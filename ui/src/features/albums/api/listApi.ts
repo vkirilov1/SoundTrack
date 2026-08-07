@@ -14,7 +14,6 @@ export function getMyLists(
 export function createList(
   name: string,
 ): Promise<{ id: number; name: string }> {
-  // Backend returns the full UserListDetailResponse; we only need id/name here.
   return fetchJson("/lists", {
     method: "POST",
     body: JSON.stringify({ name, description: null }),

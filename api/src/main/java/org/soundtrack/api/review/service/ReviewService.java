@@ -2,6 +2,8 @@ package org.soundtrack.api.review.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ForbiddenException;
@@ -17,6 +19,7 @@ import org.soundtrack.domain.model.Review;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ReviewRepository;
+import org.soundtrack.domain.repository.UserFollowRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,12 +40,14 @@ public class ReviewService {
 
   private final UserRepository userRepository;
 
+  private final UserFollowRepository userFollowRepository;
+
   private final ReviewMapper reviewMapper;
 
   @Transactional
   public ReviewResponse createReview(Long albumId, CreateReviewRequest request) {
 
-    Album album = findAlbumById(albumId);
+    Album album = findAlbumForUpdate(albumId);
 
     User user = getAuthenticatedUser();
 
@@ -86,7 +91,7 @@ public class ReviewService {
   @Transactional
   public ReviewResponse updateReview(Long albumId, Long reviewId, CreateReviewRequest request) {
 
-    Album album = findAlbumById(albumId);
+    Album album = findAlbumForUpdate(albumId);
 
     User user = getAuthenticatedUser();
 
@@ -114,7 +119,7 @@ public class ReviewService {
   @Transactional
   public void deleteReview(Long albumId, Long reviewId) {
 
-    Album album = findAlbumById(albumId);
+    Album album = findAlbumForUpdate(albumId);
 
     User user = getAuthenticatedUser();
 
@@ -146,12 +151,32 @@ public class ReviewService {
 
     findAlbumById(albumId);
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Long viewerId = getAuthenticatedUserIdOrNull();
 
-    Page<Review> reviewPage = reviewRepository.findByAlbumId(albumId, pageable);
+    Page<Review> reviewPage;
+    if (viewerId != null) {
+      reviewPage =
+          reviewRepository.findByAlbumIdOrderByFollowedFirst(
+              albumId, viewerId, PageRequest.of(page, size));
+    } else {
+      reviewPage =
+          reviewRepository.findByAlbumId(
+              albumId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
+    }
+
+    Set<Long> followedAuthorIds =
+        viewerId != null
+            ? userFollowRepository.findFollowingIdsByFollowerIdAndFollowingIdIn(
+                viewerId,
+                reviewPage.getContent().stream()
+                    .map(r -> r.getUser().getId())
+                    .collect(Collectors.toSet()))
+            : Set.of();
 
     List<ReviewResponse> content =
-        reviewPage.getContent().stream().map(reviewMapper::toResponse).toList();
+        reviewPage.getContent().stream()
+            .map(r -> reviewMapper.toResponse(r, followedAuthorIds.contains(r.getUser().getId())))
+            .toList();
 
     return new PagedResponse<>(
         content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
@@ -205,6 +230,26 @@ public class ReviewService {
   }
 
   /**
+   * Returns the authenticated user's id, or null if the caller is anonymous. GET
+   * /api/albums/{id}/reviews is open to anonymous visitors but pins reviews from followed users to
+   * the top when a real session is present.
+   *
+   * @return the current user's id, or null if not authenticated
+   */
+  private Long getAuthenticatedUserIdOrNull() {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || "anonymousUser".equals(authentication.getName())) {
+      return null;
+    }
+
+    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
+  }
+
+  /**
    * Validates album ownership and review ownership
    *
    * @param review the review object
@@ -232,6 +277,20 @@ public class ReviewService {
   private Album findAlbumById(Long albumId) {
     return albumRepository
         .findById(albumId)
+        .orElseThrow(() -> new ResourceNotFoundException("Album not found"));
+  }
+
+  /**
+   * Same as {@link #findAlbumById}, but takes a row lock on the album - required before any
+   * read-recompute-write on {@code rating}/{@code reviewsCount} to avoid a lost update between two
+   * concurrent reviews on the same album.
+   *
+   * @param albumId the album id
+   * @return the album object
+   */
+  private Album findAlbumForUpdate(Long albumId) {
+    return albumRepository
+        .findByIdForUpdate(albumId)
         .orElseThrow(() -> new ResourceNotFoundException("Album not found"));
   }
 
