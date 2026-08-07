@@ -1,4 +1,4 @@
-import { HStack, Link, Text } from "@chakra-ui/react";
+import { Box, HStack, Link, Text } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { SHORT_DATE_FORMAT } from "../../../utils/date";
 import { userPhotoUrl } from "../../../utils/images";
@@ -33,6 +33,23 @@ function ReviewBody({ review }: { review: AlbumReview }) {
             </RouterLink>
           </Link>
         </Text>
+        {review.followedAuthor && (
+          <Box
+            as="span"
+            display="inline-block"
+            w="fit-content"
+            bg="accent"
+            color="white"
+            fontSize="8px"
+            fontWeight="700"
+            letterSpacing="0.03em"
+            px="4px"
+            py="2px"
+            borderRadius="4px"
+          >
+            FOLLOWING
+          </Box>
+        )}
         <Text as="span" ml="auto" fontSize="12px" color="text" opacity="0.7">
           {SHORT_DATE_FORMAT.format(new Date(review.createdAt))}
         </Text>

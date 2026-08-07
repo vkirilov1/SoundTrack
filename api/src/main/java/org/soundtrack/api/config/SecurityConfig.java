@@ -45,6 +45,8 @@ public class SecurityConfig {
                         "/api/artists/**",
                         "/api/users/*",
                         "/api/users/*/reviews",
+                        "/api/users/*/followers",
+                        "/api/users/*/following",
                         "/api/images/**")
                     .permitAll()
                     .requestMatchers(

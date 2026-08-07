@@ -75,7 +75,7 @@ public class AdminService {
 
     List<Review> reviews = reviewRepository.findByUserId(userId);
     for (Review review : reviews) {
-      Album album = review.getAlbum();
+      Album album = findAlbumForUpdate(review.getAlbum().getId());
       int count = album.getReviewsCount();
       if (count <= 1) {
         album.setRating(0);
@@ -181,7 +181,7 @@ public class AdminService {
             .orElseThrow(
                 () -> new ResourceNotFoundException("Review not found with id: " + reviewId));
 
-    Album album = review.getAlbum();
+    Album album = findAlbumForUpdate(review.getAlbum().getId());
     int count = album.getReviewsCount();
     if (count <= 1) {
       album.setRating(0);
@@ -193,6 +193,20 @@ public class AdminService {
     }
 
     reviewRepository.delete(review);
+  }
+
+  /**
+   * Same as a plain album lookup, but takes a row lock - required before any read-recompute-write
+   * on {@code rating}/{@code reviewsCount} to avoid a lost update racing against a concurrent
+   * review create/update/delete on the same album.
+   *
+   * @param albumId the album id
+   * @return the album object
+   */
+  private Album findAlbumForUpdate(Long albumId) {
+    return albumRepository
+        .findByIdForUpdate(albumId)
+        .orElseThrow(() -> new ResourceNotFoundException("Album not found with id: " + albumId));
   }
 
   @Transactional(readOnly = true)

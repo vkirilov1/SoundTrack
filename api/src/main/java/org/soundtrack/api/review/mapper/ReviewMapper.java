@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 public class ReviewMapper {
 
   public ReviewResponse toResponse(Review review) {
+    return toResponse(review, false);
+  }
+
+  public ReviewResponse toResponse(Review review, boolean followedAuthor) {
     return ReviewResponse.builder()
         .id(review.getId())
         .rating(review.getRating())
@@ -18,6 +22,7 @@ public class ReviewMapper {
         .userId(review.getUser().getId())
         .profilePictureUrl(review.getUser().getProfilePicture())
         .createdAt(review.getCreatedAt())
+        .followedAuthor(followedAuthor)
         .build();
   }
 

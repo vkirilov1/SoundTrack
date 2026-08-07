@@ -9,4 +9,6 @@ public record UserProfileResponse(
     String bio,
     String profilePictureUrl,
     LocalDateTime joinDate,
-    UserRole role) {}
+    UserRole role,
+    boolean followed,
+    boolean followsYou) {}

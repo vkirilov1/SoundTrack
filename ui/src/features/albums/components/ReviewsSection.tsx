@@ -156,6 +156,15 @@ function ReviewsSection({
               key={review.id}
               display="flex"
               flexDirection="column"
+              {...(review.followedAuthor && {
+                bg: "rgba(247, 164, 63, 0.07)",
+                borderLeft: "3px solid",
+                borderColor: "accent",
+                pl: "14px",
+                pr: "14px",
+                py: "6px",
+                borderRadius: "4px",
+              })}
             >
               <ReviewBody review={review} />
               {isAdmin && (

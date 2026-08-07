@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { Box, Heading, Link, Tabs, Text } from "@chakra-ui/react";
 import { getUserProfile } from "../api/profileApi";
+import { followUser, unfollowUser } from "../api/followApi";
 import { ApiError } from "../../../lib/api-error";
 import EditIcon from "../../../components/icons/EditIcon";
 import PageStatus from "../../../components/PageStatus/PageStatus";
+import FollowButton from "../../../components/FollowButton/FollowButton";
 import { useAuth } from "../../../features/auth/stores/useAuth";
 import { MONTH_YEAR_FORMAT } from "../../../utils/date";
 import { userPhotoUrl } from "../../../utils/images";
@@ -12,11 +14,12 @@ import type { UserProfile } from "../../../types/auth";
 import Avatar from "../../../components/Avatar/Avatar";
 import ListsCard from "./ListsCard";
 import ReviewsCard from "./ReviewsCard";
+import FollowListCard from "./FollowListCard";
 import RequestsCard from "../../edit-requests/components/RequestsCard";
 import AdminResetPhotoButton from "../../edit-requests/components/AdminResetPhotoButton";
 import { resetUserPhotoAsAdmin } from "../../edit-requests/api/adminContentApi";
 
-type ProfileTab = "lists" | "reviews";
+type ProfileTab = "lists" | "reviews" | "followers" | "following";
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -33,6 +36,29 @@ function ProfilePage() {
   const isOwnAdminProfile =
     currentUser?.id === id && currentUser?.role === "ADMIN";
   const canModeratePhoto = isAdmin && currentUser?.id !== id;
+
+  const [followPending, setFollowPending] = useState(false);
+
+  function handleToggleFollow() {
+    if (!profile || followPending) return;
+
+    const next = !profile.followed;
+    setFollowPending(true);
+    setProfile((prev) => (prev ? { ...prev, followed: next } : prev));
+
+    const request = next ? followUser(profile.id) : unfollowUser(profile.id);
+
+    request
+      .catch((error: unknown) => {
+        const alreadyInTargetState =
+          error instanceof ApiError &&
+          ((next && error.status === 409) || (!next && error.status === 404));
+        if (alreadyInTargetState) return;
+
+        setProfile((prev) => (prev ? { ...prev, followed: !next } : prev));
+      })
+      .finally(() => setFollowPending(false));
+  }
 
   function handleResetPhoto() {
     return resetUserPhotoAsAdmin(id).then((updated) => {
@@ -148,9 +174,37 @@ function ProfilePage() {
         {canModeratePhoto && (
           <AdminResetPhotoButton onReset={handleResetPhoto} />
         )}
-        <Heading as="h1" fontSize="22px" mt="20px">
-          {profile.username}
-        </Heading>
+        <Box display="flex" alignItems="center" gap="10px" mt="20px">
+          <Heading as="h1" fontSize="22px" m="0">
+            {profile.username}
+          </Heading>
+          {!isAdmin && currentUser && currentUser.id !== profile.id && (
+            <FollowButton
+              followed={profile.followed}
+              disabled={followPending}
+              onClick={handleToggleFollow}
+              size={28}
+            />
+          )}
+        </Box>
+        {profile.followsYou && (
+          <Box
+            as="span"
+            display="inline-block"
+            w="fit-content"
+            mt="8px"
+            bg="border"
+            color="text"
+            fontSize="10px"
+            fontWeight="700"
+            letterSpacing="0.03em"
+            px="6px"
+            py="2px"
+            borderRadius="4px"
+          >
+            FOLLOWS YOU
+          </Box>
+        )}
         {profile.bio && (
           <Text mt="8px" color="text" maxW="480px">
             {profile.bio}
@@ -211,6 +265,38 @@ function ProfilePage() {
             >
               Reviews
             </Tabs.Trigger>
+            <Tabs.Trigger
+              value="followers"
+              fontSize="15px"
+              color="text"
+              px="4px"
+              py="8px"
+              pb="14px"
+              cursor="pointer"
+              _selected={{
+                color: "ink",
+                fontWeight: "600",
+                "--indicator-color": "var(--chakra-colors-accent)",
+              }}
+            >
+              Followers
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="following"
+              fontSize="15px"
+              color="text"
+              px="4px"
+              py="8px"
+              pb="14px"
+              cursor="pointer"
+              _selected={{
+                color: "ink",
+                fontWeight: "600",
+                "--indicator-color": "var(--chakra-colors-accent)",
+              }}
+            >
+              Following
+            </Tabs.Trigger>
           </Tabs.List>
 
           <Box mt="32px" display="flex" justifyContent="center">
@@ -220,6 +306,12 @@ function ProfilePage() {
               </Tabs.Content>
               <Tabs.Content value="reviews">
                 <ReviewsCard userId={id} />
+              </Tabs.Content>
+              <Tabs.Content value="followers">
+                <FollowListCard userId={id} mode="followers" />
+              </Tabs.Content>
+              <Tabs.Content value="following">
+                <FollowListCard userId={id} mode="following" />
               </Tabs.Content>
             </Box>
           </Box>

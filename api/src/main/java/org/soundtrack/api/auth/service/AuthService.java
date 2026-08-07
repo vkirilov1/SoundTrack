@@ -92,7 +92,9 @@ public class AuthService {
             user.getBio(),
             user.getProfilePicture(),
             user.getJoinDate(),
-            user.getRole());
+            user.getRole(),
+            false,
+            false);
 
     return new AuthResult(accessToken, refreshToken, profile, rememberMe);
   }

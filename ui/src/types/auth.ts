@@ -19,6 +19,8 @@ export interface UserProfile {
   profilePictureUrl: string | null;
   joinDate: string;
   role: UserRole;
+  followed: boolean;
+  followsYou: boolean;
 }
 
 export type FieldErrors = Record<string, string>;
