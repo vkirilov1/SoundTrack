@@ -4,7 +4,7 @@ import { getAlbum } from "../api/albumApi";
 import { ApiError } from "../../../lib/api-error";
 import PageContainer from "../../../components/PageContainer/PageContainer";
 import PageStatus from "../../../components/PageStatus/PageStatus";
-import type { AlbumDetail } from "../types";
+import type { AlbumArtist, AlbumDetail } from "../types";
 import ReviewsSection from "./ReviewsSection";
 import SongsSection from "./SongsSection";
 import AlbumCard from "./AlbumCard";
@@ -87,6 +87,26 @@ function AlbumPage() {
     setAlbum((prev) => (prev ? { ...prev, coverUrl } : prev));
   }
 
+  function handleGenresChange(genres: string[]) {
+    setAlbum((prev) => (prev ? { ...prev, genres } : prev));
+  }
+
+  function handleTitleChange(title: string) {
+    setAlbum((prev) => (prev ? { ...prev, title } : prev));
+  }
+
+  function handleReleaseDateChange(releaseDate: string) {
+    setAlbum((prev) => (prev ? { ...prev, releaseDate } : prev));
+  }
+
+  function handleArtistsChange(artists: AlbumArtist[]) {
+    setAlbum((prev) => (prev ? { ...prev, artists } : prev));
+  }
+
+  function handleSongsChange(songs: AlbumDetail["songs"]) {
+    setAlbum((prev) => (prev ? { ...prev, songs } : prev));
+  }
+
   if (loading) {
     return (
       <PageContainer>
@@ -111,11 +131,16 @@ function AlbumPage() {
         onAlbumFavoriteChange={handleAlbumFavoriteChange}
         onDescriptionChange={handleDescriptionChange}
         onCoverChange={handleCoverChange}
+        onGenresChange={handleGenresChange}
+        onTitleChange={handleTitleChange}
+        onReleaseDateChange={handleReleaseDateChange}
+        onArtistsChange={handleArtistsChange}
       />
 
       <SongsSection
         songs={album.songs}
         onSongFavoriteChange={handleSongFavoriteChange}
+        onSongsChange={handleSongsChange}
       />
 
       <ReviewsSection

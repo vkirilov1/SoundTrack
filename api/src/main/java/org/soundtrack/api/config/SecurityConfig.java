@@ -1,5 +1,6 @@
 package org.soundtrack.api.config;
 
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.auth.security.JwtAuthenticationFilter;
@@ -33,7 +34,9 @@ public class SecurityConfig {
         .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(
+                auth.dispatcherTypeMatchers(DispatcherType.ASYNC)
+                    .permitAll()
+                    .requestMatchers(
                         "/api/auth/register",
                         "/api/auth/login",
                         "/api/auth/refresh",

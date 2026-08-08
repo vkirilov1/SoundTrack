@@ -24,6 +24,11 @@ interface InlineTextEditFormProps {
   autoFocusTextarea?: boolean;
   /** Shown in place of the trigger after a successful submit, instead of resetting back to it. */
   successMessage?: string;
+  /** "textarea" (default, auto-grows) for long text, "text" for a single-line field like a title, "date" for a native date picker. */
+  variant?: "textarea" | "text" | "date";
+  maxLength?: number;
+  /** CSS width of the editing form. Defaults to "100%" (fills the available flex space). */
+  formWidth?: string;
 }
 
 function InlineTextEditForm({
@@ -37,6 +42,9 @@ function InlineTextEditForm({
   disallowEmpty = false,
   autoFocusTextarea = false,
   successMessage,
+  variant = "textarea",
+  maxLength = 3400,
+  formWidth = "100%",
 }: InlineTextEditFormProps) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(currentText ?? "");
@@ -49,11 +57,9 @@ function InlineTextEditForm({
     onEditingChange?.(editing);
   }, [editing, onEditingChange]);
 
-  // Auto-grow the textarea to fit its content, so opening the form shows the
-  // full existing text right away instead of clipping it to a few rows. Runs
-  // again on the next frame since the first measurement can land before the
-  // surrounding layout (max-width column, flex sizing) has fully settled.
   useLayoutEffect(() => {
+    if (variant !== "textarea") return;
+
     const el = textareaRef.current;
     if (!el) return;
 
@@ -66,7 +72,7 @@ function InlineTextEditForm({
     resize();
     const raf = requestAnimationFrame(resize);
     return () => cancelAnimationFrame(raf);
-  }, [text, editing]);
+  }, [text, editing, variant]);
 
   function open() {
     setText(currentText ?? "");
@@ -109,25 +115,47 @@ function InlineTextEditForm({
   }
 
   return (
-    <chakra.form onSubmit={handleSubmit} w="100%">
-      <Textarea
-        ref={textareaRef}
-        value={text}
-        maxLength={3400}
-        onChange={(event) => setText(event.target.value)}
-        autoFocus={autoFocusTextarea}
-        w="100%"
-        minH="96px"
-        maxH="480px"
-        fontSize="13px"
-        color="ink"
-        bg="bg"
-        borderColor="border"
-        borderRadius="md"
-        p="8px"
-        resize="vertical"
-        _focus={{ outline: "none", borderColor: "accent" }}
-      />
+    <chakra.form onSubmit={handleSubmit} w={formWidth}>
+      {variant === "textarea" ? (
+        <Textarea
+          ref={textareaRef}
+          value={text}
+          maxLength={maxLength}
+          onChange={(event) => setText(event.target.value)}
+          autoFocus={autoFocusTextarea}
+          w="100%"
+          minH="96px"
+          maxH="480px"
+          fontSize="13px"
+          color="ink"
+          bg="bg"
+          borderColor="border"
+          borderRadius="md"
+          p="8px"
+          resize="vertical"
+          _focus={{ outline: "none", borderColor: "accent" }}
+        />
+      ) : (
+        <chakra.input
+          type={variant}
+          value={text}
+          maxLength={variant === "text" ? maxLength : undefined}
+          onChange={(event) => setText(event.target.value)}
+          autoFocus={autoFocusTextarea}
+          w="100%"
+          font="inherit"
+          fontSize="13px"
+          color="ink"
+          bg="bg"
+          border="1px solid"
+          borderColor="border"
+          borderRadius="md"
+          px="8px"
+          py="6px"
+          outline="none"
+          _focus={{ borderColor: "accent" }}
+        />
+      )}
       {error && (
         <Text mt="6px" fontSize="12px" color="danger">
           {error}

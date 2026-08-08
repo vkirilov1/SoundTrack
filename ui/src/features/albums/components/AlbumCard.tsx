@@ -8,19 +8,34 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
+import { useState } from "react";
 import { MONTH_DAY_FORMAT, YEAR_FORMAT } from "../../../utils/date";
 import { formatCompactCount } from "../../../utils/format";
 import AlbumActions from "./AlbumActions";
+import GenrePill from "./GenrePill";
+import ArtistPill from "./admin/ArtistPill";
+import AddGenreMenu from "./admin/AddGenreMenu";
+import AddArtistMenu from "./admin/AddArtistMenu";
 import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
+import EditIconButton from "../../../components/buttons/EditIconButton";
+import AddChipButton from "../../../components/buttons/AddChipButton";
 import TextButton from "../../../components/buttons/TextButton";
 import { coverImageUrl } from "../../../utils/images";
 import type { RefObject } from "react";
-import type { AlbumDetail } from "../types";
+import type { AlbumArtist, AlbumDetail } from "../types";
 import { useAuth } from "../../auth/stores/useAuth";
+import { useAdminGenreEditor } from "../hooks/useAdminGenreEditor";
+import { useAdminArtistEditor } from "../hooks/useAdminArtistEditor";
 import AdminPhotoEditButton from "../../edit-requests/components/AdminPhotoEditButton";
 import EditableDescription from "../../edit-requests/components/EditableDescription";
+import InlineTextEditForm from "../../edit-requests/components/InlineTextEditForm";
 import {
+  addAlbumArtist,
+  removeAlbumArtist,
+  removeAlbumGenre,
   updateAlbumDescription,
+  updateAlbumReleaseDate,
+  updateAlbumTitle,
   uploadAlbumPhoto,
 } from "../../edit-requests/api/adminContentApi";
 
@@ -35,6 +50,10 @@ interface AlbumCardProps {
   onAlbumFavoriteChange: (nextFavorited: boolean) => void;
   onDescriptionChange: (description: string | null) => void;
   onCoverChange: (coverUrl: string | null) => void;
+  onGenresChange: (genres: string[]) => void;
+  onTitleChange: (title: string) => void;
+  onReleaseDateChange: (releaseDate: string) => void;
+  onArtistsChange: (artists: AlbumArtist[]) => void;
 }
 
 function AlbumCover({
@@ -86,9 +105,68 @@ function AlbumCard({
   onAlbumFavoriteChange,
   onDescriptionChange,
   onCoverChange,
+  onGenresChange,
+  onTitleChange,
+  onReleaseDateChange,
+  onArtistsChange,
 }: AlbumCardProps) {
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
+
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDate, setEditingDate] = useState(false);
+
+  const {
+    menuOpen: genreMenuOpen,
+    query: genreQuery,
+    setQuery: setGenreQuery,
+    results: genreResults,
+    searching: genreSearching,
+    adding: genreAdding,
+    error: genreError,
+    menuRef: genreMenuRef,
+    openMenu: openGenreMenu,
+    handleAdd: handleAddGenre,
+  } = useAdminGenreEditor(album.id, onGenresChange);
+
+  const {
+    menuOpen: artistMenuOpen,
+    query: artistQuery,
+    setQuery: setArtistQuery,
+    results: artistResults,
+    searching: artistSearching,
+    adding: artistAdding,
+    error: artistError,
+    menuRef: artistMenuRef,
+    openMenu: openArtistMenu,
+    handleAdd: handleAddArtist,
+  } = useAdminArtistEditor(album.id, addAlbumArtist, onArtistsChange);
+
+  function handleRemoveGenre(genre: string) {
+    removeAlbumGenre(album.id, genre)
+      .then((updated) => onGenresChange(updated.genres))
+      .catch(() => {});
+  }
+
+  function handleRemoveArtist(artistId: number) {
+    removeAlbumArtist(album.id, artistId)
+      .then((updated) => onArtistsChange(updated.artists))
+      .catch(() => {});
+  }
+
+  async function handleSaveTitle(title: string) {
+    const updated = await updateAlbumTitle(album.id, title);
+    onTitleChange(updated.title);
+  }
+
+  async function handleSaveReleaseDate(releaseDate: string) {
+    const updated = await updateAlbumReleaseDate(
+      album.id,
+      album.title,
+      releaseDate,
+    );
+    onReleaseDateChange(updated.releaseDate);
+  }
 
   function focusReviewInput() {
     commentInputRef.current?.scrollIntoView({
@@ -139,92 +217,172 @@ function AlbumCard({
       </Box>
 
       <Box flex="1" minW="0" display="flex" flexDirection="column">
-        <Heading
-          as="h1"
-          fontSize="28px"
-          overflowWrap="break-word"
-          wordBreak="break-word"
-        >
-          {album.title}
-        </Heading>
+        <HStack align="center" gap="6px">
+          {!editingTitle && (
+            <Heading
+              as="h1"
+              fontSize="28px"
+              m="0"
+              overflowWrap="break-word"
+              wordBreak="break-word"
+            >
+              {album.title}
+            </Heading>
+          )}
+          {isAdmin && (
+            <InlineTextEditForm
+              currentText={album.title}
+              onSubmit={handleSaveTitle}
+              onEditingChange={setEditingTitle}
+              variant="text"
+              maxLength={255}
+              disallowEmpty
+              autoFocusTextarea
+              submitLabel="Save"
+              submittingLabel="Saving…"
+              errorFallback="Couldn't save the title."
+              renderTrigger={(open) => (
+                <EditIconButton onClick={open} label="Edit title" />
+              )}
+            />
+          )}
+        </HStack>
 
-        <Text
-          mt="6px"
-          fontSize="16px"
-          overflowWrap="break-word"
-          wordBreak="break-word"
-        >
-          {album.artists.map((artist, index) => (
-            <Box as="span" key={artist.id}>
-              {index > 0 && ", "}
+        {isAdmin ? (
+          <HStack mt="8px" flexWrap="wrap" gap="6px" align="center">
+            {album.artists.map((artist) => (
+              <ArtistPill
+                key={artist.id}
+                artist={artist}
+                onRemove={() => handleRemoveArtist(artist.id)}
+              />
+            ))}
+            <Box position="relative" ref={artistMenuRef}>
+              <AddChipButton
+                onClick={openArtistMenu}
+                label="Add artist"
+                size={26}
+              />
+
+              {artistMenuOpen && (
+                <AddArtistMenu
+                  query={artistQuery}
+                  onQueryChange={setArtistQuery}
+                  results={artistResults}
+                  searching={artistSearching}
+                  adding={artistAdding}
+                  error={artistError}
+                  onAdd={(artist) => handleAddArtist(artist.id)}
+                />
+              )}
+            </Box>
+          </HStack>
+        ) : (
+          <Text
+            mt="6px"
+            fontSize="16px"
+            overflowWrap="break-word"
+            wordBreak="break-word"
+          >
+            {album.artists.map((artist, index) => (
+              <Box as="span" key={artist.id}>
+                {index > 0 && ", "}
+                <Link
+                  asChild
+                  color="accent"
+                  textDecoration="none"
+                  fontWeight="600"
+                  _hover={{ color: "accentHover" }}
+                >
+                  <RouterLink to={`/artist/${artist.id}`}>
+                    {artist.name}
+                  </RouterLink>
+                </Link>
+              </Box>
+            ))}
+          </Text>
+        )}
+
+        <HStack mt="4px" align="center" gap="6px">
+          {!editingDate && (
+            <Text fontSize="14px" color="text" m="0">
+              {MONTH_DAY_FORMAT.format(new Date(album.releaseDate))},{" "}
               <Link
                 asChild
-                color="accent"
                 textDecoration="none"
-                fontWeight="600"
                 _hover={{ color: "accentHover" }}
               >
-                <RouterLink to={`/artist/${artist.id}`}>
-                  {artist.name}
+                <RouterLink to={`/album/year/${releaseYear}`}>
+                  {releaseYear}
                 </RouterLink>
               </Link>
-            </Box>
-          ))}
-        </Text>
+            </Text>
+          )}
+          {isAdmin && (
+            <InlineTextEditForm
+              currentText={album.releaseDate}
+              onSubmit={handleSaveReleaseDate}
+              onEditingChange={setEditingDate}
+              variant="date"
+              disallowEmpty
+              submitLabel="Save"
+              submittingLabel="Saving…"
+              errorFallback="Couldn't save the release date."
+              renderTrigger={(open) => (
+                <EditIconButton
+                  onClick={open}
+                  label="Edit release date"
+                  size={13}
+                />
+              )}
+            />
+          )}
+        </HStack>
 
-        <Text mt="4px" fontSize="14px" color="text">
-          {MONTH_DAY_FORMAT.format(new Date(album.releaseDate))},{" "}
-          <Link asChild textDecoration="none" _hover={{ color: "accentHover" }}>
-            {" "}
-            <RouterLink to={`/album/year/${releaseYear}`}>
-              {releaseYear}
-            </RouterLink>
-          </Link>
-        </Text>
-
-        {album.genres.length > 0 && (
+        {(album.genres.length > 0 || isAdmin) && (
           <VStack mt="16px" align="stretch" gap="8px">
             <HStack flexWrap="wrap" gap="8px">
               {primaryGenres.map((genre) => (
-                <Link
-                  asChild
+                <GenrePill
                   key={genre}
-                  fontSize="13px"
-                  fontWeight="600"
-                  color="ink"
-                  bg="border"
-                  px="14px"
-                  py="6px"
-                  borderRadius="full"
-                  textDecoration="none"
-                  _hover={{ bg: "accent", color: "white" }}
-                >
-                  <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
-                    {genre}
-                  </RouterLink>
-                </Link>
+                  genre={genre}
+                  size="primary"
+                  removable={isAdmin}
+                  onRemove={() => handleRemoveGenre(genre)}
+                />
               ))}
+              {isAdmin && (
+                <Box position="relative" ref={genreMenuRef}>
+                  <AddChipButton
+                    onClick={openGenreMenu}
+                    label="Add genre"
+                    size={28}
+                  />
+
+                  {genreMenuOpen && (
+                    <AddGenreMenu
+                      query={genreQuery}
+                      onQueryChange={setGenreQuery}
+                      results={genreResults}
+                      searching={genreSearching}
+                      adding={genreAdding}
+                      error={genreError}
+                      onAdd={handleAddGenre}
+                    />
+                  )}
+                </Box>
+              )}
             </HStack>
             {secondaryGenres.length > 0 && (
               <HStack flexWrap="wrap" gap="8px">
                 {secondaryGenres.map((genre) => (
-                  <Link
-                    asChild
+                  <GenrePill
                     key={genre}
-                    fontSize="12px"
-                    color="text"
-                    bg="border"
-                    opacity="0.7"
-                    px="10px"
-                    py="4px"
-                    borderRadius="full"
-                    textDecoration="none"
-                    _hover={{ bg: "accent", color: "white", opacity: "1" }}
-                  >
-                    <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
-                      {genre}
-                    </RouterLink>
-                  </Link>
+                    genre={genre}
+                    size="secondary"
+                    removable={isAdmin}
+                    onRemove={() => handleRemoveGenre(genre)}
+                  />
                 ))}
               </HStack>
             )}

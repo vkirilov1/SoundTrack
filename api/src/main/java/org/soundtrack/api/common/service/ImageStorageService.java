@@ -2,6 +2,7 @@ package org.soundtrack.api.common.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -38,7 +39,15 @@ public class ImageStorageService {
     }
 
     Path storageRoot = Paths.get(storagePath).toAbsolutePath().normalize();
-    Path currentPath = storageRoot.resolve(filename).normalize();
+
+    Path currentPath;
+    try {
+      currentPath = storageRoot.resolve(filename).normalize();
+    } catch (InvalidPathException e) {
+      // Not a filename we could have stored (e.g. a remote CoverArtArchive URL a failed download
+      // fell back to at import time) - nothing of ours to delete.
+      return;
+    }
 
     if (currentPath.startsWith(storageRoot)) {
       Files.deleteIfExists(currentPath);
