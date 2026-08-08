@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
@@ -64,6 +65,11 @@ public class GlobalExceptionHandler {
         .getFieldErrors()
         .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
     return errors;
+  }
+
+  @ExceptionHandler(AsyncRequestNotUsableException.class)
+  public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException ex) {
+    log.debug("Client disconnected from an async response: {}", ex.getMessage());
   }
 
   @ExceptionHandler(Exception.class)

@@ -52,7 +52,7 @@ public class AlbumMapper {
     return new ArtistResponse(artist.getId(), artist.getArtistName());
   }
 
-  private SongResponse toSongResponse(Song song, Set<Long> favoritedSongIds) {
+  public SongResponse toSongResponse(Song song, Set<Long> favoritedSongIds) {
 
     return new SongResponse(
         song.getId(),

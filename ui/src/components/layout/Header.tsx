@@ -2,6 +2,7 @@ import { Box, Flex, HStack, Image, Link } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import logo from "../../assets/SoundTrackLogo.png";
 import SearchBar from "../../features/search/components/SearchBar";
+import NotificationBell from "../NotificationBell/NotificationBell";
 import { useAuth } from "../../features/auth/stores/useAuth";
 
 const NAV_LINKS = ["Charts", "Chats", "Drops"];
@@ -47,7 +48,8 @@ function Header() {
           </HStack>
 
           {user ? (
-            <HStack gap="12px">
+            <HStack gap="18px">
+              <NotificationBell />
               <Link
                 asChild
                 color="white"

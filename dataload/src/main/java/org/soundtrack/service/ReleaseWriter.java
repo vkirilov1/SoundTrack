@@ -226,11 +226,16 @@ public class ReleaseWriter {
       return Collections.emptySet();
     }
 
+    // A release can bundle multiple media - extra discs, alternate mixes, bonus live discs, deluxe
+    // box-set reissues. Flattening every medium's tracks together produces several different discs'
+    // worth of songs all claiming the same "position 1, 2, 3..." sequence. Fetching only the
+    // primary disc (first-listed)
     List<MBReleaseRecordingDTO.Track> tracks =
         releaseRecordingDTO.media.stream()
             .filter(m -> m.tracks != null)
-            .flatMap(m -> m.tracks.stream())
-            .toList();
+            .findFirst()
+            .map(m -> m.tracks)
+            .orElse(List.of());
 
     Set<String> allArtistMbids =
         tracks.stream()
@@ -327,6 +332,10 @@ public class ReleaseWriter {
           (imageUrl != null)
               ? artistPhotoDownloader.downloadAndSave(imageUrl, mbArtist.id)
               : "defaultArtistPhoto.jpg";
+
+      if (photoFilename == null) {
+        photoFilename = "defaultArtistPhoto.jpg";
+      }
 
       Artist artist = mapArtistToEntity(mbArtist, photoFilename);
 

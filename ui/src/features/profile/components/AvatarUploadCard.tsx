@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Box, chakra, Text, VStack } from "@chakra-ui/react";
+import { Box, Text, VStack } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
 import { usePhotoUpload } from "../../../hooks/usePhotoUpload";
 import Avatar from "../../../components/Avatar/Avatar";
-import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import UnderlineTextButton from "../../../components/buttons/UnderlineTextButton";
+import PrimaryButton from "../../../components/buttons/PrimaryButton";
+import SelectImageButton from "../../edit-requests/components/SelectImageButton";
 
 interface AvatarUploadCardProps {
   avatarSrc: string;
@@ -72,37 +73,10 @@ function AvatarUploadCard({
       </VStack>
 
       <VStack align="flex-start" gap="12px" maxW="360px" pt="4px">
-        <chakra.label
-          display="inline-flex"
-          alignItems="center"
-          px="20px"
-          py="12px"
-          bg="border"
-          color="#8a8a92"
-          fontSize="13px"
-          fontWeight="600"
-          textTransform="uppercase"
-          letterSpacing="0.4px"
-          borderRadius="md"
-          cursor="pointer"
-        >
-          Choose File
-          <chakra.input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={handleFileChange}
-            position="absolute"
-            w="1px"
-            h="1px"
-            p="0"
-            m="-1px"
-            overflow="hidden"
-            css={{ clip: "rect(0, 0, 0, 0)" }}
-            whiteSpace="nowrap"
-            border="0"
-          />
-        </chakra.label>
+        <SelectImageButton
+          fileInputRef={fileInputRef}
+          handleFileChange={handleFileChange}
+        />
         <Text fontSize="13px" color="text" m="0">
           Image will be cropped to a circular shape, similar to the example
         </Text>

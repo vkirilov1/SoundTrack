@@ -32,7 +32,12 @@ export function setSessionRefreshedHandler(
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-function refreshSession(): Promise<boolean> {
+/**
+ * Silently renews the access token cookie via the refresh token. Exported so long-lived
+ * non-fetch connections (the notification SSE stream) can proactively refresh before
+ * reconnecting, since they can't rely on apiFetch's automatic 401-retry-refresh.
+ */
+export function refreshSession(): Promise<boolean> {
   if (!refreshInFlight) {
     refreshInFlight = fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
