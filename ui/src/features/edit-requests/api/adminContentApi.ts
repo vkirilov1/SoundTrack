@@ -82,6 +82,18 @@ export function removeAlbumGenre(
   );
 }
 
+export function addAlbumSong(
+  albumId: number,
+  position: number,
+  title: string,
+  durationSeconds: number,
+): Promise<AlbumSong> {
+  return fetchJson(`/admin/albums/${albumId}/songs`, {
+    method: "POST",
+    body: JSON.stringify({ position, title, durationSeconds }),
+  });
+}
+
 export function updateSongPosition(
   songId: number,
   position: number,
@@ -171,6 +183,22 @@ export function uploadAlbumPhoto(
   });
 }
 
+export interface CreateArtistPayload {
+  name: string;
+  country: string;
+  type: string;
+  biography: string | null;
+}
+
+export function createArtist(
+  payload: CreateArtistPayload,
+): Promise<ArtistDetail> {
+  return fetchJson(`/admin/artists`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function updateArtistDescription(
   artistId: number,
   currentName: string,
@@ -185,6 +213,60 @@ export function updateArtistDescription(
       country: currentCountry,
       artistType: currentType,
       biography,
+    }),
+  });
+}
+
+export function updateArtistName(
+  artistId: number,
+  name: string,
+  currentCountry: string | null,
+  currentType: string | null,
+  currentBiography: string | null,
+): Promise<ArtistDetail> {
+  return fetchJson(`/admin/artists/${artistId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      artistName: name,
+      country: currentCountry,
+      artistType: currentType,
+      biography: currentBiography,
+    }),
+  });
+}
+
+export function updateArtistCountry(
+  artistId: number,
+  currentName: string,
+  country: string,
+  currentType: string | null,
+  currentBiography: string | null,
+): Promise<ArtistDetail> {
+  return fetchJson(`/admin/artists/${artistId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      artistName: currentName,
+      country,
+      artistType: currentType,
+      biography: currentBiography,
+    }),
+  });
+}
+
+export function updateArtistType(
+  artistId: number,
+  currentName: string,
+  currentCountry: string | null,
+  type: string,
+  currentBiography: string | null,
+): Promise<ArtistDetail> {
+  return fetchJson(`/admin/artists/${artistId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      artistName: currentName,
+      country: currentCountry,
+      artistType: type,
+      biography: currentBiography,
     }),
   });
 }

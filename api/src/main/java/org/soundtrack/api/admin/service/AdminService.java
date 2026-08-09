@@ -10,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.admin.dto.AddArtistRequest;
 import org.soundtrack.api.admin.dto.AddGenreRequest;
 import org.soundtrack.api.admin.dto.AddSongArtistRequest;
+import org.soundtrack.api.admin.dto.AddSongToAlbumRequest;
 import org.soundtrack.api.admin.dto.AdminUserResponse;
 import org.soundtrack.api.admin.dto.CreateAlbumRequest;
+import org.soundtrack.api.admin.dto.CreateArtistRequest;
 import org.soundtrack.api.admin.dto.CreateSongRequest;
 import org.soundtrack.api.admin.dto.UpdateAlbumRequest;
 import org.soundtrack.api.admin.dto.UpdateArtistRequest;
@@ -28,6 +30,7 @@ import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.common.service.ImageStorageService;
 import org.soundtrack.api.editrequest.dto.EditRequestResponse;
 import org.soundtrack.api.editrequest.service.EditRequestService;
+import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.api.user.service.UserService;
 import org.soundtrack.domain.model.Album;
@@ -35,6 +38,7 @@ import org.soundtrack.domain.model.AlbumArtist;
 import org.soundtrack.domain.model.AlbumGenre;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.Genre;
+import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.Review;
 import org.soundtrack.domain.model.Song;
 import org.soundtrack.domain.model.SongArtist;
@@ -49,6 +53,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -70,6 +76,7 @@ public class AdminService {
   private final ImageStorageService imageStorageService;
   private final EditRequestService editRequestService;
   private final UserService userService;
+  private final NotificationService notificationService;
 
   @Value("${cover.storage.path}")
   private String coverStoragePath;
@@ -117,7 +124,17 @@ public class AdminService {
 
   @Transactional
   public UserProfileResponse resetUserPhoto(Long userId) throws IOException {
-    return userService.resetPhotoById(userId);
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+    UserProfileResponse response = userService.resetPhotoById(userId);
+
+    notificationService.notify(
+        user, getAuthenticatedAdmin(), NotificationType.PHOTO_RESET, null, null);
+
+    return response;
   }
 
   @Transactional
@@ -262,6 +279,35 @@ public class AdminService {
     }
 
     return albumMapper.toResponse(album, false, Set.of(), null);
+  }
+
+  /**
+   * Adds a new track to an existing album. Credited to the album's current artists (in their
+   * existing order) - the admin can adjust song-level credits afterward via the song's own
+   * add/remove-artist controls, same as any other track.
+   */
+  @Transactional
+  public SongResponse addSongToAlbum(Long albumId, AddSongToAlbumRequest request) {
+    Album album =
+        albumRepository
+            .findDetailedById(albumId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Album not found with id: " + albumId));
+
+    Song song = new Song();
+    song.setTitle(request.getTitle());
+    song.setDuration(Duration.ofSeconds(request.getDurationSeconds()));
+    song.setPosition(request.getPosition());
+    song.setAlbum(album);
+
+    List<Artist> albumArtists = album.getArtists();
+    for (int i = 0; i < albumArtists.size(); i++) {
+      song.addArtist(albumArtists.get(i), i);
+    }
+
+    songRepository.save(song);
+
+    return albumMapper.toSongResponse(song, Set.of());
   }
 
   @Transactional
@@ -442,6 +488,20 @@ public class AdminService {
   }
 
   @Transactional
+  public ArtistResponse createArtist(CreateArtistRequest request) {
+    Artist artist = new Artist();
+    artist.setMbid("manual-" + UUID.randomUUID());
+    artist.setArtistName(request.getName());
+    artist.setCountry(request.getCountry());
+    artist.setArtistType(request.getType());
+    artist.setBiography(request.getBiography());
+
+    artistRepository.save(artist);
+
+    return artistMapper.toResponse(artist, Set.of());
+  }
+
+  @Transactional
   public ArtistResponse updateArtist(Long artistId, UpdateArtistRequest request) {
     Artist artist =
         artistRepository
@@ -496,6 +556,20 @@ public class AdminService {
     }
 
     reviewRepository.delete(review);
+
+    notificationService.notify(
+        review.getUser(),
+        getAuthenticatedAdmin(),
+        NotificationType.REVIEW_DELETED,
+        album.getId(),
+        album.getTitle());
+  }
+
+  private User getAuthenticatedAdmin() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return userRepository
+        .findByEmail(authentication.getName())
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
   }
 
   /**

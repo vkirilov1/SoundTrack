@@ -97,21 +97,4 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   /** Mean rating across reviewed albums (the "C" baseline for the weighted-rating formula). */
   @Query("SELECT COALESCE(AVG(a.rating), 0) FROM Album a WHERE a.reviewsCount > 0")
   double findGlobalAverageRating();
-
-  /**
-   * Count of reviewed albums released in the given date range whose Bayesian-weighted rating beats
-   * {@code score} - i.e. how many albums outrank this one on its Year's chart. Rank = this count +
-   * 1. Used for the album page's chart-rank badge; kept consistent with {@link
-   * #findByReleaseDateBetweenOrderByWeightedRating}'s own ordering.
-   */
-  @Query(
-      "SELECT COUNT(a) FROM Album a "
-          + "WHERE a.releaseDate BETWEEN :start AND :end AND a.reviewsCount > 0 "
-          + "AND ((a.reviewsCount * a.rating) + (:m * :globalMean)) / (a.reviewsCount + :m) > :score")
-  long countByReleaseDateBetweenWithHigherWeightedRating(
-      @Param("start") LocalDate start,
-      @Param("end") LocalDate end,
-      @Param("m") double m,
-      @Param("globalMean") double globalMean,
-      @Param("score") double score);
 }

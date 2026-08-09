@@ -11,6 +11,7 @@ import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.User;
+import org.soundtrack.domain.model.UserRole;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
 import org.soundtrack.domain.repository.UserRepository;
@@ -74,7 +75,9 @@ public class SearchService {
       return List.of();
     }
 
-    List<User> users = userRepository.findTop8ByUsernameContainingIgnoreCase(query.trim());
+    List<User> users =
+        userRepository.findTop8ByUsernameContainingIgnoreCaseAndRoleNot(
+            query.trim(), UserRole.ADMIN);
 
     return users.stream().map(this::toProfileResponse).toList();
   }

@@ -1,11 +1,9 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Field,
   HStack,
-  Heading,
-  Image,
   Input,
   Text,
   Textarea,
@@ -13,11 +11,10 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import Modal from "../../../../components/Modal/Modal";
-import PrimaryButton from "../../../../components/buttons/PrimaryButton";
-import SecondaryButton from "../../../../components/buttons/SecondaryButton";
+import ModalHeader from "../../../../components/Modal/ModalHeader";
+import ModalFormFooter from "../../../../components/Modal/ModalFormFooter";
 import AddChipButton from "../../../../components/buttons/AddChipButton";
 import FormErrorBanner from "../../../../components/FormErrorBanner/FormErrorBanner";
-import ImagePlaceholderIcon from "../../../../components/icons/ImagePlaceholderIcon";
 import XIcon from "../../../../components/icons/XIcon";
 import ArtistPill from "./ArtistPill";
 import GenrePill from "../GenrePill";
@@ -33,7 +30,8 @@ import {
   uploadAlbumPhoto,
 } from "../../../edit-requests/api/adminContentApi";
 import type { AlbumArtist } from "../../types";
-import SelectImageButton from "../../../edit-requests/components/SelectImageButton";
+import PhotoPickerField from "../../../edit-requests/components/PhotoPickerField";
+import { formatDuration } from "../../../../utils/duration";
 
 export interface DraftSong {
   tempId: string;
@@ -44,12 +42,6 @@ export interface DraftSong {
 
 interface CreateAlbumModalProps {
   onClose: () => void;
-}
-
-function formatDuration(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
@@ -136,7 +128,7 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
     photoFile !== null &&
     !submitting;
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) return;
 
@@ -179,34 +171,7 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
         flexDirection="column"
         maxH="85vh"
       >
-        <HStack
-          justify="space-between"
-          align="center"
-          p="20px 24px"
-          borderBottom="1px solid"
-          borderColor="border"
-        >
-          <Heading as="h2" fontSize="20px" m="0">
-            Add Album
-          </Heading>
-          <chakra.button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            display="inline-flex"
-            alignItems="center"
-            justifyContent="center"
-            boxSize="28px"
-            bg="none"
-            border="none"
-            borderRadius="full"
-            color="text"
-            cursor="pointer"
-            _hover={{ bg: "border", color: "ink" }}
-          >
-            <XIcon size={14} />
-          </chakra.button>
-        </HStack>
+        <ModalHeader title="Add Album" onClose={onClose} />
 
         <VStack align="stretch" gap="18px" p="24px" overflowY="auto">
           {error && <FormErrorBanner>{error}</FormErrorBanner>}
@@ -322,38 +287,11 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
             />
           </Field.Root>
 
-          <Box>
-            <Text fontSize="14px" fontWeight="500" color="ink" mb="8px">
-              Cover photo
-            </Text>
-            <HStack gap="14px" align="center">
-              {photoPreview ? (
-                <Image
-                  src={photoPreview}
-                  alt=""
-                  boxSize="80px"
-                  borderRadius="md"
-                  objectFit="cover"
-                />
-              ) : (
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  boxSize="80px"
-                  flexShrink="0"
-                  border="1.5px dashed"
-                  borderColor="border"
-                  borderRadius="md"
-                  color="text"
-                  opacity="0.55"
-                >
-                  <ImagePlaceholderIcon size={28} />
-                </Box>
-              )}
-              <SelectImageButton handleFileChange={handlePhotoChange} />
-            </HStack>
-          </Box>
+          <PhotoPickerField
+            label="Cover photo"
+            preview={photoPreview}
+            onChange={handlePhotoChange}
+          />
 
           <Box>
             <Text fontSize="14px" fontWeight="500" color="ink" mb="8px">
@@ -414,33 +352,13 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
           </Box>
         </VStack>
 
-        <HStack
-          justify="flex-end"
-          gap="10px"
-          p="16px 24px"
-          borderTop="1px solid"
-          borderColor="border"
-        >
-          <SecondaryButton
-            onClick={onClose}
-            disabled={submitting}
-            fontSize="13px"
-            px="16px"
-            py="8px"
-          >
-            Cancel
-          </SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            disabled={!canSubmit}
-            fontSize="13px"
-            px="16px"
-            py="8px"
-            h="auto"
-          >
-            {submitting ? "Creating…" : "Create album"}
-          </PrimaryButton>
-        </HStack>
+        <ModalFormFooter
+          onCancel={onClose}
+          canSubmit={canSubmit}
+          submitting={submitting}
+          submitLabel="Create album"
+          submittingLabel="Creating…"
+        />
       </chakra.form>
     </Modal>
   );

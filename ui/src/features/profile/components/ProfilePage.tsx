@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import { Box, Heading, Link, Tabs, Text } from "@chakra-ui/react";
+import { Box, Heading, HStack, Link, Tabs, Text } from "@chakra-ui/react";
 import { getUserProfile } from "../api/profileApi";
 import { followUser, unfollowUser } from "../api/followApi";
 import { ApiError } from "../../../lib/api-error";
@@ -16,6 +16,7 @@ import ListsCard from "./ListsCard";
 import ReviewsCard from "./ReviewsCard";
 import FollowListCard from "./FollowListCard";
 import AddAlbumButton from "./admin/AddAlbumButton";
+import AddArtistButton from "./admin/AddArtistButton";
 import RequestsCard from "../../edit-requests/components/RequestsCard";
 import AdminResetPhotoButton from "../../edit-requests/components/AdminResetPhotoButton";
 import { resetUserPhotoAsAdmin } from "../../edit-requests/api/adminContentApi";
@@ -214,7 +215,12 @@ function ProfilePage() {
         <Text mt="8px" fontSize="13px" color="text" opacity="0.7">
           Joined {MONTH_YEAR_FORMAT.format(new Date(profile.joinDate))}
         </Text>
-        {isOwnAdminProfile && <AddAlbumButton />}
+        {isOwnAdminProfile && (
+          <HStack gap="10px">
+            <AddAlbumButton />
+            <AddArtistButton />
+          </HStack>
+        )}
       </Box>
 
       {isOwnAdminProfile ? (

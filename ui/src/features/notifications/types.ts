@@ -1,4 +1,4 @@
-export type NotificationType = "FOLLOW";
+export type NotificationType = "FOLLOW" | "REVIEW_DELETED" | "PHOTO_RESET";
 
 export interface NotificationActor {
   id: number;
@@ -11,6 +11,7 @@ export interface AppNotification {
   type: NotificationType;
   actor: NotificationActor;
   entityId: number | null;
+  context: string | null;
   read: boolean;
   createdAt: string;
 }

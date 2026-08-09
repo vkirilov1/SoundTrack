@@ -21,7 +21,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.role === "ADMIN") return;
 
     let cancelled = false;
     let source: EventSource | null = null;
@@ -43,8 +43,7 @@ export function useNotifications() {
       });
 
       // EventSource's built-in auto-reconnect blindly retries with whatever cookie it already
-      // has - exactly wrong right after the access token has expired mid-connection. Take
-      // reconnection over ourselves: refresh the session first, then open a fresh stream.
+      // has - after expiration -> refresh the session first, then open a fresh stream.
       source.onerror = () => {
         source?.close();
         if (cancelled) return;

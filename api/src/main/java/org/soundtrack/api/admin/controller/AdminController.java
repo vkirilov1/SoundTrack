@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.admin.dto.AddArtistRequest;
 import org.soundtrack.api.admin.dto.AddGenreRequest;
 import org.soundtrack.api.admin.dto.AddSongArtistRequest;
+import org.soundtrack.api.admin.dto.AddSongToAlbumRequest;
 import org.soundtrack.api.admin.dto.AdminUserResponse;
 import org.soundtrack.api.admin.dto.CreateAlbumRequest;
+import org.soundtrack.api.admin.dto.CreateArtistRequest;
 import org.soundtrack.api.admin.dto.UpdateAlbumRequest;
 import org.soundtrack.api.admin.dto.UpdateArtistRequest;
 import org.soundtrack.api.admin.dto.UpdateSongRequest;
@@ -187,6 +189,20 @@ public class AdminController {
     return adminService.uploadAlbumPhoto(albumId, file);
   }
 
+  @PostMapping("/artists")
+  @Operation(
+      summary = "Create an artist",
+      description = "Creates a new artist from scratch (not sourced from MusicBrainz).")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Artist created"),
+    @ApiResponse(responseCode = "400", description = "Validation failed"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "403", description = "Not an admin")
+  })
+  public ArtistResponse createArtist(@Valid @RequestBody CreateArtistRequest request) {
+    return adminService.createArtist(request);
+  }
+
   @PutMapping("/artists/{artistId}")
   @Operation(
       summary = "Edit artist metadata",
@@ -262,6 +278,24 @@ public class AdminController {
       @RequestParam("file") MultipartFile file)
       throws IOException {
     return adminService.uploadArtistPhoto(artistId, file);
+  }
+
+  @PostMapping("/albums/{albumId}/songs")
+  @Operation(
+      summary = "Add a song to an album",
+      description =
+          "Adds a new track to an existing album, credited to the album's current artists.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Song added"),
+    @ApiResponse(responseCode = "400", description = "Validation failed"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "403", description = "Not an admin"),
+    @ApiResponse(responseCode = "404", description = "Album not found")
+  })
+  public SongResponse addSongToAlbum(
+      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId,
+      @Valid @RequestBody AddSongToAlbumRequest request) {
+    return adminService.addSongToAlbum(albumId, request);
   }
 
   @PutMapping("/songs/{songId}")

@@ -138,6 +138,7 @@ function AlbumPage() {
       />
 
       <SongsSection
+        albumId={id}
         songs={album.songs}
         onSongFavoriteChange={handleSongFavoriteChange}
         onSongsChange={handleSongsChange}
