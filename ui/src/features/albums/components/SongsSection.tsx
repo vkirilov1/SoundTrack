@@ -3,15 +3,18 @@ import { Box, chakra, Heading } from "@chakra-ui/react";
 import { addFavoriteSong, removeFavoriteSong } from "../api/favoriteApi";
 import { useAuth } from "../../../features/auth/stores/useAuth";
 import SongRow from "./admin/SongRow";
+import AddSongRow from "./admin/AddSongRow";
 import type { AlbumSong } from "../types";
 
 interface SongsSectionProps {
+  albumId: number;
   songs: AlbumSong[];
   onSongFavoriteChange: (songId: number, favorited: boolean) => void;
   onSongsChange: (songs: AlbumSong[]) => void;
 }
 
 function SongsSection({
+  albumId,
   songs,
   onSongFavoriteChange,
   onSongsChange,
@@ -20,7 +23,7 @@ function SongsSection({
   const isAdmin = currentUser?.role === "ADMIN";
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
 
-  if (songs.length === 0) return null;
+  if (songs.length === 0 && !isAdmin) return null;
 
   function handleToggleFavorite(song: AlbumSong) {
     if (!currentUser || pendingIds.has(song.id)) return;
@@ -55,6 +58,10 @@ function SongsSection({
     onSongsChange(songs.filter((song) => song.id !== songId));
   }
 
+  function handleSongAdd(song: AlbumSong) {
+    onSongsChange([...songs, song]);
+  }
+
   return (
     <Box as="section" mt="40px">
       <Heading as="h2" fontSize="22px">
@@ -79,6 +86,13 @@ function SongsSection({
             onRemove={handleSongRemove}
           />
         ))}
+        {isAdmin && (
+          <AddSongRow
+            albumId={albumId}
+            nextPosition={songs.length + 1}
+            onAdd={handleSongAdd}
+          />
+        )}
       </chakra.ul>
     </Box>
   );

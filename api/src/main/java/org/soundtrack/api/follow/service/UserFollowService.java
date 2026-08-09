@@ -8,7 +8,9 @@ import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.api.user.dto.UserProfileResponse;
+import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.model.UserFollow;
 import org.soundtrack.domain.repository.UserFollowRepository;
@@ -27,6 +29,7 @@ public class UserFollowService {
 
   private final UserFollowRepository userFollowRepository;
   private final UserRepository userRepository;
+  private final NotificationService notificationService;
 
   @Transactional
   public void follow(Long targetId) {
@@ -47,6 +50,8 @@ public class UserFollowService {
                 () -> new ResourceNotFoundException("User not found with id: " + targetId));
 
     userFollowRepository.save(UserFollow.builder().follower(me).following(target).build());
+
+    notificationService.notify(target, me, NotificationType.FOLLOW, me.getId(), null);
   }
 
   @Transactional

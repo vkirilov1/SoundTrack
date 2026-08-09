@@ -9,8 +9,7 @@ interface ModalProps {
 }
 
 /**
- * Renders straight to document.body via a portal rather than in place, so it's never clipped or
- * z-index-fought by whatever scrollable/positioned container happens to render it.
+ * Renders straight to document.body via a portal
  */
 function Modal({ onClose, children, maxW = "640px" }: ModalProps) {
   useEffect(() => {

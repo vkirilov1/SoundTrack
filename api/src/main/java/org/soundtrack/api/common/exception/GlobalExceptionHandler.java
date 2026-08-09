@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
@@ -70,6 +71,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AsyncRequestNotUsableException.class)
   public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException ex) {
     log.debug("Client disconnected from an async response: {}", ex.getMessage());
+  }
+
+  @ExceptionHandler(AsyncRequestTimeoutException.class)
+  public void handleAsyncRequestTimeout(AsyncRequestTimeoutException ex) {
+    log.debug("Async request timed out: {}", ex.getMessage());
   }
 
   @ExceptionHandler(Exception.class)

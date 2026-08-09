@@ -56,6 +56,18 @@ function ArtistPage() {
     );
   }
 
+  function handleNameChange(name: string) {
+    setArtist((prev) => (prev ? { ...prev, name } : prev));
+  }
+
+  function handleCountryChange(country: string | null) {
+    setArtist((prev) => (prev ? { ...prev, country } : prev));
+  }
+
+  function handleTypeChange(type: string | null) {
+    setArtist((prev) => (prev ? { ...prev, type } : prev));
+  }
+
   function handleBiographyChange(biography: string | null) {
     setArtist((prev) => (prev ? { ...prev, biography } : prev));
   }
@@ -84,6 +96,9 @@ function ArtistPage() {
     <PageContainer>
       <ArtistCard
         artist={artist}
+        onNameChange={handleNameChange}
+        onCountryChange={handleCountryChange}
+        onTypeChange={handleTypeChange}
         onBiographyChange={handleBiographyChange}
         onPhotoChange={handlePhotoChange}
       />

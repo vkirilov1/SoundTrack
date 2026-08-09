@@ -49,7 +49,7 @@ function Header() {
 
           {user ? (
             <HStack gap="18px">
-              <NotificationBell />
+              {user.role !== "ADMIN" && <NotificationBell />}
               <Link
                 asChild
                 color="white"

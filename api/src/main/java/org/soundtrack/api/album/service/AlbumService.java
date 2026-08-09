@@ -1,6 +1,7 @@
 package org.soundtrack.api.album.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.album.dto.AlbumResponse;
@@ -13,6 +14,7 @@ import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.FavoriteAlbumRepository;
 import org.soundtrack.domain.repository.FavoriteSongRepository;
 import org.soundtrack.domain.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -53,9 +55,11 @@ public class AlbumService {
 
   /**
    * This album's 1-based rank on its release year's chart, or null if it's unreviewed or falls
-   * outside the chart's top {@link WeightedRating#MAX_CHART_RESULTS} - mirrors {@link
-   * AlbumRepository#findByReleaseDateBetweenOrderByWeightedRating}'s own ordering so the badge
-   * always matches what the Year's chart page itself would show.
+   * outside the chart's top {@link WeightedRating#MAX_CHART_RESULTS}. Reuses {@link
+   * AlbumRepository#findByReleaseDateBetweenOrderByWeightedRating} - the exact same query and
+   * result order the Year's chart page itself renders - and finds this album's position in it,
+   * rather than re-deriving the rank from a second, independently-written formula that has to be
+   * kept in sync by hand (that duplication is what caused the tie-break mismatch this replaces).
    */
   private Integer getYearRankOrNull(Album album) {
     if (album.getReviewsCount() <= 0) {
@@ -67,15 +71,26 @@ public class AlbumService {
     LocalDate end = LocalDate.of(year, 12, 31);
 
     double globalMean = albumRepository.findGlobalAverageRating();
-    double ownScore = WeightedRating.score(album.getRating(), album.getReviewsCount(), globalMean);
 
-    long higherScoredCount =
-        albumRepository.countByReleaseDateBetweenWithHigherWeightedRating(
-            start, end, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, ownScore);
+    List<Album> chart =
+        albumRepository
+            .findByReleaseDateBetweenOrderByWeightedRating(
+                start,
+                end,
+                WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING,
+                globalMean,
+                PageRequest.of(0, WeightedRating.MAX_CHART_RESULTS))
+            .getContent();
 
-    long rank = higherScoredCount + 1;
+    int index = 0;
+    for (Album candidate : chart) {
+      if (candidate.getId().equals(album.getId())) {
+        return index + 1;
+      }
+      index++;
+    }
 
-    return rank <= WeightedRating.MAX_CHART_RESULTS ? (int) rank : null;
+    return null;
   }
 
   /**
