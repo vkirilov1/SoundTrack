@@ -119,7 +119,7 @@ function SongRow({
           onSubmit={handleSavePosition}
           onEditingChange={setEditingPosition}
           variant="text"
-          maxLength={1}
+          maxLength={3}
           formWidth="140px"
           disallowEmpty
           autoFocusTextarea

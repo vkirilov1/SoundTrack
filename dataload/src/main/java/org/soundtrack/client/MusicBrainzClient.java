@@ -25,6 +25,8 @@ public class MusicBrainzClient {
 
   private static final String ARTIST_URL = "https://musicbrainz.org/ws/2/artist/";
 
+  private static final int MAX_RETRIES = 5;
+
   private final RestTemplate restTemplate = new RestTemplate();
 
   private static final Logger log = LoggerFactory.getLogger(MusicBrainzClient.class);
@@ -36,7 +38,7 @@ public class MusicBrainzClient {
    * @param offset offset for pagination
    * @return the albums
    */
-  public MBReleaseGroupsDTO fetchReleasesByYear(int year, int offset) {
+  public MBReleaseGroupsDTO fetchReleasesByYear(int year, int offset) throws InterruptedException {
     String url =
         UriComponentsBuilder.fromHttpUrl(BASE_URL)
             .queryParam(
@@ -49,25 +51,37 @@ public class MusicBrainzClient {
             .build(false)
             .toUriString();
 
-    log.debug("Fetching albums from MusicBrainz with url: {}", url);
+    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
 
-    try {
-      ResponseEntity<MBReleaseGroupsDTO> response =
-          restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseGroupsDTO.class);
+      sleep(1000);
 
-      log.debug("Response status: {}", response.getStatusCode());
-      return response.getBody();
+      log.debug("Fetching releases from MusicBrainz with url: {}", url);
 
-    } catch (RestClientException e) {
-      log.error(
-          "Failed to fetch albums for year {} at offset {}. Error: {}",
-          year,
-          offset,
-          e.getMessage(),
-          e);
+      try {
+        ResponseEntity<MBReleaseGroupsDTO> response =
+            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseGroupsDTO.class);
 
-      return null;
+        return response.getBody();
+      } catch (HttpServerErrorException.ServiceUnavailable e) {
+        log.warn(
+            "MusicBrainz busy (503) fetching releases for year {}. Retry {}/{} in 60s",
+            year,
+            attempt + 1,
+            MAX_RETRIES);
+        sleep(60_000);
+      } catch (RestClientException e) {
+        log.error(
+            "Failed to fetch albums for year {} at offset {}. Error: {}",
+            year,
+            offset,
+            e.getMessage(),
+            e);
+        return null;
+      }
     }
+
+    log.warn("Exceeded max retries fetching releases by year {}", year);
+    return null;
   }
 
   /**
@@ -84,17 +98,31 @@ public class MusicBrainzClient {
             .buildAndExpand(mbid)
             .toUriString();
 
-    sleep(1000);
-    log.debug("Fetching artist with id '{}'", mbid);
-    try {
-      ResponseEntity<MBArtistDTO> response =
-          restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBArtistDTO.class);
+    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
 
-      return response.getBody();
-    } catch (RestClientException e) {
-      log.error("Failed to fetch artist {}: {}", mbid, e.getMessage());
-      return null;
+      sleep(1000);
+
+      log.debug("Fetching artist with id '{}'", mbid);
+
+      try {
+        ResponseEntity<MBArtistDTO> response =
+            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBArtistDTO.class);
+
+        return response.getBody();
+      } catch (HttpServerErrorException.ServiceUnavailable e) {
+        log.warn(
+            "MusicBrainz busy (503) fetching artist with id {}. Retry {}/{} in 60s",
+            mbid,
+            attempt + 1,
+            MAX_RETRIES);
+        sleep(60_000);
+      } catch (RestClientException e) {
+        log.error("Failed to fetch artist {}: {}", mbid, e.getMessage());
+        return null;
+      }
     }
+    log.warn("Exceeded max retries fetching artist by id {}", mbid);
+    return null;
   }
 
   /**
@@ -112,9 +140,7 @@ public class MusicBrainzClient {
             .buildAndExpand(releaseId)
             .toUriString();
 
-    int maxRetries = 5;
-
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
+    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
 
       sleep(1000);
 
@@ -130,7 +156,7 @@ public class MusicBrainzClient {
             "MusicBrainz busy (503) fetching release recordings for {}. Retry {}/{} in 60s",
             releaseId,
             attempt + 1,
-            maxRetries);
+            MAX_RETRIES);
         sleep(60_000);
       } catch (RestClientException e) {
         log.error("Failed to fetch release recordings for {}: {}", releaseId, e.getMessage());
@@ -206,9 +232,7 @@ public class MusicBrainzClient {
 
     log.debug("Fetching artist image from wikidata entity data: '{}'", url);
 
-    int maxRetries = 5;
-
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
+    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
 
       try {
 
@@ -249,7 +273,7 @@ public class MusicBrainzClient {
             "Wikidata rate limit hit for {}. Retry {}/{}. Waiting {} ms",
             wikidataId,
             attempt + 1,
-            maxRetries,
+            MAX_RETRIES,
             waitTime);
 
         sleep(waitTime);
