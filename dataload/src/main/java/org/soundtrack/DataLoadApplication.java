@@ -16,7 +16,7 @@ public class DataLoadApplication {
   @Bean
   CommandLineRunner run(ReleaseImportService importService) {
     return args -> {
-      importService.importAllReleasesByYear(1969);
+      importService.importAllReleasesByYear(1970);
     };
   }
 }
