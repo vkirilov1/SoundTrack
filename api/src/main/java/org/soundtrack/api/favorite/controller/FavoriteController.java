@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.soundtrack.api.chart.dto.AlbumSummaryResponse;
 import org.soundtrack.api.common.dto.PagedResponse;
-import org.soundtrack.api.favorite.dto.FavoriteAlbumResponse;
 import org.soundtrack.api.favorite.dto.FavoriteSongResponse;
 import org.soundtrack.api.favorite.service.FavoriteService;
 import org.springframework.http.HttpStatus;
@@ -64,7 +64,7 @@ public class FavoriteController {
     @ApiResponse(responseCode = "200", description = "Favorite albums returned"),
     @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
-  public PagedResponse<FavoriteAlbumResponse> getMyFavoriteAlbums(
+  public PagedResponse<AlbumSummaryResponse> getMyFavoriteAlbums(
       @Parameter(description = "Zero-based page index")
           @RequestParam(name = "page", defaultValue = "0")
           int page,
@@ -82,7 +82,7 @@ public class FavoriteController {
     @ApiResponse(responseCode = "200", description = "Favorite albums returned"),
     @ApiResponse(responseCode = "404", description = "User not found")
   })
-  public PagedResponse<FavoriteAlbumResponse> getFavoriteAlbumsByUser(
+  public PagedResponse<AlbumSummaryResponse> getFavoriteAlbumsByUser(
       @Parameter(description = "Internal user ID") @PathVariable("userId") Long userId,
       @Parameter(description = "Zero-based page index")
           @RequestParam(name = "page", defaultValue = "0")

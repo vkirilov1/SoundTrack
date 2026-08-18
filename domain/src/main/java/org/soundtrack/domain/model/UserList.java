@@ -1,6 +1,7 @@
 package org.soundtrack.domain.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
@@ -27,6 +28,14 @@ public class UserList {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "owner_id")
   private User owner;
+
+  @Column(name = "created_at", nullable = false)
+  private LocalDateTime createdAt;
+
+  @PrePersist
+  void prePersist() {
+    createdAt = LocalDateTime.now();
+  }
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(

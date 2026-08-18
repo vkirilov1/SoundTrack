@@ -2,11 +2,15 @@ package org.soundtrack.api.favorite.service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.soundtrack.api.album.dto.ArtistResponse;
+import org.soundtrack.api.chart.dto.AlbumSummaryResponse;
+import org.soundtrack.api.chart.mapper.ChartMapper;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
-import org.soundtrack.api.favorite.dto.FavoriteAlbumResponse;
 import org.soundtrack.api.favorite.dto.FavoriteSongResponse;
 import org.soundtrack.domain.model.*;
 import org.soundtrack.domain.repository.AlbumRepository;
@@ -31,6 +35,7 @@ public class FavoriteService {
   private final AlbumRepository albumRepository;
   private final SongRepository songRepository;
   private final UserRepository userRepository;
+  private final ChartMapper chartMapper;
 
   @Transactional
   public void addFavoriteAlbum(Long albumId) {
@@ -76,13 +81,13 @@ public class FavoriteService {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<FavoriteAlbumResponse> getMyFavoriteAlbums(int page, int size) {
+  public PagedResponse<AlbumSummaryResponse> getMyFavoriteAlbums(int page, int size) {
     User user = getAuthenticatedUser();
     return getFavoriteAlbums(user.getId(), page, size);
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<FavoriteAlbumResponse> getFavoriteAlbumsByUser(
+  public PagedResponse<AlbumSummaryResponse> getFavoriteAlbumsByUser(
       Long userId, int page, int size) {
     if (!userRepository.existsById(userId)) {
       throw new ResourceNotFoundException("User not found with id: " + userId);
@@ -133,13 +138,24 @@ public class FavoriteService {
     return getFavoriteSongs(userId, page, size);
   }
 
-  private PagedResponse<FavoriteAlbumResponse> getFavoriteAlbums(Long userId, int page, int size) {
+  private PagedResponse<AlbumSummaryResponse> getFavoriteAlbums(Long userId, int page, int size) {
     Page<FavoriteAlbum> favPage =
         favoriteAlbumRepository.findByUserId(
             userId, PageRequest.of(page, size, Sort.by("id").ascending()));
 
-    List<FavoriteAlbumResponse> content =
-        favPage.getContent().stream().map(fav -> toAlbumResponse(fav.getAlbum())).toList();
+    List<Album> albums = favPage.getContent().stream().map(FavoriteAlbum::getAlbum).toList();
+
+    Long viewerId = getAuthenticatedUserIdOrNull();
+    Set<Long> viewerFavoritedIds =
+        viewerId != null && !albums.isEmpty()
+            ? favoriteAlbumRepository.findFavoritedAlbumIdsByUserIdAndAlbumIdIn(
+                viewerId, albums.stream().map(Album::getId).collect(Collectors.toSet()))
+            : Set.of();
+
+    List<AlbumSummaryResponse> content =
+        albums.stream()
+            .map(album -> chartMapper.toSummary(album, viewerFavoritedIds.contains(album.getId())))
+            .toList();
 
     return new PagedResponse<>(
         content, page, size, favPage.getTotalElements(), favPage.getTotalPages());
@@ -157,16 +173,6 @@ public class FavoriteService {
         content, page, size, favPage.getTotalElements(), favPage.getTotalPages());
   }
 
-  private FavoriteAlbumResponse toAlbumResponse(Album album) {
-    return FavoriteAlbumResponse.builder()
-        .id(album.getId())
-        .title(album.getTitle())
-        .coverUrl(album.getCoverUrl())
-        .releaseDate(album.getReleaseDate())
-        .artistNames(album.getArtists().stream().map(Artist::getArtistName).toList())
-        .build();
-  }
-
   private FavoriteSongResponse toSongResponse(Song song) {
     Duration d = song.getDuration();
     String formatted = String.format("%d:%02d", d.toMinutes(), d.toSecondsPart());
@@ -179,7 +185,10 @@ public class FavoriteService {
         .albumId(song.getAlbum().getId())
         .albumTitle(song.getAlbum().getTitle())
         .albumCoverUrl(song.getAlbum().getCoverUrl())
-        .artistNames(song.getArtists().stream().map(Artist::getArtistName).toList())
+        .artists(
+            song.getArtists().stream()
+                .map(artist -> new ArtistResponse(artist.getId(), artist.getArtistName()))
+                .toList())
         .build();
   }
 
@@ -189,5 +198,22 @@ public class FavoriteService {
     return userRepository
         .findByEmail(email)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+  }
+
+  /**
+   * Returns the authenticated user's id, or null if the caller is anonymous. Favorite-albums/songs
+   * lookups are public (browsing another user's favorites), but return per-viewer favorited flags
+   * when a real session is present.
+   */
+  private Long getAuthenticatedUserIdOrNull() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || "anonymousUser".equals(authentication.getName())) {
+      return null;
+    }
+
+    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 }

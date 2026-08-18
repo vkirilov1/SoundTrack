@@ -1,10 +1,4 @@
-export interface FavoriteAlbum {
-  id: number;
-  title: string;
-  coverUrl: string;
-  releaseDate: string;
-  artistNames: string[];
-}
+import type { AlbumSummaryArtist } from "../../../types/album";
 
 export interface FavoriteSong {
   id: number;
@@ -14,7 +8,7 @@ export interface FavoriteSong {
   albumId: number;
   albumTitle: string;
   albumCoverUrl: string;
-  artistNames: string[];
+  artists: AlbumSummaryArtist[];
 }
 
 export interface UserReview {

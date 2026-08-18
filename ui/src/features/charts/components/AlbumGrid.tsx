@@ -1,6 +1,6 @@
 import { chakra } from "@chakra-ui/react";
-import type { AlbumSummary } from "../types";
-import AlbumGridRow from "./AlbumGridRow";
+import type { AlbumSummary } from "../../../types/album";
+import AlbumGridRow from "../../../components/AlbumGridRow/AlbumGridRow";
 
 interface AlbumGridProps {
   albums: AlbumSummary[];

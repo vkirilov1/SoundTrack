@@ -1,14 +1,17 @@
 import { Fragment } from "react";
 import { Box, HStack, Image, Link, Text } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
-import { coverImageUrl } from "../../../utils/images";
-import { SHORT_DATE_FORMAT } from "../../../utils/date";
-import type { AlbumSummary } from "../types";
+import ImagePlaceholderIcon from "../icons/ImagePlaceholderIcon";
+import ConfirmDeleteControl from "../ConfirmDeleteControl/ConfirmDeleteControl";
+import { coverImageUrl } from "../../utils/images";
+import { SHORT_DATE_FORMAT } from "../../utils/date";
+import type { AlbumSummary } from "../../types/album";
 
 interface AlbumGridRowProps {
   album: AlbumSummary;
   rank: number | null;
+  isEditable?: boolean;
+  onRemove?: () => Promise<unknown>;
 }
 
 function CoverPlaceholder() {
@@ -32,7 +35,12 @@ function CoverPlaceholder() {
   );
 }
 
-function AlbumGridRow({ album, rank }: AlbumGridRowProps) {
+function AlbumGridRow({
+  album,
+  rank,
+  isEditable,
+  onRemove,
+}: AlbumGridRowProps) {
   return (
     <HStack
       as="li"
@@ -58,20 +66,21 @@ function AlbumGridRow({ album, rank }: AlbumGridRowProps) {
       )}
 
       <Box flex="1" minW="0" display="flex" flexDirection="column" gap="2px">
-        <Link
-          asChild
-          fontSize="17px"
-          fontWeight="600"
-          color="ink"
-          textDecoration="none"
-          overflow="hidden"
-          textOverflow="ellipsis"
-          whiteSpace="nowrap"
-          _hover={{ color: "accentHover" }}
-        >
-          <RouterLink to={`/album/${album.id}`}>{album.title}</RouterLink>
-        </Link>
-
+        <HStack>
+          <Link
+            asChild
+            fontSize="17px"
+            fontWeight="600"
+            color="ink"
+            textDecoration="none"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+            _hover={{ color: "accentHover" }}
+          >
+            <RouterLink to={`/album/${album.id}`}>{album.title}</RouterLink>
+          </Link>
+        </HStack>
         <Text fontSize="14px" color="text" opacity="0.85">
           {album.artists.map((artist, index) => (
             <Fragment key={artist.id}>
@@ -151,6 +160,16 @@ function AlbumGridRow({ album, rank }: AlbumGridRowProps) {
         >
           #{rank}
         </Text>
+      )}
+
+      {isEditable && onRemove && (
+        <Box flexShrink="0" alignSelf="center">
+          <ConfirmDeleteControl
+            label="Remove"
+            confirmMessage="Remove?"
+            onDelete={onRemove}
+          />
+        </Box>
       )}
     </HStack>
   );
