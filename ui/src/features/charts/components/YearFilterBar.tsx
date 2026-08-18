@@ -63,12 +63,6 @@ function YearPill({ label, selected, onClick }: YearPillProps) {
   );
 }
 
-/**
- * "All Time" + one pill per available year, in a horizontally-scrollable strip. Arrow buttons
- * float over the strip (rather than sitting in their own flex column) so the first pill always
- * lines up flush with whatever sits above it, and a mask-image fade hides the edge of a
- * partially-scrolled-past pill instead of hard-clipping it.
- */
 function YearFilterBar({
   years,
   selectedYear,

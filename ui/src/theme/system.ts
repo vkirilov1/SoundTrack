@@ -11,7 +11,6 @@ const config = defineConfig({
     },
     tokens: {
       colors: {
-        // Always-dark chrome (header/footer) - deliberately the same in both modes.
         inkBlack: { value: "#000000" },
       },
       radii: {
