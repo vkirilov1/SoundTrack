@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, HStack, Image, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Image, Link, Text, VStack } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   getUserFavoriteAlbums,
   getUserFavoriteSongs,
@@ -112,11 +113,14 @@ function ListsCard({ userId }: ListsCardProps) {
 
   const showFavorites = listsPage === 0;
   const rowStyle = {
+    display: "flex",
+    alignItems: "center",
     gap: "16px",
-    pb: "20px",
-    borderBottom: "1px solid",
-    borderColor: "border",
-    _last: { pb: 0, borderBottom: "none" },
+  } as const;
+  const titleLinkStyle = {
+    asChild: true,
+    textDecoration: "none",
+    _hover: { color: "accentHover" },
   } as const;
 
   return (
@@ -138,12 +142,21 @@ function ListsCard({ userId }: ListsCardProps) {
           align="stretch"
         >
           {showFavorites && (
-            <HStack as="li" {...rowStyle}>
+            <Box
+              as="li"
+              borderBottom="1px solid"
+              borderColor="border"
+              {...rowStyle}
+            >
               <ListIcon isFavorites />
               <VStack flex="1" minW="0" gap="2px" align="stretch">
-                <Text as="span" color="accent">
-                  Favorites
-                </Text>
+                <HStack>
+                  <Link {...titleLinkStyle} color="accent">
+                    <RouterLink to={`/profile/${userId}/favorites`}>
+                      Favorites
+                    </RouterLink>
+                  </Link>
+                </HStack>
               </VStack>
               <Text
                 as="span"
@@ -154,24 +167,32 @@ function ListsCard({ userId }: ListsCardProps) {
               >
                 {favoritesCount} {favoritesCount === 1 ? "item" : "items"}
               </Text>
-            </HStack>
+            </Box>
           )}
           {lists.map((list) => (
-            <HStack as="li" key={list.id} {...rowStyle}>
+            <Box as="li" key={list.id} {...rowStyle}>
               <ListIcon coverUrl={list.coverUrl} />
               <VStack flex="1" minW="0" gap="2px" align="stretch">
-                <Text
-                  as="span"
-                  minW="0"
-                  fontSize="17px"
-                  fontWeight="600"
-                  color="ink"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  whiteSpace="nowrap"
-                >
-                  {list.name}
-                </Text>
+                <HStack>
+                  <Link
+                    {...titleLinkStyle}
+                    color="ink"
+                    fontWeight="600"
+                    fontSize="17px"
+                  >
+                    <RouterLink
+                      to={`/list/${list.id}`}
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        display: "block",
+                      }}
+                    >
+                      {list.name}
+                    </RouterLink>
+                  </Link>
+                </HStack>
                 {list.description && (
                   <Text
                     as="span"
@@ -195,7 +216,7 @@ function ListsCard({ userId }: ListsCardProps) {
               >
                 {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
               </Text>
-            </HStack>
+            </Box>
           ))}
         </VStack>
       </PagedSection>

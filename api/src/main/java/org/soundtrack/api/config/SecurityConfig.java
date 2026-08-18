@@ -52,10 +52,14 @@ public class SecurityConfig {
                         "/api/users/*/following",
                         "/api/images/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/lists/me")
+                    .authenticated()
                     .requestMatchers(
                         "/api/favorites/albums/user/*",
                         "/api/favorites/songs/user/*",
                         "/api/lists/user/*")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/lists/*")
                     .permitAll()
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()

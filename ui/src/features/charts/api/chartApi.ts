@@ -1,6 +1,7 @@
 import type { PagedResponse } from "../../../types/api";
 import { fetchJson } from "../../../lib/api-client";
-import type { AlbumSummary, ChartSortField } from "../types";
+import type { AlbumSummary } from "../../../types/album";
+import type { ChartSortField } from "../types";
 
 export function getTopAlbumsForYear(
   year: number,

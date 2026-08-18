@@ -1,7 +1,8 @@
 import type { UserProfile } from "../../../types/auth";
 import type { PagedResponse } from "../../../types/api";
 import type { UserListSummary } from "../../../types/list";
-import type { FavoriteAlbum, FavoriteSong, UserReview } from "../types";
+import type { AlbumSummary } from "../../../types/album";
+import type { FavoriteSong, UserReview } from "../types";
 import { apiFetch, fetchJson } from "../../../lib/api-client";
 import { throwFieldApiError } from "../../../lib/api-error";
 
@@ -21,7 +22,7 @@ export function getUserFavoriteAlbums(
   userId: number,
   page = 0,
   size = 20,
-): Promise<PagedResponse<FavoriteAlbum>> {
+): Promise<PagedResponse<AlbumSummary>> {
   return fetchJson(
     `/favorites/albums/user/${userId}?page=${page}&size=${size}`,
   );

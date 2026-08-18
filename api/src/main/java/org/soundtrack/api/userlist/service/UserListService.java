@@ -2,6 +2,7 @@ package org.soundtrack.api.userlist.service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ForbiddenException;
@@ -15,6 +16,7 @@ import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.model.UserList;
 import org.soundtrack.domain.repository.AlbumRepository;
+import org.soundtrack.domain.repository.FavoriteAlbumRepository;
 import org.soundtrack.domain.repository.UserListRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -32,6 +34,7 @@ public class UserListService {
   private final UserListRepository userListRepository;
   private final UserRepository userRepository;
   private final AlbumRepository albumRepository;
+  private final FavoriteAlbumRepository favoriteAlbumRepository;
   private final UserListMapper userListMapper;
 
   @Transactional(readOnly = true)
@@ -80,7 +83,7 @@ public class UserListService {
             .findDetailedById(listId)
             .orElseThrow(() -> new ResourceNotFoundException("List not found with id: " + listId));
 
-    return userListMapper.toDetail(userList);
+    return userListMapper.toDetail(userList, getFavoritedAlbumIds(userList.getAlbums()));
   }
 
   @Transactional
@@ -96,7 +99,8 @@ public class UserListService {
             .owner(user)
             .build();
 
-    return userListMapper.toDetail(userListRepository.save(userList));
+    UserList saved = userListRepository.save(userList);
+    return userListMapper.toDetail(saved, getFavoritedAlbumIds(saved.getAlbums()));
   }
 
   @Transactional
@@ -113,7 +117,7 @@ public class UserListService {
     userList.setName(request.getName());
     userList.setDescription(request.getDescription());
 
-    return userListMapper.toDetail(userList);
+    return userListMapper.toDetail(userList, getFavoritedAlbumIds(userList.getAlbums()));
   }
 
   @Transactional
@@ -154,7 +158,7 @@ public class UserListService {
 
     userList.getAlbums().add(album);
 
-    return userListMapper.toDetail(userList);
+    return userListMapper.toDetail(userList, getFavoritedAlbumIds(userList.getAlbums()));
   }
 
   @Transactional
@@ -173,7 +177,17 @@ public class UserListService {
       throw new ResourceNotFoundException("Album not found in this list");
     }
 
-    return userListMapper.toDetail(userList);
+    return userListMapper.toDetail(userList, getFavoritedAlbumIds(userList.getAlbums()));
+  }
+
+  private Set<Long> getFavoritedAlbumIds(List<Album> albums) {
+    Long userId = getAuthenticatedUserIdOrNull();
+    if (userId == null || albums.isEmpty()) {
+      return Set.of();
+    }
+
+    Set<Long> albumIds = albums.stream().map(Album::getId).collect(Collectors.toSet());
+    return favoriteAlbumRepository.findFavoritedAlbumIdsByUserIdAndAlbumIdIn(userId, albumIds);
   }
 
   private User getAuthenticatedUser() {
@@ -182,6 +196,22 @@ public class UserListService {
     return userRepository
         .findByEmail(email)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+  }
+
+  /**
+   * Returns the authenticated user's id, or null if the caller is anonymous. GET /api/lists/{id} is
+   * open to anonymous visitors but returns per-user favorited flags when a real session is present.
+   */
+  private Long getAuthenticatedUserIdOrNull() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || "anonymousUser".equals(authentication.getName())) {
+      return null;
+    }
+
+    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 
   private void validateOwnership(UserList userList, User user) {
