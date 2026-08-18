@@ -2,8 +2,8 @@ package org.soundtrack.api.chart;
 
 /**
  * Shared constants and math for the Bayesian-weighted rating formula used by the Year/Genre chart
- * pages and the album page's chart-rank badge, so both stay consistent with each other. See
- * https://en.wikipedia.org/wiki/Bayesian_average.
+ * pages and the album page's chart-rank badge, so both stay consistent with each other. See <a
+ * href="https://en.wikipedia.org/wiki/Bayesian_average">...</a>.
  */
 public final class WeightedRating {
 

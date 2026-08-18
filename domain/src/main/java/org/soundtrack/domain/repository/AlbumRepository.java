@@ -67,6 +67,14 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
       @Param("globalMean") double globalMean,
       Pageable pageable);
 
+  @Query(
+      "SELECT a FROM Album a "
+          + "WHERE a.reviewsCount > 0 "
+          + "ORDER BY ((a.reviewsCount * a.rating) + (:m * :globalMean)) / (a.reviewsCount + :m) DESC, "
+          + "a.title ASC")
+  Page<Album> findByOverallOrderByWeightedRating(
+      @Param("m") double m, @Param("globalMean") double globalMean, Pageable pageable);
+
   /** Albums tagged with the given genre (case-insensitive), for the Genre's chart page. */
   @Query(
       "SELECT a FROM Album a JOIN a.albumGenres ag JOIN ag.genre g WHERE LOWER(g.genre) = LOWER(:genre)")
@@ -97,4 +105,12 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   /** Mean rating across reviewed albums (the "C" baseline for the weighted-rating formula). */
   @Query("SELECT COALESCE(AVG(a.rating), 0) FROM Album a WHERE a.reviewsCount > 0")
   double findGlobalAverageRating();
+
+  /**
+   * Distinct release years with at least one reviewed album, newest first - for the Charts page's
+   * year picker.
+   */
+  @Query(
+      "SELECT DISTINCT YEAR(a.releaseDate) FROM Album a WHERE a.reviewsCount > 0 ORDER BY YEAR(a.releaseDate) DESC")
+  List<Integer> findDistinctYearsWithReviews();
 }

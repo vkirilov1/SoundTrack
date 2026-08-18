@@ -17,7 +17,7 @@ function SelectImageButton({
       px="20px"
       py="12px"
       bg="border"
-      color="#8a8a92"
+      color="text"
       fontSize="13px"
       fontWeight="600"
       textTransform="uppercase"

@@ -312,7 +312,7 @@ function AlbumCard({
                 textDecoration="none"
                 _hover={{ color: "accentHover" }}
               >
-                <RouterLink to={`/album/year/${releaseYear}`}>
+                <RouterLink to={`/charts/${releaseYear}`}>
                   {releaseYear}
                 </RouterLink>
               </Link>
@@ -428,7 +428,7 @@ function AlbumCard({
                   textDecoration="none"
                   _hover={{ color: "accent" }}
                 >
-                  <RouterLink to={`/album/year/${releaseYear}`}>
+                  <RouterLink to={`/charts/${releaseYear}`}>
                     {releaseYear}
                   </RouterLink>
                 </Link>

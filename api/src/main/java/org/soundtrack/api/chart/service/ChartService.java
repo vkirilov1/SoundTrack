@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.chart.WeightedRating;
@@ -39,14 +40,15 @@ public class ChartService {
     LocalDate start = LocalDate.of(year, 1, 1);
     LocalDate end = LocalDate.of(year, 12, 31);
 
-    double globalMean = albumRepository.findGlobalAverageRating();
-    Pageable pageable = PageRequest.of(page, size);
-
-    Page<Album> albumPage =
-        albumRepository.findByReleaseDateBetweenOrderByWeightedRating(
-            start, end, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, pageable);
-
-    return toPagedResponse(albumPage, page, size);
+    return getChartPage(
+        page,
+        size,
+        () -> {
+          double globalMean = albumRepository.findGlobalAverageRating();
+          Pageable pageable = PageRequest.of(page, size);
+          return albumRepository.findByReleaseDateBetweenOrderByWeightedRating(
+              start, end, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, pageable);
+        });
   }
 
   @Transactional(readOnly = true)
@@ -54,22 +56,43 @@ public class ChartService {
       String genre, String sort, boolean descending, int page, int size) {
 
     String property = toSortProperty(sort);
-    Page<Album> albumPage;
 
-    if ("rating".equals(property)) {
-      double globalMean = albumRepository.findGlobalAverageRating();
-      double sign = descending ? 1.0 : -1.0;
-      Pageable pageable = PageRequest.of(page, size);
-      albumPage =
-          albumRepository.findByGenreIgnoreCaseOrderByWeightedRating(
-              genre, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, sign, pageable);
-    } else {
-      Sort.Direction direction = descending ? Sort.Direction.DESC : Sort.Direction.ASC;
-      Pageable pageable = PageRequest.of(page, size, Sort.by(direction, property));
-      albumPage = albumRepository.findByGenreIgnoreCase(genre, pageable);
-    }
+    return getChartPage(
+        page,
+        size,
+        () -> {
+          if ("rating".equals(property)) {
+            double globalMean = albumRepository.findGlobalAverageRating();
+            double sign = descending ? 1.0 : -1.0;
+            Pageable pageable = PageRequest.of(page, size);
+            return albumRepository.findByGenreIgnoreCaseOrderByWeightedRating(
+                genre, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, sign, pageable);
+          }
+          Sort.Direction direction = descending ? Sort.Direction.DESC : Sort.Direction.ASC;
+          Pageable pageable = PageRequest.of(page, size, Sort.by(direction, property));
+          return albumRepository.findByGenreIgnoreCase(genre, pageable);
+        });
+  }
 
-    return toPagedResponse(albumPage, page, size);
+  @Transactional(readOnly = true)
+  public PagedResponse<AlbumSummaryResponse> getTopAlbumsOverall(int page, int size) {
+    return getChartPage(
+        page,
+        size,
+        () -> {
+          double globalMean = albumRepository.findGlobalAverageRating();
+          Pageable pageable = PageRequest.of(page, size);
+          return albumRepository.findByOverallOrderByWeightedRating(
+              WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, pageable);
+        });
+  }
+
+  /**
+   * Distinct release years with chart data, newest first - populates the Charts page's year picker.
+   */
+  @Transactional(readOnly = true)
+  public List<Integer> getAvailableYears() {
+    return albumRepository.findDistinctYearsWithReviews();
   }
 
   /**
@@ -86,10 +109,22 @@ public class ChartService {
   }
 
   /**
-   * Charts only ever show the top {@link WeightedRating#MAX_CHART_RESULTS} results - both the
-   * reported totals and the returned page are clamped to that boundary, so pagination never offers
-   * (and can never be made to return) anything past rank 1000.
+   * Charts only ever show the top {@link WeightedRating#MAX_CHART_RESULTS} results. When the
+   * requested page is past that boundary, the query is skipped entirely. 1000.
    */
+  private PagedResponse<AlbumSummaryResponse> getChartPage(
+      int page, int size, Supplier<Page<Album>> query) {
+
+    int startIndex = page * size;
+    if (startIndex >= WeightedRating.MAX_CHART_RESULTS) {
+      int cappedTotalPages = (int) Math.ceil((double) WeightedRating.MAX_CHART_RESULTS / size);
+      return new PagedResponse<>(
+          List.of(), page, size, WeightedRating.MAX_CHART_RESULTS, cappedTotalPages);
+    }
+
+    return toPagedResponse(query.get(), page, size);
+  }
+
   private PagedResponse<AlbumSummaryResponse> toPagedResponse(
       Page<Album> albumPage, int page, int size) {
 
@@ -98,9 +133,7 @@ public class ChartService {
 
     int startIndex = page * size;
     List<Album> albums = albumPage.getContent();
-    if (startIndex >= WeightedRating.MAX_CHART_RESULTS) {
-      albums = List.of();
-    } else if (startIndex + albums.size() > WeightedRating.MAX_CHART_RESULTS) {
+    if (startIndex + albums.size() > WeightedRating.MAX_CHART_RESULTS) {
       albums = albums.subList(0, WeightedRating.MAX_CHART_RESULTS - startIndex);
     }
 
