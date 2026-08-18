@@ -11,6 +11,17 @@ export function getTopAlbumsForYear(
   return fetchJson(`/albums/year/${year}?page=${page}&size=${size}`);
 }
 
+export function getTopAlbumsOverall(
+  page = 0,
+  size = 20,
+): Promise<PagedResponse<AlbumSummary>> {
+  return fetchJson(`/albums/overall?page=${page}&size=${size}`);
+}
+
+export function getAvailableYears(): Promise<number[]> {
+  return fetchJson(`/albums/years`);
+}
+
 export function getAlbumsByGenre(
   genre: string,
   sort: ChartSortField,

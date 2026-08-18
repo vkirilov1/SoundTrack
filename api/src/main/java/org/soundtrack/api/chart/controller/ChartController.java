@@ -3,6 +3,7 @@ package org.soundtrack.api.chart.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.chart.dto.AlbumSummaryResponse;
 import org.soundtrack.api.chart.service.ChartService;
@@ -30,6 +31,30 @@ public class ChartController {
           @RequestParam(name = "size", defaultValue = "20")
           int size) {
     return chartService.getTopAlbumsForYear(year, page, size);
+  }
+
+  @GetMapping("/overall")
+  @Operation(
+      summary = "Top rated albums overall",
+      description = "Returns overall albums, sorted by rating descending")
+  public PagedResponse<AlbumSummaryResponse> getTopAlbumsOverall(
+      @Parameter(description = "Zero-based page index")
+          @RequestParam(name = "page", defaultValue = "0")
+          int page,
+      @Parameter(description = "Number of albums per page")
+          @RequestParam(name = "size", defaultValue = "20")
+          int size) {
+    return chartService.getTopAlbumsOverall(page, size);
+  }
+
+  @GetMapping("/years")
+  @Operation(
+      summary = "Years with chart data",
+      description =
+          "Returns the distinct release years that have at least one reviewed album, newest"
+              + " first - for the Charts page's year picker.")
+  public List<Integer> getAvailableYears() {
+    return chartService.getAvailableYears();
   }
 
   @GetMapping("/genre/{genre}")

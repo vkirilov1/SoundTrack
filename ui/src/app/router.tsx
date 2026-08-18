@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import AlbumRoute from "./routes/album";
-import AlbumYearRoute from "./routes/album-year";
 import ArtistRoute from "./routes/artist";
+import ChartsRoute from "./routes/charts";
 import FavoritesRoute from "./routes/favorites";
 import GenreRoute from "./routes/genre";
 import HomeRoute from "./routes/home";
@@ -21,11 +21,12 @@ function AppRouter() {
       <Route path="/profile/edit" element={<ProfileEditRoute />} />
       <Route path="/profile/:userId" element={<ProfileRoute />} />
       <Route path="/profile/:userId/favorites" element={<FavoritesRoute />} />
-      <Route path="/album/year/:year" element={<AlbumYearRoute />} />
       <Route path="/album/:albumId" element={<AlbumRoute />} />
       <Route path="/list/:listId" element={<ListRoute />} />
       <Route path="/artist/:artistId" element={<ArtistRoute />} />
       <Route path="/genre/:name" element={<GenreRoute />} />
+      <Route path="/charts" element={<ChartsRoute />} />
+      <Route path="/charts/:year" element={<ChartsRoute />} />
       <Route path="*" element={<NotFoundRoute />} />
     </Routes>
   );

@@ -3,9 +3,14 @@ import { Link as RouterLink } from "react-router-dom";
 import logo from "../../assets/SoundTrackLogo.png";
 import SearchBar from "../../features/search/components/SearchBar";
 import NotificationBell from "../NotificationBell/NotificationBell";
+import { ColorModeButton } from "../ui/color-mode";
 import { useAuth } from "../../features/auth/stores/useAuth";
 
-const NAV_LINKS = ["Charts", "Chats", "Drops"];
+const NAV_LINKS: { label: string; to?: string }[] = [
+  { label: "Charts", to: "/charts" },
+  { label: "Chats" },
+  { label: "Drops" },
+];
 
 function Header() {
   const { user, logout } = useAuth();
@@ -31,24 +36,43 @@ function Header() {
           <SearchBar />
 
           <HStack as="nav" gap="28px" display={{ base: "none", sm: "flex" }}>
-            {NAV_LINKS.map((label) => (
-              <Link
-                key={label}
-                href="*"
-                color="white"
-                fontSize="14px"
-                textDecoration="none"
-                opacity="0.85"
-                transition="opacity 0.2s"
-                _hover={{ color: "white", opacity: 1 }}
-              >
-                {label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(({ label, to }) =>
+              to ? (
+                <Link
+                  key={label}
+                  asChild
+                  color="white"
+                  fontSize="14px"
+                  textDecoration="none"
+                  opacity="0.85"
+                  transition="opacity 0.2s"
+                  _hover={{ color: "white", opacity: 1 }}
+                >
+                  <RouterLink to={to}>{label}</RouterLink>
+                </Link>
+              ) : (
+                <Link
+                  key={label}
+                  href="*"
+                  color="white"
+                  fontSize="14px"
+                  textDecoration="none"
+                  opacity="0.85"
+                  transition="opacity 0.2s"
+                  _hover={{ color: "white", opacity: 1 }}
+                >
+                  {label}
+                </Link>
+              ),
+            )}
           </HStack>
 
           {user ? (
             <HStack gap="18px">
+              <ColorModeButton
+                color="white"
+                _hover={{ bg: "rgba(255, 255, 255, 0.12)" }}
+              />
               {user.role !== "ADMIN" && <NotificationBell />}
               <Link
                 asChild
@@ -88,22 +112,28 @@ function Header() {
               </Link>
             </HStack>
           ) : (
-            <Link
-              asChild
-              bg="white"
-              color="inkBlack"
-              fontSize="13px"
-              fontWeight="600"
-              textDecoration="none"
-              px="20px"
-              py="10px"
-              borderRadius="full"
-              whiteSpace="nowrap"
-              transition="background 0.2s"
-              _hover={{ bg: "#d9d9d9", color: "inkBlack" }}
-            >
-              <RouterLink to="/login">Sign In</RouterLink>
-            </Link>
+            <HStack gap="18px">
+              <ColorModeButton
+                color="white"
+                _hover={{ bg: "rgba(255, 255, 255, 0.12)" }}
+              />
+              <Link
+                asChild
+                bg="white"
+                color="inkBlack"
+                fontSize="13px"
+                fontWeight="600"
+                textDecoration="none"
+                px="20px"
+                py="10px"
+                borderRadius="full"
+                whiteSpace="nowrap"
+                transition="background 0.2s"
+                _hover={{ bg: "#d9d9d9", color: "inkBlack" }}
+              >
+                <RouterLink to="/login">Sign In</RouterLink>
+              </Link>
+            </HStack>
           )}
         </Flex>
       </Flex>

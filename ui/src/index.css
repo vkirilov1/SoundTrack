@@ -34,6 +34,25 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* next-themes toggles this class on <html> to match the Chakra semantic tokens' _dark values. */
+:root.dark {
+  --color-bg: #1c1c21;
+  --color-ink: #f0f0f3;
+  --color-text: #a3a3ad;
+  --color-border: #333338;
+
+  --color-accent-hover: #ffb75c;
+
+  --color-highlight-bg: #1f2d4d;
+  --color-highlight-icon-border: #5b8bff;
+  --color-checkbox: #8b80ff;
+  --color-link-hover: #93b4f7;
+  --color-star: #ffc94d;
+  --color-star-empty: #48484f;
+
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
