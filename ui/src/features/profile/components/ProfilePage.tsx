@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { Box, Heading, HStack, Link, Tabs, Text } from "@chakra-ui/react";
-import { getUserProfile } from "../api/profileApi";
+import {
+  getUserLists,
+  getUserProfile,
+  getUserReviews,
+} from "../api/profileApi";
 import { followUser, unfollowUser } from "../api/followApi";
 import { ApiError } from "../../../lib/api-error";
 import EditIcon from "../../../components/icons/EditIcon";
@@ -34,6 +38,8 @@ function ProfilePage() {
   const [currentTab, setCurrentTab] = useState<ProfileTab>("lists");
   const [loading, setLoading] = useState(() => !invalidId);
   const [notFound, setNotFound] = useState(() => invalidId);
+  const [listsCount, setListsCount] = useState<number | null>(null);
+  const [reviewsCount, setReviewsCount] = useState<number | null>(null);
 
   const isOwnAdminProfile =
     currentUser?.id === id && currentUser?.role === "ADMIN";
@@ -90,6 +96,28 @@ function ProfilePage() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, invalidId]);
+
+  useEffect(() => {
+    if (invalidId) return;
+
+    let cancelled = false;
+
+    getUserLists(id, 0, 1)
+      .then((res) => {
+        if (!cancelled) setListsCount(res.totalElements);
+      })
+      .catch(() => {});
+
+    getUserReviews(id, 0, 1)
+      .then((res) => {
+        if (!cancelled) setReviewsCount(res.totalElements);
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -255,7 +283,21 @@ function ProfilePage() {
                 "--indicator-color": "var(--chakra-colors-accent)",
               }}
             >
-              Lists
+              <HStack gap="4px" align="baseline">
+                <span>Lists</span>
+                {listsCount !== null && (
+                  <Text
+                    as="span"
+                    fontSize="10px"
+                    fontWeight="400"
+                    marginInlineStart={0.5}
+                    color="text"
+                    opacity="0.7"
+                  >
+                    {listsCount}
+                  </Text>
+                )}
+              </HStack>
             </Tabs.Trigger>
             <Tabs.Trigger
               value="reviews"
@@ -271,7 +313,21 @@ function ProfilePage() {
                 "--indicator-color": "var(--chakra-colors-accent)",
               }}
             >
-              Reviews
+              <HStack gap="4px" align="baseline">
+                <span>Reviews</span>
+                {reviewsCount !== null && (
+                  <Text
+                    as="span"
+                    fontSize="10px"
+                    fontWeight="400"
+                    marginInlineStart={0.5}
+                    color="text"
+                    opacity="0.7"
+                  >
+                    {reviewsCount}
+                  </Text>
+                )}
+              </HStack>
             </Tabs.Trigger>
             <Tabs.Trigger
               value="followers"
