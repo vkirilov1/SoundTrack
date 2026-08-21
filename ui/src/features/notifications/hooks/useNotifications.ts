@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/stores/useAuth";
+import { useChat } from "../../chat/stores/useChat";
 import { refreshSession } from "../../../lib/api-client";
 import {
   clearNotifications,
   getNotifications,
   getUnreadCount,
 } from "../api/notificationApi";
+import { CHAT_NOTIFICATION_TYPES } from "../types";
 import type { AppNotification } from "../types";
 
 const RECONNECT_DELAY_MS = 3000;
@@ -17,8 +19,25 @@ const RECONNECT_DELAY_MS = 3000;
  */
 export function useNotifications() {
   const { user } = useAuth();
+  const { phase } = useChat();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  // Drop invite/approval notifications for a room once it's joined or requested.
+  const relevantRoomId =
+    phase.kind === "active" || phase.kind === "pending" ? phase.room.id : null;
+  const [prunedRoomId, setPrunedRoomId] = useState<number | null>(null);
+  if (relevantRoomId != null && relevantRoomId !== prunedRoomId) {
+    setPrunedRoomId(relevantRoomId);
+    setNotifications((prev) =>
+      prev.filter(
+        (n) =>
+          !(
+            CHAT_NOTIFICATION_TYPES.has(n.type) && n.entityId === relevantRoomId
+          ),
+      ),
+    );
+  }
 
   useEffect(() => {
     if (!user || user.role === "ADMIN") return;

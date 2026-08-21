@@ -19,6 +19,20 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
   @Query("SELECT r FROM ChatRoom r WHERE r.id = :id")
   Optional<ChatRoom> findWithMembersById(@Param("id") Long id);
 
+  /** The room the user is currently a member of, if any - users can be in at most one room. */
+  @Query("SELECT r FROM ChatRoom r JOIN r.members m WHERE m.id = :userId")
+  Optional<ChatRoom> findByMemberId(@Param("userId") Long userId);
+
+  /** Whether the user has a pending join request anywhere, counted toward the one-room limit. */
+  @Query("SELECT COUNT(r) > 0 FROM ChatRoom r JOIN r.joinRequests jr WHERE jr.id = :userId")
+  boolean hasPendingJoinRequest(@Param("userId") Long userId);
+
+  @Query(
+      "SELECT COUNT(r) > 0 FROM ChatRoom r JOIN r.joinRequests jr WHERE jr.id = :userId AND r.id"
+          + " <> :roomId")
+  boolean hasPendingJoinRequestElsewhere(
+      @Param("userId") Long userId, @Param("roomId") Long roomId);
+
   @Query("SELECT COUNT(u) FROM ChatRoom r JOIN r.members u WHERE r.id = :roomId")
   int countMembersById(@Param("roomId") Long roomId);
 }

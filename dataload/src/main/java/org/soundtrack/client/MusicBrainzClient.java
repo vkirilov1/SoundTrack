@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.soundtrack.dto.*;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -27,7 +28,14 @@ public class MusicBrainzClient {
 
   private static final int MAX_RETRIES = 5;
 
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate = createRestTemplate();
+
+  private static RestTemplate createRestTemplate() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(10_000);
+    factory.setReadTimeout(30_000);
+    return new RestTemplate(factory);
+  }
 
   private static final Logger log = LoggerFactory.getLogger(MusicBrainzClient.class);
 

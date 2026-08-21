@@ -118,7 +118,6 @@ public class AdminService {
     }
     reviewRepository.deleteAll(reviews);
 
-    // 3. Delete the user. user_list rows cascade via ON DELETE CASCADE on user_list.owner_id.
     userRepository.delete(user);
   }
 
@@ -399,9 +398,6 @@ public class AdminService {
     }
 
     Album album = new Album();
-    // Manually-created albums have no MusicBrainz identity of their own; mbid/releaseid are both
-    // NOT NULL UNIQUE, so a synthetic value (never collides with a real MusicBrainz UUID) fills
-    // that role instead of leaving the columns meaningless.
     album.setMbid("manual-" + UUID.randomUUID());
     album.setReleaseid("manual-" + UUID.randomUUID());
     album.setTitle(request.getTitle());

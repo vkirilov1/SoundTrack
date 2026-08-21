@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, Text, type TextProps } from "@chakra-ui/react";
+import { Link, Text, chakra, type TextProps } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 
 interface ResultRowLinkProps {
@@ -27,6 +27,36 @@ function ResultRowLink({ to, onNavigate, children }: ResultRowLinkProps) {
         {children}
       </RouterLink>
     </Link>
+  );
+}
+
+interface ResultRowButtonProps {
+  onSelect: () => void;
+  children: ReactNode;
+}
+
+/** Same row shell as {@link ResultRowLink}, but a button - for pickers instead of navigation. */
+export function ResultRowButton({ onSelect, children }: ResultRowButtonProps) {
+  return (
+    <chakra.button
+      type="button"
+      onClick={onSelect}
+      w="100%"
+      display="flex"
+      alignItems="center"
+      gap="10px"
+      px="6px"
+      py="8px"
+      bg="none"
+      border="none"
+      borderRadius="md"
+      color="inherit"
+      textAlign="left"
+      cursor="pointer"
+      _hover={{ bg: "border" }}
+    >
+      {children}
+    </chakra.button>
   );
 }
 

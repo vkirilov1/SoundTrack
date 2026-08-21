@@ -11,6 +11,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,7 +23,14 @@ public class CoverImageDownloader {
   @Value("${cover.storage.path}")
   private String storagePath;
 
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate = createRestTemplate();
+
+  private static RestTemplate createRestTemplate() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(10_000);
+    factory.setReadTimeout(30_000);
+    return new RestTemplate(factory);
+  }
 
   /**
    * Downloads a cover image from the given URL and saves it to the configured storage path.

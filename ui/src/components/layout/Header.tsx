@@ -8,7 +8,7 @@ import { useAuth } from "../../features/auth/stores/useAuth";
 
 const NAV_LINKS: { label: string; to?: string }[] = [
   { label: "Charts", to: "/charts" },
-  { label: "Chats" },
+  { label: "Chats", to: "/chats" },
   { label: "Drops" },
 ];
 

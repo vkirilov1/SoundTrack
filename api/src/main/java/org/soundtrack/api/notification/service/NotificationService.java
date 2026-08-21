@@ -41,6 +41,9 @@ public class NotificationService {
 
   private static final long EMITTER_TIMEOUT_MS = Duration.ofMinutes(10).toMillis();
 
+  private static final List<NotificationType> CHAT_ROOM_NOTIFICATION_TYPES =
+      List.of(NotificationType.CHAT_INVITE, NotificationType.CHAT_REQUEST_APPROVED);
+
   private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
 
@@ -101,8 +104,6 @@ public class NotificationService {
                 .read(false)
                 .build());
 
-    // Live delivery is best-effort - a dead browser connection must never fail the caller's
-    // transaction (e.g. an admin deleting a review), so nothing from push() is allowed to escape.
     try {
       push(recipient.getId(), toResponse(notification));
     } catch (Exception e) {
@@ -122,7 +123,7 @@ public class NotificationService {
         log.debug(
             "Dropping stale notification emitter for user {}: {}", recipientId, e.getMessage());
         removeEmitter(recipientId, emitter);
-        emitter.completeWithError(e);
+        emitter.complete();
       }
     }
   }
@@ -156,6 +157,12 @@ public class NotificationService {
   @Transactional
   public void clearAll() {
     notificationRepository.deleteByRecipientId(requireAuthenticatedUserId());
+  }
+
+  @Transactional
+  public void clearChatRoomNotifications(User recipient, Long roomId) {
+    notificationRepository.deleteByRecipientIdAndTypeInAndEntityId(
+        recipient.getId(), CHAT_ROOM_NOTIFICATION_TYPES, roomId);
   }
 
   private NotificationResponse toResponse(Notification notification) {

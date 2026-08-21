@@ -17,7 +17,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
-    // In-memory broker for room topics; swap for RabbitMQ/Redis if scaling to multiple nodes
     config.enableSimpleBroker("/topic");
     config.setApplicationDestinationPrefixes("/app");
   }

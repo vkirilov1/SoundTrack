@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Box, Image, Link, Text, VStack, chakra } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import missingResourcesIcon from "../../assets/MissingResources.png";
 import Avatar from "../Avatar/Avatar";
 import BellIcon from "../icons/BellIcon";
+import PillButton from "../buttons/PillButton";
+import ConfirmActionModal from "../Modal/ConfirmActionModal";
 import { userPhotoUrl } from "../../utils/images";
 import { MONTH_DAY_FORMAT } from "../../utils/date";
+import { useChat } from "../../features/chat/stores/useChat";
+import { CHAT_NOTIFICATION_TYPES } from "../../features/notifications/types";
 import type { AppNotification } from "../../features/notifications/types";
 
 interface NotificationPanelProps {
@@ -12,10 +17,27 @@ interface NotificationPanelProps {
   onClear: () => void;
 }
 
+function ActorLink({ notification }: { notification: AppNotification }) {
+  return (
+    <Link
+      asChild
+      fontWeight="600"
+      color="ink"
+      textDecoration="none"
+      _hover={{ color: "accentHover" }}
+    >
+      <RouterLink to={`/profile/${notification.actor.id}`}>
+        {notification.actor.username}
+      </RouterLink>
+    </Link>
+  );
+}
+
 /**
  * FOLLOW notifications name and link to the actor. REVIEW_DELETED/PHOTO_RESET are admin actions -
  * the acting admin's identity is intentionally never shown, so those render as plain system
- * messages instead of crediting `notification.actor`.
+ * messages instead of crediting `notification.actor`. CHAT_* notifications carry the room id in
+ * entityId and the room name snapshot in context.
  */
 function NotificationMessage({
   notification,
@@ -23,21 +45,24 @@ function NotificationMessage({
   notification: AppNotification;
 }) {
   switch (notification.type) {
+    case "CHAT_INVITE":
+      return (
+        <>
+          <ActorLink notification={notification} /> invited you to the chat room
+          “{notification.context}”
+        </>
+      );
+    case "CHAT_REQUEST_APPROVED":
+      return (
+        <>
+          <ActorLink notification={notification} /> approved your request to
+          join “{notification.context}”
+        </>
+      );
     case "FOLLOW":
       return (
         <>
-          <Link
-            asChild
-            fontWeight="600"
-            color="ink"
-            textDecoration="none"
-            _hover={{ color: "accentHover" }}
-          >
-            <RouterLink to={`/profile/${notification.actor.id}`}>
-              {notification.actor.username}
-            </RouterLink>
-          </Link>{" "}
-          started following you
+          <ActorLink notification={notification} /> started following you
         </>
       );
     case "REVIEW_DELETED":
@@ -70,6 +95,38 @@ function NotificationMessage({
 }
 
 function NotificationPanel({ notifications, onClear }: NotificationPanelProps) {
+  const { joinRoom } = useChat();
+  const [chatErrors, setChatErrors] = useState<Record<number, string>>({});
+  const [conflictNotification, setConflictNotification] =
+    useState<AppNotification | null>(null);
+
+  async function attemptJoin(
+    notification: AppNotification,
+    leaveCurrent = false,
+  ) {
+    if (notification.entityId == null) return;
+
+    setChatErrors((prev) => ({ ...prev, [notification.id]: "" }));
+
+    const outcome = await joinRoom(notification.entityId, leaveCurrent);
+
+    if (outcome === "conflict") {
+      setConflictNotification(notification);
+      return;
+    }
+
+    const errors: Partial<Record<typeof outcome, string>> = {
+      gone: "Room no longer exists.",
+      full: "This room is full.",
+      error: "Something went wrong. Try again.",
+    };
+
+    const message = errors[outcome];
+    if (message) {
+      setChatErrors((prev) => ({ ...prev, [notification.id]: message }));
+    }
+  }
+
   return (
     <Box
       position="absolute"
@@ -157,7 +214,8 @@ function NotificationPanel({ notifications, onClear }: NotificationPanelProps) {
               borderColor="border"
               _last={{ borderBottom: "none" }}
             >
-              {notification.type === "FOLLOW" ? (
+              {notification.type === "FOLLOW" ||
+              CHAT_NOTIFICATION_TYPES.has(notification.type) ? (
                 <Link asChild flexShrink="0">
                   <RouterLink to={`/profile/${notification.actor.id}`}>
                     <Avatar
@@ -203,10 +261,44 @@ function NotificationPanel({ notifications, onClear }: NotificationPanelProps) {
                 >
                   {MONTH_DAY_FORMAT.format(new Date(notification.createdAt))}
                 </Text>
+                {chatErrors[notification.id] && (
+                  <Text
+                    as="span"
+                    display="block"
+                    fontSize="11px"
+                    color="danger"
+                  >
+                    {chatErrors[notification.id]}
+                  </Text>
+                )}
               </Box>
+              {notification.type === "CHAT_INVITE" &&
+                notification.entityId != null &&
+                !chatErrors[notification.id] && (
+                  <PillButton
+                    onClick={() => void attemptJoin(notification)}
+                    flexShrink="0"
+                    fontSize="12px"
+                    px="12px"
+                    py="5px"
+                  >
+                    Join
+                  </PillButton>
+                )}
             </Box>
           ))}
         </VStack>
+      )}
+
+      {conflictNotification && (
+        <ConfirmActionModal
+          title="Switch Chat Room"
+          message="You are already in a chat room. Leave it and join this one?"
+          confirmLabel="Leave & join"
+          confirmingLabel="Switching…"
+          onConfirm={() => attemptJoin(conflictNotification, true)}
+          onClose={() => setConflictNotification(null)}
+        />
       )}
     </Box>
   );

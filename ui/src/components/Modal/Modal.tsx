@@ -29,6 +29,7 @@ function Modal({ onClose, children, maxW = "640px" }: ModalProps) {
 
   return createPortal(
     <Box
+      data-modal-root=""
       position="fixed"
       inset="0"
       zIndex="1000"

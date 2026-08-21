@@ -1,14 +1,21 @@
 import { Box, Image, Text, VStack } from "@chakra-ui/react";
 import { artistImageUrl, coverImageUrl } from "../../../utils/images";
 import type { SearchResult } from "../types";
-import ResultRowLink, { ResultTitle } from "./ResultRowLink";
+import ResultRowLink, { ResultRowButton, ResultTitle } from "./ResultRowLink";
 
 interface SearchResultRowProps {
   result: SearchResult;
-  onNavigate: () => void;
+  /** Navigates to the album/artist page - the SearchBar behavior. */
+  onNavigate?: () => void;
+  /** When set, the row acts as a picker button instead of a link (e.g. chat topic select). */
+  onSelect?: (result: SearchResult) => void;
 }
 
-function SearchResultRow({ result, onNavigate }: SearchResultRowProps) {
+function SearchResultRow({
+  result,
+  onNavigate,
+  onSelect,
+}: SearchResultRowProps) {
   const href =
     result.type === "ALBUM" ? `/album/${result.id}` : `/artist/${result.id}`;
   const imageSrc = result.imageUrl
@@ -17,8 +24,8 @@ function SearchResultRow({ result, onNavigate }: SearchResultRowProps) {
       : artistImageUrl(result.imageUrl)
     : null;
 
-  return (
-    <ResultRowLink to={href} onNavigate={onNavigate}>
+  const content = (
+    <>
       {imageSrc ? (
         <Image
           src={imageSrc}
@@ -53,6 +60,20 @@ function SearchResultRow({ result, onNavigate }: SearchResultRowProps) {
           </Text>
         )}
       </VStack>
+    </>
+  );
+
+  if (onSelect) {
+    return (
+      <ResultRowButton onSelect={() => onSelect(result)}>
+        {content}
+      </ResultRowButton>
+    );
+  }
+
+  return (
+    <ResultRowLink to={href} onNavigate={onNavigate ?? (() => {})}>
+      {content}
     </ResultRowLink>
   );
 }

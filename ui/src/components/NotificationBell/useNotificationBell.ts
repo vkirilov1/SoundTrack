@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-/**
- * Open/close + click-outside-to-close state for the notification dropdown, mirroring the
- * useAddToListMenu pattern used for the "Add to list" menu.
- */
 export function useNotificationBell() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -12,7 +8,11 @@ export function useNotificationBell() {
     if (!open) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (!panelRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const insideModal =
+        target instanceof Element &&
+        target.closest("[data-modal-root]") != null;
+      if (!panelRef.current?.contains(target) && !insideModal) {
         setOpen(false);
       }
     }

@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import AlbumRoute from "./routes/album";
 import ArtistRoute from "./routes/artist";
 import ChartsRoute from "./routes/charts";
+import ChatsRoute from "./routes/chats";
 import FavoritesRoute from "./routes/favorites";
 import GenreRoute from "./routes/genre";
 import HomeRoute from "./routes/home";
@@ -27,6 +28,7 @@ function AppRouter() {
       <Route path="/genre/:name" element={<GenreRoute />} />
       <Route path="/charts" element={<ChartsRoute />} />
       <Route path="/charts/:year" element={<ChartsRoute />} />
+      <Route path="/chats" element={<ChatsRoute />} />
       <Route path="*" element={<NotFoundRoute />} />
     </Routes>
   );
