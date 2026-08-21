@@ -69,6 +69,11 @@ public class ChatWebSocketController {
       return;
     }
 
+    if (!stateService.allowMessage(email)) {
+      log.debug("Rate-limited chat message from {} to room {}", email, roomId);
+      return;
+    }
+
     try {
       ChatMessageResponse response = chatService.processMessage(roomId, payload, email);
       messagingTemplate.convertAndSend("/topic/chat/" + roomId, response);

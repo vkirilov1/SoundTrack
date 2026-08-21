@@ -143,7 +143,7 @@ function AlbumGridRow({
             opacity="0.5"
             aria-label="Not yet reviewed"
           >
-            —
+            -
           </Text>
         )}
       </Box>

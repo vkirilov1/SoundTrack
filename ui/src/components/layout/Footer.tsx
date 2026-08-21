@@ -1,9 +1,14 @@
 import { Box, Flex, HStack, Image, Link, Text, VStack } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 import logo from "../../assets/SoundTrackLogo.png";
 
 const FOOTER_LINKS = ["Contact Us", "About", "Blog", "FAQ"];
 
-const LEGAL_LINKS = ["Terms of Use", "Privacy Policy", "Legal Policies"];
+const LEGAL_LINKS: { label: string; to?: string }[] = [
+  { label: "Terms of Use", to: "/terms" },
+  { label: "Privacy Policy", to: "/privacy" },
+  { label: "Legal Policies" },
+];
 
 const SOCIAL_LINKS = [
   {
@@ -88,17 +93,28 @@ function Footer() {
           </HStack>
           <Text color="white" opacity="0.6" fontSize="12px" textAlign="right">
             SoundTrack Limited © 2026. All rights reserved
-            {LEGAL_LINKS.map((label) => (
+            {LEGAL_LINKS.map(({ label, to }) => (
               <Text as="span" key={label}>
                 {" · "}
-                <Link
-                  href="#"
-                  color="white"
-                  textDecoration="none"
-                  _hover={{ color: "white", textDecoration: "underline" }}
-                >
-                  {label}
-                </Link>
+                {to ? (
+                  <Link
+                    asChild
+                    color="white"
+                    textDecoration="none"
+                    _hover={{ color: "white", textDecoration: "underline" }}
+                  >
+                    <RouterLink to={to}>{label}</RouterLink>
+                  </Link>
+                ) : (
+                  <Link
+                    href="#"
+                    color="white"
+                    textDecoration="none"
+                    _hover={{ color: "white", textDecoration: "underline" }}
+                  >
+                    {label}
+                  </Link>
+                )}
               </Text>
             ))}
           </Text>

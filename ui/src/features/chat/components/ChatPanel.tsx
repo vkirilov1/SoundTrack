@@ -1,19 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Flex, Input, Text, chakra } from "@chakra-ui/react";
 import Avatar from "../../../components/Avatar/Avatar";
+import ConfirmActionModal from "../../../components/Modal/ConfirmActionModal";
 import ChevronDownIcon from "../../../components/icons/ChevronDownIcon";
+import FlagIcon from "../../../components/icons/FlagIcon";
 import LogOutIcon from "../../../components/icons/LogOutIcon";
 import SendIcon from "../../../components/icons/SendIcon";
 import UserPlusIcon from "../../../components/icons/UserPlusIcon";
 import UsersIcon from "../../../components/icons/UsersIcon";
+import XIcon from "../../../components/icons/XIcon";
 import { userPhotoUrl } from "../../../utils/images";
 import { useAuth } from "../../auth/stores/useAuth";
 import { useChat } from "../stores/useChat";
+import { deleteChatRoom } from "../moderation/api/chatModerationApi";
+import { ApiError } from "../../../lib/api-error";
 import type { ChatRoomInfo } from "../types";
 import ChatToolbarButton from "./ChatToolbarButton";
 import MembersSection from "./MembersSection";
 import InviteSection from "./InviteSection";
 import LeaveRoomModal from "./LeaveRoomModal";
+import ReportRoomModal from "./ReportRoomModal";
 
 const TIME_FORMAT = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
@@ -23,6 +29,9 @@ const TIME_FORMAT = new Intl.DateTimeFormat("en-US", {
 type PanelView = "messages" | "members" | "invite";
 
 const MAX_MESSAGE_LENGTH = 1000;
+const SEND_WINDOW_MS = 8000;
+const MAX_SENDS_IN_WINDOW = 6;
+const THROTTLE_COOLDOWN_MS = 3000;
 
 function ChatPanel({ room }: { room: ChatRoomInfo }) {
   const { user } = useAuth();
@@ -31,19 +40,51 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
   const [view, setView] = useState<PanelView>("messages");
   const [draft, setDraft] = useState("");
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user?.id === room.creator.id;
+  const isAdmin = user?.role === "ADMIN";
   const pendingCount = room.pendingRequests.length;
+
+  async function handleDeleteRoom() {
+    setDeleteError(null);
+    try {
+      await deleteChatRoom(room.id);
+    } catch (e: unknown) {
+      setDeleteError(
+        e instanceof ApiError ? e.message : "Couldn't delete this room.",
+      );
+      throw e;
+    }
+  }
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, view]);
 
+  const sendTimestampsRef = useRef<number[]>([]);
+  const [throttled, setThrottled] = useState(false);
+
   function handleSend() {
     const content = draft.trim();
-    if (!content) return;
+    if (!content || throttled) return;
+
+    const now = Date.now();
+    sendTimestampsRef.current = sendTimestampsRef.current.filter(
+      (t) => now - t < SEND_WINDOW_MS,
+    );
+    sendTimestampsRef.current.push(now);
+
+    if (sendTimestampsRef.current.length > MAX_SENDS_IN_WINDOW) {
+      setThrottled(true);
+      setTimeout(() => setThrottled(false), THROTTLE_COOLDOWN_MS);
+      return;
+    }
+
     sendMessage(content);
     setDraft("");
   }
@@ -97,6 +138,23 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
           onClick={() => setExpanded(false)}
         />
 
+        {!isOwner && (
+          <ChatToolbarButton
+            icon={<FlagIcon size={15} />}
+            label="Report room"
+            onClick={() => setReporting(true)}
+          />
+        )}
+
+        {isAdmin && (
+          <ChatToolbarButton
+            icon={<XIcon size={15} />}
+            label="Delete room"
+            hoverBg="danger"
+            onClick={() => setConfirmingDelete(true)}
+          />
+        )}
+
         <ChatToolbarButton
           icon={<LogOutIcon size={15} />}
           label="Leave chat"
@@ -111,6 +169,25 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
           isOwner={isOwner}
           onConfirm={leave}
           onClose={() => setConfirmingLeave(false)}
+        />
+      )}
+
+      {reporting && (
+        <ReportRoomModal roomId={room.id} onClose={() => setReporting(false)} />
+      )}
+
+      {confirmingDelete && (
+        <ConfirmActionModal
+          title="Delete Chat Room"
+          message={
+            deleteError ??
+            `Delete "${room.name}"? This ends the chat for everyone and cannot be undone.`
+          }
+          confirmLabel="Delete room"
+          confirmingLabel="Deleting…"
+          tone="danger"
+          onConfirm={handleDeleteRoom}
+          onClose={() => setConfirmingDelete(false)}
         />
       )}
 
@@ -210,6 +287,12 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
             })}
           </Box>
 
+          {throttled && (
+            <Text m="0" px="14px" pb="4px" fontSize="11px" color="danger">
+              Slow down a bit before sending more messages.
+            </Text>
+          )}
+
           <Flex
             gap="8px"
             px="10px"
@@ -227,7 +310,8 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
                 }
               }}
               maxLength={MAX_MESSAGE_LENGTH}
-              placeholder="Type a message"
+              placeholder={throttled ? "Slow down a bit…" : "Type a message"}
+              disabled={throttled}
               flex="1"
               minW="0"
               size="sm"
@@ -240,7 +324,7 @@ function ChatPanel({ room }: { room: ChatRoomInfo }) {
             <chakra.button
               type="button"
               onClick={handleSend}
-              disabled={!draft.trim() || !connected}
+              disabled={!draft.trim() || !connected || throttled}
               aria-label="Send message"
               display="inline-flex"
               alignItems="center"

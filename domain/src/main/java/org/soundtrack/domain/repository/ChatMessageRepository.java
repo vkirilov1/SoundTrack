@@ -14,7 +14,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
   @EntityGraph(attributePaths = {"sender"})
   Page<ChatMessage> findByRoomIdOrderBySentAtDesc(Long roomId, Pageable pageable);
 
-  @Modifying
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("DELETE FROM ChatMessage m WHERE m.room.id = :roomId")
   void deleteByRoomId(@Param("roomId") Long roomId);
 }

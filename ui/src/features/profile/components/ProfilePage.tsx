@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import { Box, Heading, HStack, Link, Tabs, Text } from "@chakra-ui/react";
-import {
-  getUserLists,
-  getUserProfile,
-  getUserReviews,
-} from "../api/profileApi";
+import { Box, Heading, HStack, Link, Text } from "@chakra-ui/react";
+import { getUserProfile } from "../api/profileApi";
 import { followUser, unfollowUser } from "../api/followApi";
 import { ApiError } from "../../../lib/api-error";
 import EditIcon from "../../../components/icons/EditIcon";
@@ -16,16 +12,12 @@ import { MONTH_YEAR_FORMAT } from "../../../utils/date";
 import { userPhotoUrl } from "../../../utils/images";
 import type { UserProfile } from "../../../types/auth";
 import Avatar from "../../../components/Avatar/Avatar";
-import ListsCard from "./ListsCard";
-import ReviewsCard from "./ReviewsCard";
-import FollowListCard from "./FollowListCard";
 import AddAlbumButton from "./admin/AddAlbumButton";
 import AddArtistButton from "./admin/AddArtistButton";
-import RequestsCard from "../../edit-requests/components/RequestsCard";
-import AdminResetPhotoButton from "../../edit-requests/components/AdminResetPhotoButton";
+import ProfileModerationControls from "./admin/ProfileModerationControls";
+import AdminProfileTabs from "./admin/AdminProfileTabs";
+import ProfileTabs from "./ProfileTabs";
 import { resetUserPhotoAsAdmin } from "../../edit-requests/api/adminContentApi";
-
-type ProfileTab = "lists" | "reviews" | "followers" | "following";
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -35,11 +27,8 @@ function ProfilePage() {
   const isAdmin = currentUser?.role === "ADMIN";
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [currentTab, setCurrentTab] = useState<ProfileTab>("lists");
   const [loading, setLoading] = useState(() => !invalidId);
   const [notFound, setNotFound] = useState(() => invalidId);
-  const [listsCount, setListsCount] = useState<number | null>(null);
-  const [reviewsCount, setReviewsCount] = useState<number | null>(null);
 
   const isOwnAdminProfile =
     currentUser?.id === id && currentUser?.role === "ADMIN";
@@ -96,28 +85,6 @@ function ProfilePage() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, invalidId]);
-
-  useEffect(() => {
-    if (invalidId) return;
-
-    let cancelled = false;
-
-    getUserLists(id, 0, 1)
-      .then((res) => {
-        if (!cancelled) setListsCount(res.totalElements);
-      })
-      .catch(() => {});
-
-    getUserReviews(id, 0, 1)
-      .then((res) => {
-        if (!cancelled) setReviewsCount(res.totalElements);
-      })
-      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -202,20 +169,32 @@ function ProfilePage() {
           size="140px"
         />
         {canModeratePhoto && (
-          <AdminResetPhotoButton onReset={handleResetPhoto} />
+          <ProfileModerationControls
+            userId={profile.id}
+            chatAccessRevoked={profile.chatAccessRevoked}
+            onResetPhoto={handleResetPhoto}
+            onChatAccessChange={(revoked) =>
+              setProfile((prev) =>
+                prev ? { ...prev, chatAccessRevoked: revoked } : prev,
+              )
+            }
+          />
         )}
         <Box display="flex" alignItems="center" gap="10px" mt="20px">
           <Heading as="h1" fontSize="22px" m="0">
             {profile.username}
           </Heading>
-          {!isAdmin && currentUser && currentUser.id !== profile.id && (
-            <FollowButton
-              followed={profile.followed}
-              disabled={followPending}
-              onClick={handleToggleFollow}
-              size={28}
-            />
-          )}
+          {!isAdmin &&
+            currentUser &&
+            currentUser.id !== profile.id &&
+            profile.role !== "ADMIN" && (
+              <FollowButton
+                followed={profile.followed}
+                disabled={followPending}
+                onClick={handleToggleFollow}
+                size={28}
+              />
+            )}
         </Box>
         {profile.followsYou && (
           <Box
@@ -251,136 +230,7 @@ function ProfilePage() {
         )}
       </Box>
 
-      {isOwnAdminProfile ? (
-        <Box mt="32px" display="flex" justifyContent="center">
-          <Box w="100%" maxW="600px" minW="0">
-            <RequestsCard />
-          </Box>
-        </Box>
-      ) : (
-        <Tabs.Root
-          value={currentTab}
-          onValueChange={(details) =>
-            setCurrentTab(details.value as ProfileTab)
-          }
-          variant="line"
-          lazyMount
-          unmountOnExit
-          mt="32px"
-        >
-          <Tabs.List justifyContent="center" gap="32px" borderColor="border">
-            <Tabs.Trigger
-              value="lists"
-              fontSize="15px"
-              color="text"
-              px="4px"
-              py="8px"
-              pb="14px"
-              cursor="pointer"
-              _selected={{
-                color: "ink",
-                fontWeight: "600",
-                "--indicator-color": "var(--chakra-colors-accent)",
-              }}
-            >
-              <HStack gap="4px" align="baseline">
-                <span>Lists</span>
-                {listsCount !== null && (
-                  <Text
-                    as="span"
-                    fontSize="10px"
-                    fontWeight="400"
-                    marginInlineStart={0.5}
-                    color="text"
-                    opacity="0.7"
-                  >
-                    {listsCount}
-                  </Text>
-                )}
-              </HStack>
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="reviews"
-              fontSize="15px"
-              color="text"
-              px="4px"
-              py="8px"
-              pb="14px"
-              cursor="pointer"
-              _selected={{
-                color: "ink",
-                fontWeight: "600",
-                "--indicator-color": "var(--chakra-colors-accent)",
-              }}
-            >
-              <HStack gap="4px" align="baseline">
-                <span>Reviews</span>
-                {reviewsCount !== null && (
-                  <Text
-                    as="span"
-                    fontSize="10px"
-                    fontWeight="400"
-                    marginInlineStart={0.5}
-                    color="text"
-                    opacity="0.7"
-                  >
-                    {reviewsCount}
-                  </Text>
-                )}
-              </HStack>
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="followers"
-              fontSize="15px"
-              color="text"
-              px="4px"
-              py="8px"
-              pb="14px"
-              cursor="pointer"
-              _selected={{
-                color: "ink",
-                fontWeight: "600",
-                "--indicator-color": "var(--chakra-colors-accent)",
-              }}
-            >
-              Followers
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="following"
-              fontSize="15px"
-              color="text"
-              px="4px"
-              py="8px"
-              pb="14px"
-              cursor="pointer"
-              _selected={{
-                color: "ink",
-                fontWeight: "600",
-                "--indicator-color": "var(--chakra-colors-accent)",
-              }}
-            >
-              Following
-            </Tabs.Trigger>
-          </Tabs.List>
-
-          <Box mt="32px" display="flex" justifyContent="center">
-            <Box w="100%" maxW="600px" minW="0">
-              <Tabs.Content value="lists">
-                <ListsCard userId={id} />
-              </Tabs.Content>
-              <Tabs.Content value="reviews">
-                <ReviewsCard userId={id} />
-              </Tabs.Content>
-              <Tabs.Content value="followers">
-                <FollowListCard userId={id} mode="followers" />
-              </Tabs.Content>
-              <Tabs.Content value="following">
-                <FollowListCard userId={id} mode="following" />
-              </Tabs.Content>
-            </Box>
-          </Box>
-        </Tabs.Root>
-      )}
+      {isOwnAdminProfile ? <AdminProfileTabs /> : <ProfileTabs userId={id} />}
     </Box>
   );
 }

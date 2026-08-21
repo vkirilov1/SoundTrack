@@ -9,9 +9,11 @@ import HomeRoute from "./routes/home";
 import ListRoute from "./routes/list";
 import LoginRoute from "./routes/login";
 import NotFoundRoute from "./routes/not-found";
+import PrivacyRoute from "./routes/privacy";
 import ProfileRoute from "./routes/profile";
 import ProfileEditRoute from "./routes/profile-edit";
 import RegisterRoute from "./routes/register";
+import TermsRoute from "./routes/terms";
 
 function AppRouter() {
   return (
@@ -29,6 +31,8 @@ function AppRouter() {
       <Route path="/charts" element={<ChartsRoute />} />
       <Route path="/charts/:year" element={<ChartsRoute />} />
       <Route path="/chats" element={<ChatsRoute />} />
+      <Route path="/terms" element={<TermsRoute />} />
+      <Route path="/privacy" element={<PrivacyRoute />} />
       <Route path="*" element={<NotFoundRoute />} />
     </Routes>
   );

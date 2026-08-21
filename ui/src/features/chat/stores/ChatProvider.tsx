@@ -304,6 +304,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404) return "gone";
+          if (error.status === 403) return "forbidden";
           if (error.status === 409) {
             return error.message.toLowerCase().includes("capacity")
               ? "full"

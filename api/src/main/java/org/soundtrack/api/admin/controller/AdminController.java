@@ -36,7 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Admin", description = "Moderation and content management — requires ADMIN role")
+@Tag(name = "Admin", description = "Moderation and content management - requires ADMIN role")
 public class AdminController {
 
   private final AdminService adminService;
@@ -384,7 +384,7 @@ public class AdminController {
   @Operation(
       summary = "List album/artist edit requests",
       description =
-          "Returns all description-edit requests submitted by users, newest first — pending"
+          "Returns all description-edit requests submitted by users, newest first - pending"
               + " and already-reviewed, kept for history.")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Requests returned"),

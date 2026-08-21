@@ -41,6 +41,10 @@ public class User {
   @Column(name = "join_date")
   private LocalDateTime joinDate;
 
+  @Column(name = "chat_access_revoked", nullable = false)
+  @Builder.Default
+  private boolean chatAccessRevoked = false;
+
   @OneToMany(mappedBy = "user")
   private List<Review> reviews = new ArrayList<>();
 

@@ -11,6 +11,7 @@ import org.soundtrack.api.chat.dto.ChatRoomResponse;
 import org.soundtrack.api.chat.dto.CreateRoomRequest;
 import org.soundtrack.api.chat.dto.InviteRequest;
 import org.soundtrack.api.chat.dto.JoinRoomResponse;
+import org.soundtrack.api.chat.moderation.dto.ReportRoomRequest;
 import org.soundtrack.api.chat.service.ChatService;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.springframework.http.HttpStatus;
@@ -108,5 +109,15 @@ public class ChatRoomController {
       @RequestParam(name = "page", defaultValue = "0") int page,
       @RequestParam(name = "size", defaultValue = "50") int size) {
     return ResponseEntity.ok(chatService.getRoomHistory(roomId, page, size));
+  }
+
+  @Operation(
+      summary = "Report a room to admins (members only)",
+      description = "Snapshots the room's recent messages into the moderation queue.")
+  @PostMapping("/{roomId}/report")
+  public ResponseEntity<Void> reportRoom(
+      @PathVariable("roomId") Long roomId, @Valid @RequestBody ReportRoomRequest request) {
+    chatService.reportRoom(roomId, request.category());
+    return ResponseEntity.noContent().build();
   }
 }

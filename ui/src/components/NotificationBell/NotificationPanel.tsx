@@ -59,6 +59,10 @@ function NotificationMessage({
           join “{notification.context}”
         </>
       );
+    case "CHAT_ACCESS_REVOKED":
+      return <>Your access to chat rooms has been revoked by an Admin</>;
+    case "CHAT_ACCESS_RESTORED":
+      return <>Your access to chat rooms has been restored by an Admin</>;
     case "FOLLOW":
       return (
         <>

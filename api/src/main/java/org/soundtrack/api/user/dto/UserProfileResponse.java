@@ -11,4 +11,5 @@ public record UserProfileResponse(
     LocalDateTime joinDate,
     UserRole role,
     boolean followed,
-    boolean followsYou) {}
+    boolean followsYou,
+    boolean chatAccessRevoked) {}

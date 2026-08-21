@@ -8,7 +8,7 @@ interface UsePagedListOptions {
 
 /**
  * Fetches page 0 of a paginated resource on mount (or whenever `fetchPage`
- * changes — pass a `useCallback`'d fetcher so it only changes when its own
+ * changes - pass a `useCallback`'d fetcher so it only changes when its own
  * inputs, like a userId, do), and exposes `goToPage` to load further pages.
  */
 export function usePagedList<T>(

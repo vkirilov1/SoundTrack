@@ -5,6 +5,7 @@ import type {
   CreateRoomPayload,
   JoinRoomResult,
 } from "../types";
+import type { ChatReportCategory } from "../moderation/types";
 import { fetchJson, fetchOk } from "../../../lib/api-client";
 
 export function getRooms(): Promise<ChatRoomInfo[]> {
@@ -64,4 +65,14 @@ export function getMessages(
   size = 50,
 ): Promise<PagedResponse<ChatMessage>> {
   return fetchJson(`/chat/rooms/${roomId}/messages?page=${page}&size=${size}`);
+}
+
+export function reportRoom(
+  roomId: number,
+  category: ChatReportCategory,
+): Promise<void> {
+  return fetchOk(`/chat/rooms/${roomId}/report`, {
+    method: "POST",
+    body: JSON.stringify({ category }),
+  });
 }

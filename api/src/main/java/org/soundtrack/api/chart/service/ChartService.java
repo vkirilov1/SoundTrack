@@ -97,7 +97,7 @@ public class ChartService {
 
   /**
    * Maps a client-facing sort keyword to its {@link Album} property, falling back to "rating" for
-   * anything unrecognized rather than erroring — this is a browse filter, not a validated input.
+   * anything unrecognized rather than erroring - this is a browse filter, not a validated input.
    */
   private String toSortProperty(String sort) {
     return switch (sort.toLowerCase(Locale.ROOT)) {

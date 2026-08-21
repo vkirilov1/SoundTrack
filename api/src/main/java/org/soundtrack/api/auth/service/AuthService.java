@@ -94,7 +94,8 @@ public class AuthService {
             user.getJoinDate(),
             user.getRole(),
             false,
-            false);
+            false,
+            user.isChatAccessRevoked());
 
     return new AuthResult(accessToken, refreshToken, profile, rememberMe);
   }
