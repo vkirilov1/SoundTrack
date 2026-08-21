@@ -1,4 +1,15 @@
-export type NotificationType = "FOLLOW" | "REVIEW_DELETED" | "PHOTO_RESET";
+export type NotificationType =
+  | "FOLLOW"
+  | "REVIEW_DELETED"
+  | "PHOTO_RESET"
+  | "CHAT_INVITE"
+  | "CHAT_REQUEST_APPROVED";
+
+/** Notification types that reference a chat room via entityId - see useNotifications. */
+export const CHAT_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
+  "CHAT_INVITE",
+  "CHAT_REQUEST_APPROVED",
+]);
 
 export interface NotificationActor {
   id: number;

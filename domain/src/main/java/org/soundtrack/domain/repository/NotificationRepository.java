@@ -1,6 +1,8 @@
 package org.soundtrack.domain.repository;
 
+import java.util.Collection;
 import org.soundtrack.domain.model.Notification;
+import org.soundtrack.domain.model.NotificationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -26,4 +28,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
   int markAllAsRead(@Param("recipientId") Long recipientId);
 
   void deleteByRecipientId(Long recipientId);
+
+  @Modifying
+  @Transactional
+  void deleteByRecipientIdAndTypeInAndEntityId(
+      Long recipientId, Collection<NotificationType> types, Long entityId);
 }

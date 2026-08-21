@@ -6,6 +6,7 @@ import org.soundtrack.domain.model.MessageType;
 public record ChatMessageResponse(
     Long id,
     Long roomId,
+    Long senderId,
     String senderUsername,
     String senderProfilePicture,
     String content,

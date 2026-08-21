@@ -19,8 +19,6 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
   onUnauthorized = handler;
 }
 
-// Fires after a silent token refresh succeeds, so cached identity (e.g. the
-// header's currentUser) can resync instead of going stale until a manual reload.
 type SessionRefreshedHandler = () => void;
 let onSessionRefreshed: SessionRefreshedHandler | null = null;
 

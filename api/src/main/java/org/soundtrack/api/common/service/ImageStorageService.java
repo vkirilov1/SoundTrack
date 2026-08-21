@@ -44,8 +44,6 @@ public class ImageStorageService {
     try {
       currentPath = storageRoot.resolve(filename).normalize();
     } catch (InvalidPathException e) {
-      // Not a filename we could have stored (e.g. a remote CoverArtArchive URL a failed download
-      // fell back to at import time) - nothing of ours to delete.
       return;
     }
 

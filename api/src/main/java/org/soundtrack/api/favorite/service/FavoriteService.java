@@ -72,7 +72,6 @@ public class FavoriteService {
 
     favoriteAlbumRepository.delete(favorite);
 
-    // Mirrors the cascade in addFavoriteAlbum
     for (Song song : songRepository.findByAlbumId(albumId)) {
       favoriteSongRepository
           .findByUserIdAndSongId(user.getId(), song.getId())

@@ -4,5 +4,7 @@ package org.soundtrack.domain.model;
 public enum NotificationType {
   FOLLOW,
   REVIEW_DELETED,
-  PHOTO_RESET
+  PHOTO_RESET,
+  CHAT_INVITE,
+  CHAT_REQUEST_APPROVED
 }

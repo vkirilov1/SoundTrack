@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import ChatDock from "../../features/chat/components/ChatDock";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ function Layout({ children }: LayoutProps) {
       <Header />
       <main>{children}</main>
       <Footer />
+      <ChatDock />
     </>
   );
 }

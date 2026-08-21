@@ -2,6 +2,10 @@ package org.soundtrack.service;
 
 import static java.lang.Thread.sleep;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import org.soundtrack.domain.model.Genre;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.GenreRepository;
 import org.soundtrack.dto.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +32,26 @@ public class ReleaseImportService {
 
   private static final int PAGE_SIZE = 100;
 
+  @Value("${import.progress.path:./import-progress}")
+  private String progressPath;
+
   public void importAllReleasesByYear(int year) throws InterruptedException {
 
     long startTime = System.currentTimeMillis();
 
-    log.info("Starting import for year {}", year);
+    int startPage = loadStartPage(year);
 
-    MBReleaseGroupsDTO firstPage = client.fetchReleasesByYear(year, 0);
+    log.info(
+        "Starting import for year {}{}",
+        year,
+        startPage > 0 ? " (resuming from page " + (startPage + 1) + ")" : "");
+
+    int startOffset = startPage * PAGE_SIZE;
+
+    MBReleaseGroupsDTO firstPage = client.fetchReleasesByYear(year, startOffset);
 
     if (firstPage == null || firstPage.releaseGroups == null) {
-      log.error("Failed to fetch first page for year {}", year);
+      log.error("Failed to fetch page {} for year {}", startPage + 1, year);
       return;
     }
 
@@ -46,9 +61,15 @@ public class ReleaseImportService {
     log.info("Total albums found for {}: {}", year, totalCount);
     log.info("Total pages to import: {}", totalPages);
 
-    importPage(firstPage, year, 0);
+    if (startPage >= totalPages) {
+      log.info("Year {} already fully imported ({} pages)", year, totalPages);
+      return;
+    }
 
-    for (int page = 1; page < totalPages; page++) {
+    importPage(firstPage, year, startOffset);
+    saveProgress(year, startPage);
+
+    for (int page = startPage + 1; page < totalPages; page++) {
 
       int offset = page * PAGE_SIZE;
 
@@ -58,10 +79,12 @@ public class ReleaseImportService {
 
       if (dto == null || dto.releaseGroups == null || dto.releaseGroups.isEmpty()) {
         log.warn("Skipping empty page at offset {}", offset);
+        saveProgress(year, page);
         continue;
       }
 
       importPage(dto, year, offset);
+      saveProgress(year, page);
 
       sleep(1000);
     }
@@ -70,6 +93,52 @@ public class ReleaseImportService {
     long durationSeconds = (endTime - startTime) / 1000;
 
     log.info("Finished importing year {} in {} seconds", year, durationSeconds);
+  }
+
+  /**
+   * Reads the 0-indexed page after the last one successfully completed for this year, so a rerun
+   * picks up where a previous run left off instead of restarting from page 0. The file holds a
+   * single plain-text page number so it can also be edited by hand to force a different offset.
+   *
+   * @param year the import year
+   * @return the page index to start from (0 if no progress file exists or it can't be read)
+   */
+  private int loadStartPage(int year) {
+    Path file = progressFile(year);
+    if (!Files.exists(file)) {
+      return 0;
+    }
+    try {
+      int lastCompletedPage = Integer.parseInt(Files.readString(file).trim());
+      return lastCompletedPage + 1;
+    } catch (IOException | NumberFormatException e) {
+      log.warn("Failed to read progress file {}, starting from page 0: {}", file, e.getMessage());
+      return 0;
+    }
+  }
+
+  /**
+   * Persists the last completed page for this year, overwriting any previous value.
+   *
+   * @param year the import year
+   * @param completedPage 0-indexed page that just finished importing
+   */
+  private void saveProgress(int year, int completedPage) {
+    Path file = progressFile(year);
+    try {
+      Files.createDirectories(file.getParent());
+      Files.writeString(file, String.valueOf(completedPage));
+    } catch (IOException e) {
+      log.warn(
+          "Failed to save import progress for year {} page {}: {}",
+          year,
+          completedPage,
+          e.getMessage());
+    }
+  }
+
+  private Path progressFile(int year) {
+    return Paths.get(progressPath, "year-" + year + ".progress");
   }
 
   private void importPage(MBReleaseGroupsDTO dto, int year, int offset)

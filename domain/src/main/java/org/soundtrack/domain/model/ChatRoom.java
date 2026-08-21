@@ -41,6 +41,9 @@ public class ChatRoom {
   @Column(name = "max_capacity", nullable = false)
   private int maxCapacity;
 
+  @Column(name = "approval_required", nullable = false)
+  private boolean approvalRequired;
+
   @ManyToMany
   @JoinTable(
       name = "chat_room_member",
@@ -48,4 +51,20 @@ public class ChatRoom {
       inverseJoinColumns = @JoinColumn(name = "user_id"))
   @Builder.Default
   private Set<User> members = new HashSet<>();
+
+  @ManyToMany
+  @JoinTable(
+      name = "chat_room_invite",
+      joinColumns = @JoinColumn(name = "chat_room_id"),
+      inverseJoinColumns = @JoinColumn(name = "user_id"))
+  @Builder.Default
+  private Set<User> invitedUsers = new HashSet<>();
+
+  @ManyToMany
+  @JoinTable(
+      name = "chat_room_join_request",
+      joinColumns = @JoinColumn(name = "chat_room_id"),
+      inverseJoinColumns = @JoinColumn(name = "user_id"))
+  @Builder.Default
+  private Set<User> joinRequests = new HashSet<>();
 }

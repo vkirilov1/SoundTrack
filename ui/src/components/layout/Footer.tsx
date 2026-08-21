@@ -42,7 +42,7 @@ function Footer() {
         align="flex-start"
         gap="24px"
       >
-        <VStack align="flex-start" gap="20px">
+        <VStack align="flex-start" gap="10px">
           <Image src={logo} alt="SoundTrack" h="40px" w="auto" />
           <HStack gap="14px">
             {SOCIAL_LINKS.map(({ label, href, path }) => (
@@ -70,7 +70,7 @@ function Footer() {
           </HStack>
         </VStack>
 
-        <VStack align={{ base: "flex-start", sm: "flex-end" }} gap="12px">
+        <VStack align={{ base: "flex-start", sm: "flex-end" }} gap="20px">
           <HStack as="nav" gap="24px">
             {FOOTER_LINKS.map((label) => (
               <Link
@@ -86,9 +86,6 @@ function Footer() {
               </Link>
             ))}
           </HStack>
-          <Text color="white" opacity="0.6" fontSize="12px">
-            Timezone: UTC+00:00
-          </Text>
           <Text color="white" opacity="0.6" fontSize="12px" textAlign="right">
             SoundTrack Limited © 2026. All rights reserved
             {LEGAL_LINKS.map((label) => (
