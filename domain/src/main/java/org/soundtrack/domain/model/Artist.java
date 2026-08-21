@@ -7,7 +7,6 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Entity class for Artist object in db */
 @Entity
 @Getter
 @Setter

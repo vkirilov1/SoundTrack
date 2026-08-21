@@ -17,7 +17,7 @@ public class ChatRoomStateService {
   private static final Logger log = LoggerFactory.getLogger(ChatRoomStateService.class);
 
   /** How long a user's connection may stay dead before they are treated as having left */
-  public static final long DEPARTURE_GRACE_SECONDS = 120;
+  public static final long DEPARTURE_GRACE_SECONDS = 60;
 
   private final ConcurrentHashMap<String, SessionInfo> sessionIndex = new ConcurrentHashMap<>();
 

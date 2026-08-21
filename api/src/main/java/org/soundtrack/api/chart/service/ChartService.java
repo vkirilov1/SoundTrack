@@ -110,7 +110,7 @@ public class ChartService {
 
   /**
    * Charts only ever show the top {@link WeightedRating#MAX_CHART_RESULTS} results. When the
-   * requested page is past that boundary, the query is skipped entirely. 1000.
+   * requested page is past that boundary, the query is skipped entirely.
    */
   private PagedResponse<AlbumSummaryResponse> getChartPage(
       int page, int size, Supplier<Page<Album>> query) {

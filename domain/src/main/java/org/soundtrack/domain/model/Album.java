@@ -6,7 +6,6 @@ import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Entity class for Album object in db */
 @Entity
 @Getter
 @Setter
@@ -63,12 +62,7 @@ public class Album {
       fetch = FetchType.LAZY)
   private Set<AlbumArtist> albumArtists = new HashSet<>();
 
-  /**
-   * Adds a new artist to the Album Entity
-   *
-   * @param artist the artist
-   * @param position the artist's MusicBrainz credit order (0 = primary artist)
-   */
+  /** @param position the artist's MusicBrainz credit order (0 = primary artist) */
   public void addArtist(Artist artist, int position) {
     AlbumArtist link = new AlbumArtist();
     link.setAlbum(this);
@@ -92,12 +86,7 @@ public class Album {
         .toList();
   }
 
-  /**
-   * Links a genre to this album with a relevance weight (MusicBrainz tag vote count).
-   *
-   * @param genre the genre
-   * @param weight the tag's relevance weight for this album
-   */
+  /** {@code weight} is the MusicBrainz tag's vote count, used as a relevance weight. */
   public void addGenre(Genre genre, int weight) {
     AlbumGenre link = new AlbumGenre();
     link.setAlbum(this);

@@ -11,7 +11,6 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-/** Entity class for Song object in db */
 @Entity
 @Getter
 @Setter
@@ -46,12 +45,7 @@ public class Song {
       fetch = FetchType.LAZY)
   private Set<SongArtist> songArtists = new HashSet<>();
 
-  /**
-   * Adds a new artist to this song.
-   *
-   * @param artist the artist
-   * @param position the artist's MusicBrainz credit order (0 = primary artist)
-   */
+  /** @param position the artist's MusicBrainz credit order (0 = primary artist) */
   public void addArtist(Artist artist, int position) {
     SongArtist link = new SongArtist();
     link.setSong(this);
