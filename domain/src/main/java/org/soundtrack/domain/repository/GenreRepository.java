@@ -13,7 +13,6 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
 
   Optional<Genre> findByGenreIgnoreCase(String genre);
 
-  // Fetches all genres where the name is in the provided set
   List<Genre> findAllByGenreIn(Set<String> genreNames);
 
   // Autocomplete for the admin "add genre" search box

@@ -2,9 +2,6 @@ import { useState } from "react";
 
 const DEFAULT_PREVIEW_LENGTH = 180;
 
-/**
- * Shared "read more / show less" truncation logic for a block of text
- */
 export function useReadMore(
   text: string | null,
   previewLength = DEFAULT_PREVIEW_LENGTH,

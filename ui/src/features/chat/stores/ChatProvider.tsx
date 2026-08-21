@@ -91,6 +91,8 @@ function ChatProvider({ children }: { children: ReactNode }) {
   // Live connection for the active room
   useEffect(() => {
     if (activeRoomId == null) return;
+    // Guards against a message for the OLD room arriving after switching to a new one (e.g. a
+    // stale ROOM_CLOSED delivered late) from being applied to the new room's state.
     let stale = false;
 
     const handleMessage = (message: ChatMessage) => {

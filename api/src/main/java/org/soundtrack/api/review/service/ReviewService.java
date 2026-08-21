@@ -215,11 +215,6 @@ public class ReviewService {
         content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
   }
 
-  /**
-   * Returns authenticated user from JWT context
-   *
-   * @return the user
-   */
   private User getAuthenticatedUser() {
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -249,14 +244,6 @@ public class ReviewService {
     return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 
-  /**
-   * Validates album ownership and review ownership
-   *
-   * @param review the review object
-   * @param albumId the album id
-   * @param user the user object
-   * @param action the action the user is making
-   */
   private void validateReviewOwnership(Review review, Long albumId, User user, String action) {
 
     if (!review.getAlbum().getId().equals(albumId)) {
@@ -268,12 +255,6 @@ public class ReviewService {
     }
   }
 
-  /**
-   * Pulls album from database
-   *
-   * @param albumId the album id
-   * @return the album object
-   */
   private Album findAlbumById(Long albumId) {
     return albumRepository
         .findById(albumId)
@@ -294,26 +275,12 @@ public class ReviewService {
         .orElseThrow(() -> new ResourceNotFoundException("Album not found"));
   }
 
-  /**
-   * Pulls user from database
-   *
-   * @param email the user email
-   * @return the user object
-   */
   private User findUserByEmail(String email) {
     return userRepository
         .findByEmail(email)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
   }
 
-  /**
-   * Calculates album rating after creating review
-   *
-   * @param album the album object
-   * @param newCount the new count of reviews
-   * @param newRating the new rating to add
-   * @return the calculated rating
-   */
   private double calculateCreatedReviewRating(Album album, int newCount, double newRating) {
 
     double oldTotalScore = album.getRating() * album.getReviewsCount();
@@ -321,14 +288,6 @@ public class ReviewService {
     return (oldTotalScore + newRating) / newCount;
   }
 
-  /**
-   * Calculates album rating after updating review
-   *
-   * @param album the album object
-   * @param oldReviewRating the old rating
-   * @param newReviewRating the new rating
-   * @return the calculated rating
-   */
   private double calculateUpdatedReviewRating(
       Album album, double oldReviewRating, double newReviewRating) {
 
@@ -339,14 +298,6 @@ public class ReviewService {
     return updatedTotalScore / album.getReviewsCount();
   }
 
-  /**
-   * Calculates album rating after deleting review
-   *
-   * @param album the album object
-   * @param currentCount the current count of reviews
-   * @param deletedReviewRating the rating that gets deleted
-   * @return the calculated rating
-   */
   private double calculateDeletedReviewRating(
       Album album, int currentCount, double deletedReviewRating) {
 
