@@ -21,6 +21,7 @@ export interface UserProfile {
   role: UserRole;
   followed: boolean;
   followsYou: boolean;
+  chatAccessRevoked: boolean;
 }
 
 export type FieldErrors = Record<string, string>;

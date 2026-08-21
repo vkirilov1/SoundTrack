@@ -95,6 +95,7 @@ public class SearchService {
         user.getJoinDate(),
         user.getRole(),
         false,
-        false);
+        false,
+        user.isChatAccessRevoked());
   }
 }

@@ -142,7 +142,7 @@ function ReviewsSection({
         />
       )}
 
-      {/* No emptyMessage here — AlbumCard already prompts to write the first review. */}
+      {/* No emptyMessage here - AlbumCard already prompts to write the first review. */}
       <PagedSection
         loading={loading}
         listLoading={listLoading}

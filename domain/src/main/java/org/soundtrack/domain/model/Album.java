@@ -62,7 +62,9 @@ public class Album {
       fetch = FetchType.LAZY)
   private Set<AlbumArtist> albumArtists = new HashSet<>();
 
-  /** @param position the artist's MusicBrainz credit order (0 = primary artist) */
+  /**
+   * @param position the artist's MusicBrainz credit order (0 = primary artist)
+   */
   public void addArtist(Artist artist, int position) {
     AlbumArtist link = new AlbumArtist();
     link.setAlbum(this);

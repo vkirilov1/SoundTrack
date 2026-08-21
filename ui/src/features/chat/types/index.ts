@@ -69,4 +69,5 @@ export type JoinOutcome =
   | "conflict" // already in another room - caller should confirm leaving it
   | "gone" // room no longer exists
   | "full"
+  | "forbidden" // e.g. chat access revoked - message carries the server's reason
   | "error";

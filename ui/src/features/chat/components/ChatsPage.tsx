@@ -76,6 +76,11 @@ function ChatsPage() {
       }));
     } else if (outcome === "full") {
       setRowErrors((prev) => ({ ...prev, [room.id]: "This room is full." }));
+    } else if (outcome === "forbidden") {
+      setRowErrors((prev) => ({
+        ...prev,
+        [room.id]: "Your access to chat rooms has been revoked.",
+      }));
     } else if (outcome === "error") {
       setRowErrors((prev) => ({
         ...prev,

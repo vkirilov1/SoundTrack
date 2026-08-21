@@ -22,14 +22,22 @@ import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.ChatMessage;
+import org.soundtrack.domain.model.ChatReportCategory;
+import org.soundtrack.domain.model.ChatReportMessage;
+import org.soundtrack.domain.model.ChatReportResolution;
+import org.soundtrack.domain.model.ChatReportStatus;
 import org.soundtrack.domain.model.ChatRoom;
+import org.soundtrack.domain.model.ChatRoomReport;
 import org.soundtrack.domain.model.MessageType;
 import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.TopicType;
 import org.soundtrack.domain.model.User;
+import org.soundtrack.domain.model.UserRole;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
 import org.soundtrack.domain.repository.ChatMessageRepository;
+import org.soundtrack.domain.repository.ChatReportMessageRepository;
+import org.soundtrack.domain.repository.ChatRoomReportRepository;
 import org.soundtrack.domain.repository.ChatRoomRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -52,8 +60,12 @@ public class ChatService {
 
   public static final int MAX_CAPACITY = 20;
 
+  private static final int REPORT_CONTEXT_MESSAGE_COUNT = 20;
+
   private final ChatRoomRepository chatRoomRepository;
   private final ChatMessageRepository chatMessageRepository;
+  private final ChatRoomReportRepository chatRoomReportRepository;
+  private final ChatReportMessageRepository chatReportMessageRepository;
   private final UserRepository userRepository;
   private final AlbumRepository albumRepository;
   private final ArtistRepository artistRepository;
@@ -63,6 +75,12 @@ public class ChatService {
   @Transactional
   public ChatRoomResponse createRoom(CreateRoomRequest request) {
     User creator = getAuthenticatedUser();
+
+    if (creator.isChatAccessRevoked()) {
+      throw new ForbiddenException(
+          "Your access to chat rooms has been revoked. Contact support if you think this is a"
+              + " mistake");
+    }
 
     if (chatRoomRepository.findByMemberId(creator.getId()).isPresent()) {
       throw new ResourceExistsException(
@@ -134,6 +152,12 @@ public class ChatService {
       return new JoinRoomResponse(JoinStatus.JOINED, toResponse(room, user));
     }
 
+    if (user.isChatAccessRevoked()) {
+      throw new ForbiddenException(
+          "Your access to chat rooms has been revoked. Contact support if you think this is a"
+              + " mistake");
+    }
+
     chatRoomRepository
         .findByMemberId(user.getId())
         .ifPresent(
@@ -147,13 +171,16 @@ public class ChatService {
           "You already have a pending request to join another chat room");
     }
 
-    if (room.getMembers().size() >= room.getMaxCapacity()) {
+    // Moderators can always get in to investigate
+    boolean isModeratorEntry = user.getRole() == UserRole.ADMIN;
+
+    if (!isModeratorEntry && room.getMembers().size() >= room.getMaxCapacity()) {
       throw new ChatRoomFullException("Chat room is at full capacity");
     }
 
     boolean invited = room.getInvitedUsers().remove(user);
 
-    if (room.isApprovalRequired() && !invited) {
+    if (room.isApprovalRequired() && !invited && !isModeratorEntry) {
       if (room.getJoinRequests().add(user)) {
         chatRoomRepository.save(room);
         broadcastEvent(roomId, ChatRoomEventResponse.joinRequest(toSummary(user)));
@@ -167,6 +194,10 @@ public class ChatService {
 
     broadcastSystemMessage(room, user, MessageType.JOIN, user.getUsername() + " joined the room");
     notificationService.clearChatRoomNotifications(user, roomId);
+
+    if (isModeratorEntry) {
+      markReportHandling(roomId, user);
+    }
 
     return new JoinRoomResponse(JoinStatus.JOINED, toResponse(room, user));
   }
@@ -375,11 +406,122 @@ public class ChatService {
     broadcastSystemMessage(room, user, MessageType.LEAVE, user.getUsername() + " left the room");
   }
 
-  /** Broadcasts ROOM_CLOSED, then deletes the room's messages and the room itself. */
+  /**
+   * Broadcasts ROOM_CLOSED, then deletes the room's messages and the room itself. Any report still
+   * open against this room is auto-resolved
+   */
   private void closeRoom(ChatRoom room) {
     broadcastEvent(room.getId(), ChatRoomEventResponse.roomClosed());
     chatMessageRepository.deleteByRoomId(room.getId());
     chatRoomRepository.delete(room);
+
+    chatRoomReportRepository
+        .findFirstByRoomIdAndStatusNotOrderByCreatedAtDesc(room.getId(), ChatReportStatus.RESOLVED)
+        .ifPresent(
+            report -> {
+              report.setStatus(ChatReportStatus.RESOLVED);
+              report.setResolution(ChatReportResolution.DISMISSED);
+              report.setResolvedAt(LocalDateTime.now());
+              chatRoomReportRepository.save(report);
+            });
+  }
+
+  /**
+   * Snapshots the room's last {@value #REPORT_CONTEXT_MESSAGE_COUNT} messages into a new report for
+   * admins to review
+   */
+  @Transactional
+  public void reportRoom(Long roomId, ChatReportCategory category) {
+    User reporter = getAuthenticatedUser();
+    ChatRoom room = findRoomWithMembers(roomId);
+
+    if (!room.getMembers().contains(reporter)) {
+      throw new ForbiddenException("Only room members can report this room");
+    }
+
+    ChatRoomReport report =
+        ChatRoomReport.builder()
+            .reporter(reporter)
+            .roomId(roomId)
+            .roomName(room.getName())
+            .topicName(resolveTopicName(room))
+            .category(category)
+            .status(ChatReportStatus.OPEN)
+            .build();
+    chatRoomReportRepository.save(report);
+
+    saveContextMessages(report);
+  }
+
+  @Transactional
+  public void adminDeleteRoom(Long roomId) {
+    User admin = getAuthenticatedUser();
+    ChatRoom room = findRoomWithMembers(roomId);
+
+    ChatRoomReport report =
+        chatRoomReportRepository
+            .findFirstByRoomIdAndStatusNotOrderByCreatedAtDesc(roomId, ChatReportStatus.RESOLVED)
+            .orElseGet(
+                () ->
+                    ChatRoomReport.builder()
+                        .roomId(roomId)
+                        .roomName(room.getName())
+                        .topicName(resolveTopicName(room))
+                        .category(ChatReportCategory.ADMIN_ACTION)
+                        .status(ChatReportStatus.OPEN)
+                        .build());
+
+    boolean isNewReport = report.getId() == null;
+
+    report.setStatus(ChatReportStatus.RESOLVED);
+    report.setResolution(ChatReportResolution.ROOM_DELETED);
+    report.setResolvedBy(admin);
+    report.setResolvedAt(LocalDateTime.now());
+    chatRoomReportRepository.save(report);
+
+    if (isNewReport) {
+      saveContextMessages(report);
+    }
+
+    closeRoom(room);
+  }
+
+  private void markReportHandling(Long roomId, User admin) {
+    chatRoomReportRepository
+        .findFirstByRoomIdAndStatusNotOrderByCreatedAtDesc(roomId, ChatReportStatus.RESOLVED)
+        .ifPresent(
+            report -> {
+              report.setStatus(ChatReportStatus.HANDLING);
+              report.setHandledBy(admin);
+              chatRoomReportRepository.save(report);
+            });
+  }
+
+  private void saveContextMessages(ChatRoomReport report) {
+    Page<ChatMessage> recent =
+        chatMessageRepository.findByRoomIdOrderBySentAtDesc(
+            report.getRoomId(), PageRequest.of(0, REPORT_CONTEXT_MESSAGE_COUNT));
+
+    List<ChatMessage> chronological = recent.getContent().reversed();
+
+    List<ChatReportMessage> snapshots =
+        chronological.stream()
+            .map(
+                m ->
+                    ChatReportMessage.builder()
+                        .report(report)
+                        .senderUsername(m.getSender().getUsername())
+                        .content(m.getContent())
+                        .sentAt(m.getSentAt())
+                        .build())
+            .toList();
+
+    chatReportMessageRepository.saveAll(snapshots);
+  }
+
+  private String resolveTopicName(ChatRoom room) {
+    TopicInfo topic = resolveTopic(room.getTopicType(), room.getTopicId());
+    return topic != null ? topic.name() : null;
   }
 
   private void requireOwner(ChatRoom room, User user) {
@@ -458,11 +600,7 @@ public class ChatService {
         pendingRequests);
   }
 
-  /**
-   * Resolves the display name and image filename for the room's topic entity, or null when the
-   * entity no longer exists. SONG rooms are not creatable for now, so only albums and artists
-   * resolve.
-   */
+  /** Resolves the display name and image filename for the room's topic entity */
   private TopicInfo resolveTopic(TopicType type, Long topicId) {
     switch (type) {
       case ALBUM -> {

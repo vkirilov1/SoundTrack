@@ -1,6 +1,8 @@
 package org.soundtrack.api.chat.service;
 
 import jakarta.annotation.PreDestroy;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -19,9 +21,16 @@ public class ChatRoomStateService {
   /** How long a user's connection may stay dead before they are treated as having left */
   public static final long DEPARTURE_GRACE_SECONDS = 60;
 
+  private static final int MAX_MESSAGES_PER_WINDOW = 8;
+
+  private static final long RATE_WINDOW_MS = 10_000;
+
   private final ConcurrentHashMap<String, SessionInfo> sessionIndex = new ConcurrentHashMap<>();
 
   private final ConcurrentHashMap<String, ScheduledFuture<?>> pendingDepartures =
+      new ConcurrentHashMap<>();
+
+  private final ConcurrentHashMap<String, Deque<Long>> messageTimestampsByEmail =
       new ConcurrentHashMap<>();
 
   private final ScheduledExecutorService scheduler =
@@ -88,6 +97,23 @@ public class ChatRoomStateService {
 
   private String departureKey(String userEmail, Long roomId) {
     return userEmail + "|" + roomId;
+  }
+
+  public boolean allowMessage(String userEmail) {
+    Deque<Long> timestamps =
+        messageTimestampsByEmail.computeIfAbsent(userEmail, k -> new ArrayDeque<>());
+    long now = System.currentTimeMillis();
+
+    synchronized (timestamps) {
+      while (!timestamps.isEmpty() && now - timestamps.peekFirst() > RATE_WINDOW_MS) {
+        timestamps.pollFirst();
+      }
+      if (timestamps.size() >= MAX_MESSAGES_PER_WINDOW) {
+        return false;
+      }
+      timestamps.addLast(now);
+      return true;
+    }
   }
 
   @PreDestroy

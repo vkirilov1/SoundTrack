@@ -131,7 +131,8 @@ public class UserService {
         user.getJoinDate(),
         user.getRole(),
         followed,
-        followsYou);
+        followsYou,
+        user.isChatAccessRevoked());
   }
 
   /**

@@ -138,7 +138,8 @@ public class UserFollowService {
         user.getJoinDate(),
         user.getRole(),
         followed,
-        followsYou);
+        followsYou,
+        user.isChatAccessRevoked());
   }
 
   private User getAuthenticatedUser() {
