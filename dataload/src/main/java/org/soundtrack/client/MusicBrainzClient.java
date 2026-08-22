@@ -28,7 +28,13 @@ public class MusicBrainzClient {
 
   private static final int MAX_RETRIES = 5;
 
+  private static final long[] RETRY_DELAYS_MS = {2_000, 5_000, 15_000, 30_000, 60_000};
+
   private final RestTemplate restTemplate = createRestTemplate();
+
+  private static long retryDelay(int attempt) {
+    return RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)];
+  }
 
   private static RestTemplate createRestTemplate() {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -71,12 +77,14 @@ public class MusicBrainzClient {
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
+        long delay = retryDelay(attempt);
         log.warn(
-            "MusicBrainz busy (503) fetching releases for year {}. Retry {}/{} in 60s",
+            "MusicBrainz busy (503) fetching releases for year {}. Retry {}/{} in {}ms",
             year,
             attempt + 1,
-            MAX_RETRIES);
-        sleep(60_000);
+            MAX_RETRIES,
+            delay);
+        sleep(delay);
       } catch (RestClientException e) {
         log.error(
             "Failed to fetch albums for year {} at offset {}. Error: {}",
@@ -118,12 +126,14 @@ public class MusicBrainzClient {
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
+        long delay = retryDelay(attempt);
         log.warn(
-            "MusicBrainz busy (503) fetching artist with id {}. Retry {}/{} in 60s",
+            "MusicBrainz busy (503) fetching artist with id {}. Retry {}/{} in {}ms",
             mbid,
             attempt + 1,
-            MAX_RETRIES);
-        sleep(60_000);
+            MAX_RETRIES,
+            delay);
+        sleep(delay);
       } catch (RestClientException e) {
         log.error("Failed to fetch artist {}: {}", mbid, e.getMessage());
         return null;
@@ -160,12 +170,14 @@ public class MusicBrainzClient {
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
+        long delay = retryDelay(attempt);
         log.warn(
-            "MusicBrainz busy (503) fetching release recordings for {}. Retry {}/{} in 60s",
+            "MusicBrainz busy (503) fetching release recordings for {}. Retry {}/{} in {}ms",
             releaseId,
             attempt + 1,
-            MAX_RETRIES);
-        sleep(60_000);
+            MAX_RETRIES,
+            delay);
+        sleep(delay);
       } catch (RestClientException e) {
         log.error("Failed to fetch release recordings for {}: {}", releaseId, e.getMessage());
         return null;

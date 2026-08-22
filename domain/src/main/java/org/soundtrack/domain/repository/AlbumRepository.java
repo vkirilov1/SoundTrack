@@ -2,6 +2,7 @@ package org.soundtrack.domain.repository;
 
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,4 +114,34 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   @Query(
       "SELECT DISTINCT YEAR(a.releaseDate) FROM Album a WHERE a.reviewsCount > 0 ORDER BY YEAR(a.releaseDate) DESC")
   List<Integer> findDistinctYearsWithReviews();
+
+  /**
+   * Albums added to the catalog after {@code cutoff}, newest first - for the Drops "Recently Added"
+   * feed.
+   */
+  Page<Album> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime cutoff, Pageable pageable);
+
+  /** Same as {@link #findByGenreIgnoreCase}, additionally narrowed to one artist's albums. */
+  @Query(
+      "SELECT a FROM Album a JOIN a.albumGenres ag JOIN ag.genre g JOIN a.albumArtists aa "
+          + "WHERE LOWER(g.genre) = LOWER(:genre) AND aa.artist.id = :artistId")
+  Page<Album> findByGenreIgnoreCaseAndArtistId(
+      @Param("genre") String genre, @Param("artistId") Long artistId, Pageable pageable);
+
+  /**
+   * Same as {@link #findByGenreIgnoreCaseOrderByWeightedRating}, narrowed to one artist's albums.
+   */
+  @Query(
+      "SELECT a FROM Album a JOIN a.albumGenres ag JOIN ag.genre g JOIN a.albumArtists aa "
+          + "WHERE LOWER(g.genre) = LOWER(:genre) AND aa.artist.id = :artistId "
+          + "ORDER BY CASE WHEN a.reviewsCount = 0 THEN 1 ELSE 0 END ASC, "
+          + "(((a.reviewsCount * a.rating) + (:m * :globalMean)) / (a.reviewsCount + :m)) * :sign DESC, "
+          + "a.title ASC")
+  Page<Album> findByGenreIgnoreCaseAndArtistIdOrderByWeightedRating(
+      @Param("genre") String genre,
+      @Param("artistId") Long artistId,
+      @Param("m") double m,
+      @Param("globalMean") double globalMean,
+      @Param("sign") double sign,
+      Pageable pageable);
 }

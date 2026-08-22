@@ -57,6 +57,20 @@ public class ChartController {
     return chartService.getAvailableYears();
   }
 
+  @GetMapping("/recent")
+  @Operation(
+      summary = "Recently added albums",
+      description = "Returns albums added to the catalog in the last 30 days, newest first")
+  public PagedResponse<AlbumSummaryResponse> getRecentlyAdded(
+      @Parameter(description = "Zero-based page index")
+          @RequestParam(name = "page", defaultValue = "0")
+          int page,
+      @Parameter(description = "Number of albums per page")
+          @RequestParam(name = "size", defaultValue = "20")
+          int size) {
+    return chartService.getRecentlyAdded(page, size);
+  }
+
   @GetMapping("/genre/{genre}")
   @Operation(
       summary = "Albums for a genre",
@@ -69,12 +83,15 @@ public class ChartController {
       @Parameter(description = "Sort direction; true = descending")
           @RequestParam(name = "descending", defaultValue = "true")
           boolean descending,
+      @Parameter(description = "Narrow the list to one artist's albums")
+          @RequestParam(name = "artistId", required = false)
+          Long artistId,
       @Parameter(description = "Zero-based page index")
           @RequestParam(name = "page", defaultValue = "0")
           int page,
       @Parameter(description = "Number of albums per page")
           @RequestParam(name = "size", defaultValue = "20")
           int size) {
-    return chartService.getAlbumsByGenre(genre, sort, descending, page, size);
+    return chartService.getAlbumsByGenre(genre, sort, descending, artistId, page, size);
   }
 }

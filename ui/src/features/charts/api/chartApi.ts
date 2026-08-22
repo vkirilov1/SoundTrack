@@ -22,10 +22,18 @@ export function getAvailableYears(): Promise<number[]> {
   return fetchJson(`/albums/years`);
 }
 
+export function getRecentlyAdded(
+  page = 0,
+  size = 20,
+): Promise<PagedResponse<AlbumSummary>> {
+  return fetchJson(`/albums/recent?page=${page}&size=${size}`);
+}
+
 export function getAlbumsByGenre(
   genre: string,
   sort: ChartSortField,
   descending: boolean,
+  artistId: number | null,
   page = 0,
   size = 20,
 ): Promise<PagedResponse<AlbumSummary>> {
@@ -35,5 +43,8 @@ export function getAlbumsByGenre(
     page: String(page),
     size: String(size),
   });
+  if (artistId !== null) {
+    params.set("artistId", String(artistId));
+  }
   return fetchJson(`/albums/genre/${encodeURIComponent(genre)}?${params}`);
 }

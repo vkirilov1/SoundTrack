@@ -1,3 +1,10 @@
+/**
+ * FOLLOW - When the user gains a new follower
+ * REVIEW_DELETED/PHOTO_RESET - Admin actions treated as system notifications
+ * CHAT_INVITE/REQUEST_APPROVED - Handle Actions related to chats
+ * CHAT_ACCESS_* - Admin actions treated as system notifications
+ * ALBUM_SUGGESTION_* - Decision on a user's Drops album suggestion
+ */
 export type NotificationType =
   | "FOLLOW"
   | "REVIEW_DELETED"
@@ -5,9 +12,11 @@ export type NotificationType =
   | "CHAT_INVITE"
   | "CHAT_REQUEST_APPROVED"
   | "CHAT_ACCESS_REVOKED"
-  | "CHAT_ACCESS_RESTORED";
+  | "CHAT_ACCESS_RESTORED"
+  | "ALBUM_SUGGESTION_APPROVED"
+  | "ALBUM_SUGGESTION_REJECTED";
 
-/** Notification types that reference a chat room via entityId - see useNotifications. */
+/** Notification types that reference a chat room via entityId */
 export const CHAT_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
   "CHAT_INVITE",
   "CHAT_REQUEST_APPROVED",

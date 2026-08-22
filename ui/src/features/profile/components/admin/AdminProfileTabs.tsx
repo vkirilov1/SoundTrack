@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Box, Tabs } from "@chakra-ui/react";
 import RequestsCard from "../../../edit-requests/components/RequestsCard";
 import ChatReportsCard from "../../../chat/moderation/components/ChatReportsCard";
+import SubmittedAlbumsCard from "../../../drops/moderation/components/SubmittedAlbumsCard";
 
-type AdminTab = "edit-requests" | "chat-reports";
+type AdminTab = "edit-requests" | "chat-reports" | "submitted-albums";
 
 function AdminProfileTabs() {
   const [adminTab, setAdminTab] = useState<AdminTab>("edit-requests");
@@ -50,6 +51,22 @@ function AdminProfileTabs() {
         >
           Chat Reports
         </Tabs.Trigger>
+        <Tabs.Trigger
+          value="submitted-albums"
+          fontSize="15px"
+          color="text"
+          px="4px"
+          py="8px"
+          pb="14px"
+          cursor="pointer"
+          _selected={{
+            color: "ink",
+            fontWeight: "600",
+            "--indicator-color": "var(--chakra-colors-accent)",
+          }}
+        >
+          Submitted Albums
+        </Tabs.Trigger>
       </Tabs.List>
 
       <Box mt="32px" display="flex" justifyContent="center">
@@ -59,6 +76,9 @@ function AdminProfileTabs() {
           </Tabs.Content>
           <Tabs.Content value="chat-reports">
             <ChatReportsCard />
+          </Tabs.Content>
+          <Tabs.Content value="submitted-albums">
+            <SubmittedAlbumsCard />
           </Tabs.Content>
         </Box>
       </Box>

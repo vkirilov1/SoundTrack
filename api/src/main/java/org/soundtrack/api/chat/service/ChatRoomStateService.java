@@ -19,7 +19,7 @@ public class ChatRoomStateService {
   private static final Logger log = LoggerFactory.getLogger(ChatRoomStateService.class);
 
   /** How long a user's connection may stay dead before they are treated as having left */
-  public static final long DEPARTURE_GRACE_SECONDS = 60;
+  public static final long DEPARTURE_GRACE_SECONDS = 150;
 
   private static final int MAX_MESSAGES_PER_WINDOW = 8;
 

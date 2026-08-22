@@ -103,6 +103,7 @@ function ArtistPage() {
         onPhotoChange={handlePhotoChange}
       />
       <ArtistAlbums
+        key={artist.id}
         albums={artist.albums}
         onAlbumFavoriteChange={handleAlbumFavoriteChange}
       />

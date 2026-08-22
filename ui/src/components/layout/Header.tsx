@@ -2,14 +2,14 @@ import { Box, Flex, HStack, Image, Link } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import logo from "../../assets/SoundTrackLogo.png";
 import SearchBar from "../../features/search/components/SearchBar";
-import NotificationBell from "../NotificationBell/NotificationBell";
+import NotificationBell from "../../features/notifications/components/NotificationBell";
 import { ColorModeButton } from "../ui/color-mode";
 import { useAuth } from "../../features/auth/stores/useAuth";
 
 const NAV_LINKS: { label: string; to?: string }[] = [
   { label: "Charts", to: "/charts" },
   { label: "Chats", to: "/chats" },
-  { label: "Drops" },
+  { label: "Drops", to: "/drops" },
 ];
 
 function Header() {

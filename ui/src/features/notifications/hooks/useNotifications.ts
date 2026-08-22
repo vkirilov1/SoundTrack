@@ -14,8 +14,7 @@ const RECONNECT_DELAY_MS = 3000;
 
 /**
  * Seeds the unread badge once on login (in case notifications piled up before this tab opened),
- * then keeps it live over an SSE stream for the rest of the session - no polling. The full list is
- * only fetched on demand (when the bell dropdown opens), which also marks everything read.
+ * then keeps it live over an SSE stream for the rest of the session
  */
 export function useNotifications() {
   const { user } = useAuth();

@@ -1,8 +1,8 @@
 import { Box, chakra } from "@chakra-ui/react";
-import BellIcon from "../icons/BellIcon";
+import BellIcon from "../../../components/icons/BellIcon";
 import { useNotificationBell } from "./useNotificationBell";
 import NotificationPanel from "./NotificationPanel";
-import { useNotifications } from "../../features/notifications/hooks/useNotifications";
+import { useNotifications } from "../hooks/useNotifications";
 
 function NotificationBell() {
   const { open, panelRef, toggle } = useNotificationBell();

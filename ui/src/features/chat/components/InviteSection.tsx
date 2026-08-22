@@ -1,19 +1,25 @@
-import { useState } from "react";
-import { Box, Flex, Input, Text } from "@chakra-ui/react";
-import Avatar from "../../../components/Avatar/Avatar";
-import PillButton from "../../../components/buttons/PillButton";
+import { useCallback, useState } from "react";
+import { Box, Input, Text } from "@chakra-ui/react";
+import Pagination from "../../../components/Pagination/Pagination";
 import {
   useDebouncedSearch,
   MIN_QUERY_LENGTH,
 } from "../../search/hooks/useDebouncedSearch";
-import { userPhotoUrl } from "../../../utils/images";
+import { getFollowing } from "../../profile/api/followApi";
+import { usePagedList } from "../../../hooks/usePagedList";
 import type { UserProfile } from "../../../types/auth";
 import { useAuth } from "../../auth/stores/useAuth";
 import { useChat } from "../stores/useChat";
 import type { ChatRoomInfo } from "../types";
 import ChatSectionHeader from "./ChatSectionHeader";
+import InviteUserRow from "./InviteUserRow";
 
-/** Search users by name and send chat invites (delivered as notifications). */
+const FOLLOWING_PAGE_SIZE = 10;
+
+/**
+ * Search users by name and send chat invites (delivered as notifications). With no query typed,
+ * defaults to the caller's own paginated "following" list
+ */
 function InviteSection({
   room,
   onBack,
@@ -30,6 +36,27 @@ function InviteSection({
 
   const { userResults, loading } = useDebouncedSearch(query, "users");
   const searching = query.trim().length >= MIN_QUERY_LENGTH;
+
+  const fetchFollowing = useCallback(
+    (page: number) =>
+      user
+        ? getFollowing(user.id, page, FOLLOWING_PAGE_SIZE)
+        : Promise.resolve({
+            content: [],
+            page: 0,
+            size: FOLLOWING_PAGE_SIZE,
+            totalElements: 0,
+            totalPages: 0,
+          }),
+    [user],
+  );
+  const {
+    items: following,
+    page,
+    totalPages,
+    loading: followingLoading,
+    goToPage,
+  } = usePagedList(fetchFollowing, { enabled: !searching });
 
   function handleInvite(target: UserProfile) {
     setError(null);
@@ -68,69 +95,59 @@ function InviteSection({
         </Text>
       )}
 
-      {searching && loading && (
-        <Text m="0" px="14px" py="8px" fontSize="12px" color="text">
-          Searching…
-        </Text>
-      )}
+      {searching ? (
+        <>
+          {loading && (
+            <Text m="0" px="14px" py="8px" fontSize="12px" color="text">
+              Searching…
+            </Text>
+          )}
 
-      {searching &&
-        !loading &&
-        userResults
-          .filter((result) => result.id !== user?.id)
-          .map((result) => {
-            const alreadyMember = memberIds.has(result.id);
-            const invited = invitedIds.has(result.id);
-            return (
-              <Flex
-                key={result.id}
-                align="center"
-                gap="10px"
-                px="14px"
-                py="8px"
-              >
-                <Avatar
-                  src={userPhotoUrl(
-                    result.profilePictureUrl ?? "userDefault.png",
-                  )}
-                  alt={result.username}
-                  size="30px"
+          {!loading &&
+            userResults
+              .filter((result) => result.id !== user?.id)
+              .map((result) => (
+                <InviteUserRow
+                  key={result.id}
+                  user={result}
+                  alreadyMember={memberIds.has(result.id)}
+                  invited={invitedIds.has(result.id)}
+                  onInvite={handleInvite}
                 />
-                <Text
-                  m="0"
-                  flex="1"
-                  minW="0"
-                  fontSize="13px"
-                  fontWeight="600"
-                  color="ink"
-                  truncate
-                >
-                  {result.username}
-                </Text>
-                {alreadyMember ? (
-                  <Text m="0" fontSize="12px" color="text">
-                    In chat
-                  </Text>
-                ) : (
-                  <PillButton
-                    onClick={() => handleInvite(result)}
-                    disabled={invited}
-                    muted={invited}
-                    fontSize="12px"
-                    px="12px"
-                    py="5px"
-                  >
-                    {invited ? "Invited" : "Invite"}
-                  </PillButton>
-                )}
-              </Flex>
-            );
-          })}
+              ))}
 
-      {searching && !loading && userResults.length === 0 && (
-        <Text m="0" px="14px" py="8px" fontSize="12px" color="text">
-          No users found.
-        </Text>
+          {!loading && userResults.length === 0 && (
+            <Text m="0" px="14px" py="8px" fontSize="12px" color="text">
+              No users found.
+            </Text>
+          )}
+        </>
+      ) : (
+        <>
+          {!followingLoading && following.length === 0 && (
+            <Text m="0" px="14px" py="8px" fontSize="12px" color="text">
+              You're not following anyone yet.
+            </Text>
+          )}
+
+          {following.map((result) => (
+            <InviteUserRow
+              key={result.id}
+              user={result}
+              alreadyMember={memberIds.has(result.id)}
+              invited={invitedIds.has(result.id)}
+              onInvite={handleInvite}
+            />
+          ))}
+
+          <Box px="8px">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+            />
+          </Box>
+        </>
       )}
     </Box>
   );
