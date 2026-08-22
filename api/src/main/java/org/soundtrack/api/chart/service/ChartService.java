@@ -1,6 +1,7 @@
 package org.soundtrack.api.chart.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -29,6 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ChartService {
 
+  /**
+   * How far back the Drops "Recently Added" feed looks - keeps it honestly "recent" rather than a
+   * growing archive.
+   */
+  private static final int RECENTLY_ADDED_WINDOW_DAYS = 30;
+
   private final AlbumRepository albumRepository;
   private final ChartMapper chartMapper;
   private final FavoriteAlbumRepository favoriteAlbumRepository;
@@ -53,7 +60,7 @@ public class ChartService {
 
   @Transactional(readOnly = true)
   public PagedResponse<AlbumSummaryResponse> getAlbumsByGenre(
-      String genre, String sort, boolean descending, int page, int size) {
+      String genre, String sort, boolean descending, Long artistId, int page, int size) {
 
     String property = toSortProperty(sort);
 
@@ -65,12 +72,26 @@ public class ChartService {
             double globalMean = albumRepository.findGlobalAverageRating();
             double sign = descending ? 1.0 : -1.0;
             Pageable pageable = PageRequest.of(page, size);
-            return albumRepository.findByGenreIgnoreCaseOrderByWeightedRating(
-                genre, WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING, globalMean, sign, pageable);
+            return artistId != null
+                ? albumRepository.findByGenreIgnoreCaseAndArtistIdOrderByWeightedRating(
+                    genre,
+                    artistId,
+                    WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING,
+                    globalMean,
+                    sign,
+                    pageable)
+                : albumRepository.findByGenreIgnoreCaseOrderByWeightedRating(
+                    genre,
+                    WeightedRating.MIN_REVIEWS_FOR_TRUSTED_RATING,
+                    globalMean,
+                    sign,
+                    pageable);
           }
           Sort.Direction direction = descending ? Sort.Direction.DESC : Sort.Direction.ASC;
           Pageable pageable = PageRequest.of(page, size, Sort.by(direction, property));
-          return albumRepository.findByGenreIgnoreCase(genre, pageable);
+          return artistId != null
+              ? albumRepository.findByGenreIgnoreCaseAndArtistId(genre, artistId, pageable)
+              : albumRepository.findByGenreIgnoreCase(genre, pageable);
         });
   }
 
@@ -93,6 +114,16 @@ public class ChartService {
   @Transactional(readOnly = true)
   public List<Integer> getAvailableYears() {
     return albumRepository.findDistinctYearsWithReviews();
+  }
+
+  /** Albums added to the catalog in the last {@value #RECENTLY_ADDED_WINDOW_DAYS} days. */
+  @Transactional(readOnly = true)
+  public PagedResponse<AlbumSummaryResponse> getRecentlyAdded(int page, int size) {
+    LocalDateTime cutoff = LocalDateTime.now().minusDays(RECENTLY_ADDED_WINDOW_DAYS);
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Album> albumPage =
+        albumRepository.findByCreatedAtAfterOrderByCreatedAtDesc(cutoff, pageable);
+    return buildResponse(albumPage.getContent(), page, size, albumPage.getTotalElements());
   }
 
   /**
@@ -129,13 +160,20 @@ public class ChartService {
       Page<Album> albumPage, int page, int size) {
 
     long totalElements = Math.min(albumPage.getTotalElements(), WeightedRating.MAX_CHART_RESULTS);
-    int totalPages = (int) Math.ceil((double) totalElements / size);
 
     int startIndex = page * size;
     List<Album> albums = albumPage.getContent();
     if (startIndex + albums.size() > WeightedRating.MAX_CHART_RESULTS) {
       albums = albums.subList(0, WeightedRating.MAX_CHART_RESULTS - startIndex);
     }
+
+    return buildResponse(albums, page, size, totalElements);
+  }
+
+  private PagedResponse<AlbumSummaryResponse> buildResponse(
+      List<Album> albums, int page, int size, long totalElements) {
+
+    int totalPages = (int) Math.ceil((double) totalElements / size);
 
     Set<Long> albumIds = albums.stream().map(Album::getId).collect(Collectors.toSet());
 

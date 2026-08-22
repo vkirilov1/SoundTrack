@@ -2,6 +2,7 @@ package org.soundtrack.domain.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,16 @@ public class Album {
 
   @Column(name = "description", columnDefinition = "TEXT", length = 2400)
   private String description;
+
+  @Column(name = "created_at", nullable = false)
+  private LocalDateTime createdAt;
+
+  @PrePersist
+  void prePersist() {
+    if (createdAt == null) {
+      createdAt = LocalDateTime.now();
+    }
+  }
 
   @OneToMany(
       mappedBy = "album",

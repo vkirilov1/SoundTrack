@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { Box, Image, Link, Text, VStack, chakra } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import missingResourcesIcon from "../../assets/MissingResources.png";
-import Avatar from "../Avatar/Avatar";
-import BellIcon from "../icons/BellIcon";
-import PillButton from "../buttons/PillButton";
-import ConfirmActionModal from "../Modal/ConfirmActionModal";
-import { userPhotoUrl } from "../../utils/images";
-import { MONTH_DAY_FORMAT } from "../../utils/date";
-import { useChat } from "../../features/chat/stores/useChat";
-import { CHAT_NOTIFICATION_TYPES } from "../../features/notifications/types";
-import type { AppNotification } from "../../features/notifications/types";
+import missingResourcesIcon from "../../../assets/MissingResources.png";
+import Avatar from "../../../components/Avatar/Avatar";
+import BellIcon from "../../../components/icons/BellIcon";
+import PillButton from "../../../components/buttons/PillButton";
+import ConfirmActionModal from "../../../components/Modal/ConfirmActionModal";
+import { userPhotoUrl } from "../../../utils/images";
+import { MONTH_DAY_FORMAT } from "../../../utils/date";
+import { useChat } from "../../chat/stores/useChat";
+import { CHAT_NOTIFICATION_TYPES } from "../types";
+import type { AppNotification } from "../types";
 
 interface NotificationPanelProps {
   notifications: AppNotification[];
@@ -33,12 +33,6 @@ function ActorLink({ notification }: { notification: AppNotification }) {
   );
 }
 
-/**
- * FOLLOW notifications name and link to the actor. REVIEW_DELETED/PHOTO_RESET are admin actions -
- * the acting admin's identity is intentionally never shown, so those render as plain system
- * messages instead of crediting `notification.actor`. CHAT_* notifications carry the room id in
- * entityId and the room name snapshot in context.
- */
 function NotificationMessage({
   notification,
 }: {
@@ -63,6 +57,14 @@ function NotificationMessage({
       return <>Your access to chat rooms has been revoked by an Admin</>;
     case "CHAT_ACCESS_RESTORED":
       return <>Your access to chat rooms has been restored by an Admin</>;
+    case "ALBUM_SUGGESTION_APPROVED":
+      return (
+        <>Your suggestion “{notification.context}” was approved by an Admin</>
+      );
+    case "ALBUM_SUGGESTION_REJECTED":
+      return (
+        <>Your suggestion “{notification.context}” was rejected by an Admin</>
+      );
     case "FOLLOW":
       return (
         <>

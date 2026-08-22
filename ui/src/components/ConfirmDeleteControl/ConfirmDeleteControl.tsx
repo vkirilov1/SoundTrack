@@ -11,7 +11,6 @@ interface ConfirmDeleteControlProps {
   onDelete: () => Promise<unknown>;
   label?: string;
   confirmMessage?: string;
-  /** Reports internal status changes, e.g. to hide a sibling "Edit" button while confirming. */
   onStatusChange?: (status: DeleteStatus) => void;
 }
 

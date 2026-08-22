@@ -19,15 +19,11 @@ interface InlineTextEditFormProps {
   submitLabel: string;
   submittingLabel: string;
   errorFallback: string;
-  /** Blocks submitting an empty/unchanged-to-empty value (regular users suggesting edits). */
   disallowEmpty?: boolean;
   autoFocusTextarea?: boolean;
-  /** Shown in place of the trigger after a successful submit, instead of resetting back to it. */
   successMessage?: string;
-  /** "textarea" (default, auto-grows) for long text, "text" for a single-line field like a title, "date" for a native date picker. */
   variant?: "textarea" | "text" | "date";
   maxLength?: number;
-  /** CSS width of the editing form. Defaults to "100%" (fills the available flex space). */
   formWidth?: string;
 }
 

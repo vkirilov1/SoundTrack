@@ -14,6 +14,7 @@ import ProfileRoute from "./routes/profile";
 import ProfileEditRoute from "./routes/profile-edit";
 import RegisterRoute from "./routes/register";
 import TermsRoute from "./routes/terms";
+import DropsRoute from "./routes/drops";
 
 function AppRouter() {
   return (
@@ -31,6 +32,7 @@ function AppRouter() {
       <Route path="/charts" element={<ChartsRoute />} />
       <Route path="/charts/:year" element={<ChartsRoute />} />
       <Route path="/chats" element={<ChatsRoute />} />
+      <Route path="/drops" element={<DropsRoute />} />
       <Route path="/terms" element={<TermsRoute />} />
       <Route path="/privacy" element={<PrivacyRoute />} />
       <Route path="*" element={<NotFoundRoute />} />

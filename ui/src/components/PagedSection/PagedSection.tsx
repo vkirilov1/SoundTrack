@@ -6,7 +6,6 @@ import Spinner from "../Spinner/Spinner";
 interface PagedSectionProps {
   loading: boolean;
   listLoading: boolean;
-  /** When true and emptyMessage is set, shows an icon + message instead of children. */
   isEmpty: boolean;
   emptyMessage?: string;
   spinnerLabel: string;

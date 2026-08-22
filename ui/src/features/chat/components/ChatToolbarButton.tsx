@@ -10,7 +10,6 @@ interface ChatToolbarButtonProps {
   badge?: boolean;
 }
 
-/** Icon-only trigger in ChatPanel's dark toolbar - members/invite/collapse/leave. */
 function ChatToolbarButton({
   icon,
   label,

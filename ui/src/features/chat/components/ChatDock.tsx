@@ -6,11 +6,6 @@ import { useAuth } from "../../auth/stores/useAuth";
 import { useChat } from "../stores/useChat";
 import ChatPanel from "./ChatPanel";
 
-/**
- * The messenger-style docked chat, fixed bottom-right and mounted in the layout so it survives
- * navigation. Renders nothing when the user isn't in (or waiting on) a room; otherwise a
- * collapsed title bar or the expanded panel.
- */
 function ChatDock() {
   const { user } = useAuth();
   const {

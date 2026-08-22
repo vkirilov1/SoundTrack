@@ -6,7 +6,6 @@ interface ChatSectionHeaderProps {
   onBack: () => void;
 }
 
-/** Back-to-messages header shared by ChatPanel's members and invite sub-views. */
 function ChatSectionHeader({ title, onBack }: ChatSectionHeaderProps) {
   return (
     <Flex

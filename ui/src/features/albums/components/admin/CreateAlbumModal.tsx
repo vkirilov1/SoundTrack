@@ -29,9 +29,21 @@ import {
   searchAdminGenres,
   uploadAlbumPhoto,
 } from "../../../edit-requests/api/adminContentApi";
+import {
+  createUpcomingRelease,
+  uploadUpcomingReleasePhoto,
+} from "../../../upcoming/api/upcomingApi";
 import type { AlbumArtist } from "../../types";
 import PhotoPickerField from "../../../edit-requests/components/PhotoPickerField";
 import { formatDuration } from "../../../../utils/duration";
+
+/** Local calendar date as YYYY-MM-DD, matching a date input's value - avoids UTC-shift surprises near midnight. */
+function todayDateString(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
 
 export interface DraftSong {
   tempId: string;
@@ -42,9 +54,18 @@ export interface DraftSong {
 
 interface CreateAlbumModalProps {
   onClose: () => void;
+  /**
+   * Called instead of navigating when an upcoming release is created - lets a caller already on
+   * the Drops page (where navigating to its own URL wouldn't remount/refresh anything) update its
+   * own state directly. Falls back to navigating to Drops's Upcoming tab when not provided.
+   */
+  onUpcomingCreated?: () => void;
 }
 
-function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
+function CreateAlbumModal({
+  onClose,
+  onUpcomingCreated,
+}: CreateAlbumModalProps) {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -128,6 +149,8 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
     photoFile !== null &&
     !submitting;
 
+  const isUpcoming = releaseDate.length > 0 && releaseDate > todayDateString();
+
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) return;
@@ -135,19 +158,35 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
     setSubmitting(true);
     setError(null);
 
+    const payload = {
+      title: title.trim(),
+      releaseDate,
+      description: description.trim() || null,
+      artistIds: artists.map((a) => a.id),
+      genres,
+      songs: songs.map((s) => ({
+        title: s.title,
+        durationSeconds: s.durationSeconds,
+        artistIds: s.artists.map((a) => a.id),
+      })),
+    };
+
     try {
-      const created = await createAlbum({
-        title: title.trim(),
-        releaseDate,
-        description: description.trim() || null,
-        artistIds: artists.map((a) => a.id),
-        genres,
-        songs: songs.map((s) => ({
-          title: s.title,
-          durationSeconds: s.durationSeconds,
-          artistIds: s.artists.map((a) => a.id),
-        })),
-      });
+      if (isUpcoming) {
+        const created = await createUpcomingRelease(payload);
+        if (photoFile) {
+          await uploadUpcomingReleasePhoto(created.id, photoFile);
+        }
+        onClose();
+        if (onUpcomingCreated) {
+          onUpcomingCreated();
+        } else {
+          navigate(`/drops?tab=upcoming`);
+        }
+        return;
+      }
+
+      const created = await createAlbum(payload);
 
       if (photoFile) {
         await uploadAlbumPhoto(created.id, photoFile);
@@ -171,7 +210,10 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
         flexDirection="column"
         maxH="85vh"
       >
-        <ModalHeader title="Add Album" onClose={onClose} />
+        <ModalHeader
+          title={isUpcoming ? "Add Upcoming Release" : "Add Album"}
+          onClose={onClose}
+        />
 
         <VStack align="stretch" gap="18px" p="24px" overflowY="auto">
           {error && <FormErrorBanner>{error}</FormErrorBanner>}
@@ -200,6 +242,12 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
               borderColor="border"
               _focus={{ borderColor: "accent" }}
             />
+            {isUpcoming && (
+              <Text m="6px 0 0" fontSize="12px" color="accent">
+                This date hasn't arrived yet - it'll be saved as an upcoming
+                release instead of added to the catalog.
+              </Text>
+            )}
           </Field.Root>
 
           <Box>
@@ -356,8 +404,8 @@ function CreateAlbumModal({ onClose }: CreateAlbumModalProps) {
           onCancel={onClose}
           canSubmit={canSubmit}
           submitting={submitting}
-          submitLabel="Create album"
-          submittingLabel="Creating…"
+          submitLabel={isUpcoming ? "Save as upcoming" : "Create album"}
+          submittingLabel={isUpcoming ? "Saving…" : "Creating…"}
         />
       </chakra.form>
     </Modal>
