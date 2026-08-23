@@ -87,7 +87,13 @@ export function useAddToListMenu(albumId: number) {
         setNewListName("");
         handleAddToList(created.id);
       })
-      .catch(() => setMenuError("Couldn't create the list."))
+      .catch((error: unknown) =>
+        setMenuError(
+          error instanceof ApiError
+            ? error.message
+            : "Couldn't create the list.",
+        ),
+      )
       .finally(() => setCreatingList(false));
   }
 

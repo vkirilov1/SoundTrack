@@ -69,7 +69,9 @@ function ChatProvider({ children }: { children: ReactNode }) {
     expandedRef.current = true;
   }, []);
 
-  // Restore the dock on load/login: the backend knows which room (if any) the user is in
+  // Restore the dock on load/login: the backend knows which room (if any) the user is in.
+  // Keyed on the user's id, not the user object itself - AuthProvider.updateUser replaces that
+  // object on every profile edit (bio, photo, ...)
   useEffect(() => {
     if (!user) return;
 
@@ -86,7 +88,8 @@ function ChatProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, enterRoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, enterRoom]);
 
   // Live connection for the active room
   useEffect(() => {

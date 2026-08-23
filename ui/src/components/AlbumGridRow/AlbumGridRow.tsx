@@ -12,6 +12,12 @@ interface AlbumGridRowProps {
   rank: number | null;
   isEditable?: boolean;
   onRemove?: () => Promise<unknown>;
+  /**
+   * Renders title/artist/genre as plain text instead of links - for a draft still being built
+   * inside a modal (e.g. picking albums while creating a list), where navigating away would lose
+   * whatever hasn't been saved yet.
+   */
+  disableLinks?: boolean;
 }
 
 function CoverPlaceholder() {
@@ -35,12 +41,18 @@ function CoverPlaceholder() {
   );
 }
 
+const MAX_VISIBLE_GENRES = 3;
+
 function AlbumGridRow({
   album,
   rank,
   isEditable,
   onRemove,
+  disableLinks,
 }: AlbumGridRowProps) {
+  const visibleGenres = album.genres.slice(0, MAX_VISIBLE_GENRES);
+  const extraGenreCount = album.genres.length - visibleGenres.length;
+
   return (
     <HStack
       as="li"
@@ -67,34 +79,52 @@ function AlbumGridRow({
 
       <Box flex="1" minW="0" display="flex" flexDirection="column" gap="2px">
         <HStack>
-          <Link
-            asChild
-            fontSize="17px"
-            fontWeight="600"
-            color="ink"
-            textDecoration="none"
-            overflow="hidden"
-            textOverflow="ellipsis"
-            whiteSpace="nowrap"
-            _hover={{ color: "accentHover" }}
-          >
-            <RouterLink to={`/album/${album.id}`}>{album.title}</RouterLink>
-          </Link>
+          {disableLinks ? (
+            <Text
+              m="0"
+              fontSize="17px"
+              fontWeight="600"
+              color="ink"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              {album.title}
+            </Text>
+          ) : (
+            <Link
+              asChild
+              fontSize="17px"
+              fontWeight="600"
+              color="ink"
+              textDecoration="none"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+              _hover={{ color: "accentHover" }}
+            >
+              <RouterLink to={`/album/${album.id}`}>{album.title}</RouterLink>
+            </Link>
+          )}
         </HStack>
         <Text fontSize="14px" color="text" opacity="0.85">
           {album.artists.map((artist, index) => (
             <Fragment key={artist.id}>
               {index > 0 && ", "}
-              <Link
-                asChild
-                color="text"
-                textDecoration="none"
-                _hover={{ color: "accentHover" }}
-              >
-                <RouterLink to={`/artist/${artist.id}`}>
-                  {artist.name}
-                </RouterLink>
-              </Link>
+              {disableLinks ? (
+                artist.name
+              ) : (
+                <Link
+                  asChild
+                  color="text"
+                  textDecoration="none"
+                  _hover={{ color: "accentHover" }}
+                >
+                  <RouterLink to={`/artist/${artist.id}`}>
+                    {artist.name}
+                  </RouterLink>
+                </Link>
+              )}
             </Fragment>
           ))}
         </Text>
@@ -103,23 +133,28 @@ function AlbumGridRow({
           {SHORT_DATE_FORMAT.format(new Date(album.releaseDate))}
         </Text>
 
-        {album.genres.length > 0 && (
+        {visibleGenres.length > 0 && (
           <Text fontSize="12px" color="text" opacity="0.7">
-            {album.genres.map((genre, index) => (
+            {visibleGenres.map((genre, index) => (
               <Fragment key={genre}>
                 {index > 0 && ", "}
-                <Link
-                  asChild
-                  color="text"
-                  textDecoration="none"
-                  _hover={{ color: "accentHover" }}
-                >
-                  <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
-                    {genre}
-                  </RouterLink>
-                </Link>
+                {disableLinks ? (
+                  genre
+                ) : (
+                  <Link
+                    asChild
+                    color="text"
+                    textDecoration="none"
+                    _hover={{ color: "accentHover" }}
+                  >
+                    <RouterLink to={`/genre/${encodeURIComponent(genre)}`}>
+                      {genre}
+                    </RouterLink>
+                  </Link>
+                )}
               </Fragment>
             ))}
+            {extraGenreCount > 0 && ` +${extraGenreCount} more`}
           </Text>
         )}
       </Box>

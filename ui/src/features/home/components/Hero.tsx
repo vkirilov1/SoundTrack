@@ -1,6 +1,6 @@
 import { Box, Heading, Image, Link, Text } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import concertPhoto from "../../../../assets/concert.jpg";
+import concertPhoto from "../../../assets/concert.jpg";
 
 function Hero() {
   return (
