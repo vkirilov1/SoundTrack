@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, HStack, Image, Link, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Image,
+  Link,
+  Text,
+  VStack,
+  chakra,
+} from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import {
   getUserFavoriteAlbums,
@@ -10,8 +18,11 @@ import Pagination from "../../../components/Pagination/Pagination";
 import PagedSection from "../../../components/PagedSection/PagedSection";
 import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon";
 import HeartIcon from "../../../components/icons/HeartIcon";
+import PlusIcon from "../../../components/icons/PlusIcon";
 import { usePagedList } from "../../../hooks/usePagedList";
 import { coverImageUrl } from "../../../utils/images";
+import { useAuth } from "../../auth/stores/useAuth";
+import CreateListModal from "../../lists/components/CreateListModal";
 
 interface ListsCardProps {
   userId: number;
@@ -72,6 +83,9 @@ function ListIcon({ coverUrl, isFavorites }: ListIconProps) {
 
 function ListsCard({ userId }: ListsCardProps) {
   const invalidId = !Number.isFinite(userId);
+  const { user: currentUser } = useAuth();
+  const isOwnProfile = currentUser?.id === userId;
+  const [creating, setCreating] = useState(false);
 
   const fetchLists = useCallback(
     (page: number) => getUserLists(userId, page),
@@ -144,7 +158,7 @@ function ListsCard({ userId }: ListsCardProps) {
           {showFavorites && (
             <Box
               as="li"
-              borderBottom="1px solid"
+              borderBottom={lists.length > 0 ? "1px solid" : "none"}
               borderColor="border"
               {...rowStyle}
             >
@@ -219,12 +233,42 @@ function ListsCard({ userId }: ListsCardProps) {
             </Box>
           ))}
         </VStack>
+
+        {isOwnProfile && (
+          <Box
+            mt="20px"
+            pt="20px"
+            borderTop="1px solid"
+            borderColor="border"
+            textAlign="center"
+          >
+            <chakra.button
+              type="button"
+              onClick={() => setCreating(true)}
+              aria-label="Create a list"
+              display="inline-flex"
+              alignItems="center"
+              justifyContent="center"
+              boxSize="36px"
+              bg="none"
+              border="none"
+              borderRadius="full"
+              color="ink"
+              cursor="pointer"
+              _hover={{ bg: "border" }}
+            >
+              <PlusIcon size={20} />
+            </chakra.button>
+          </Box>
+        )}
       </PagedSection>
       <Pagination
         page={listsPage}
         totalPages={listsTotalPages}
         onPageChange={goToPage}
       />
+
+      {creating && <CreateListModal onClose={() => setCreating(false)} />}
     </>
   );
 }

@@ -38,6 +38,8 @@ const config = defineConfig({
         accentBg: { value: { base: "#faf1e6", _dark: "#3a2e1e" } },
 
         chatBg: { value: { base: "#0b1b3f", _dark: "#0b1b3f" } },
+        screenshotFrame: { value: { base: "#17181c", _dark: "#17181c" } },
+        screenshotFrameBorder: { value: { base: "#2a2a32", _dark: "#2a2a32" } },
         highlightBg: { value: { base: "#dbe8ff", _dark: "#1f2d4d" } },
         highlightIconBorder: { value: { base: "#2f6bff", _dark: "#5b8bff" } },
         checkbox: { value: { base: "#5b4fe0", _dark: "#8b80ff" } },

@@ -57,7 +57,8 @@ function ChatsPage() {
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on id, not the user object itself
+  }, [user?.id]);
 
   useEffect(() => {
     refresh();

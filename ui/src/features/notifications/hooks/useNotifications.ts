@@ -86,7 +86,8 @@ export function useNotifications() {
       source?.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role]);
 
   function loadNotifications() {
     return getNotifications().then((res) => {
