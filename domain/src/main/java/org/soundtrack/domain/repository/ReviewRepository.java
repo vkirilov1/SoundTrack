@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.soundtrack.domain.model.Album;
@@ -41,4 +42,32 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
   @EntityGraph(attributePaths = {"album"})
   @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
   Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+  /** The current user's reviewed albums */
+  @Query("SELECT r.album.id FROM Review r WHERE r.user.id = :userId")
+  List<Long> findAlbumIdsByUserId(@Param("userId") Long userId);
+
+  /** Most recent reviews authored by anyone that the current user follows */
+  @Query(
+      "SELECT r FROM Review r JOIN UserFollow uf ON uf.following.id = r.user.id "
+          + "WHERE uf.follower.id = :followerId "
+          + "ORDER BY r.createdAt DESC")
+  Page<Review> findMostRecentFromFollowing(@Param("followerId") Long followerId, Pageable pageable);
+
+  long countByUserId(@Param("userId") Long userId);
+
+  /**
+   * The current user's own average rating across their reviews - 0 when they haven't reviewed
+   * anything.
+   */
+  @Query("SELECT COALESCE(AVG(r.rating), 0) FROM Review r WHERE r.user.id = :userId")
+  double findAverageRatingByUserId(@Param("userId") Long userId);
+
+  /**
+   * Album ids ranked by review activity in the last {@code since}..now window, most-reviewed first
+   */
+  @Query(
+      "SELECT r.album.id FROM Review r WHERE r.createdAt >= :since "
+          + "GROUP BY r.album.id ORDER BY COUNT(r) DESC")
+  List<Long> findTrendingAlbumIds(@Param("since") LocalDateTime since, Pageable pageable);
 }

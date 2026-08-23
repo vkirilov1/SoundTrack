@@ -17,18 +17,7 @@ import type { UserProfile } from "../../../types/auth";
 import ChatRoomRow from "./ChatRoomRow";
 import CreateRoomModal from "./CreateRoomModal";
 import MembersOnlyMessage from "../../../components/MembersOnlyMessage/MembersOnlyMessage";
-
-function actionLabelFor(room: ChatRoomInfo): string {
-  switch (room.myStatus) {
-    case "OWNER":
-    case "MEMBER":
-      return "Open";
-    case "PENDING":
-      return "Requested";
-    default:
-      return "Join";
-  }
-}
+import { actionLabelFor } from "../utils/actionLabel";
 
 function ChatsPage() {
   const { user, isLoading } = useAuth();

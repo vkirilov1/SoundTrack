@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.soundtrack.domain.model.ChatRoom;
@@ -14,6 +15,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
   List<ChatRoom> findByTopicTypeAndTopicId(TopicType topicType, Long topicId);
 
   List<ChatRoom> findByTopicType(TopicType topicType);
+
+  /** Rooms about any of the given albums - candidates for the home feed */
+  @EntityGraph(attributePaths = {"creator", "members"})
+  List<ChatRoom> findByTopicTypeAndTopicIdIn(TopicType topicType, Collection<Long> topicIds);
 
   @EntityGraph(attributePaths = {"creator", "members"})
   @Query("SELECT r FROM ChatRoom r WHERE r.id = :id")

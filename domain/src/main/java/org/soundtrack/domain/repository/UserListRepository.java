@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.soundtrack.domain.model.UserList;
@@ -22,4 +23,8 @@ public interface UserListRepository extends JpaRepository<UserList, Long> {
 
   @EntityGraph(attributePaths = {"albums", "owner"})
   Optional<UserList> findDetailedById(Long id);
+
+  /** Every album across all of this user's lists */
+  @Query("SELECT DISTINCT a.id FROM UserList ul JOIN ul.albums a WHERE ul.owner.id = :ownerId")
+  List<Long> findAlbumIdsByOwnerId(@Param("ownerId") Long ownerId);
 }
