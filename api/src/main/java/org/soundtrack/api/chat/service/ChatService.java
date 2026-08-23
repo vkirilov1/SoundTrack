@@ -127,6 +127,13 @@ public class ChatService {
     return toResponse(findRoomWithMembers(roomId), getAuthenticatedUser());
   }
 
+  /** Maps already-fetched rooms to responses for the caller - e.g. the home feed's room picks. */
+  @Transactional(readOnly = true)
+  public List<ChatRoomResponse> toResponses(List<ChatRoom> rooms) {
+    User user = getAuthenticatedUser();
+    return rooms.stream().map(room -> toResponse(room, user)).toList();
+  }
+
   /** The room the caller is currently a member of - 404 when they are not in any room. */
   @Transactional(readOnly = true)
   public ChatRoomResponse getMyRoom() {

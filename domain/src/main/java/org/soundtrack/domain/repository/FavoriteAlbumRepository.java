@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.soundtrack.domain.model.FavoriteAlbum;
@@ -24,4 +25,20 @@ public interface FavoriteAlbumRepository extends JpaRepository<FavoriteAlbum, Lo
           + " :albumIds")
   Set<Long> findFavoritedAlbumIdsByUserIdAndAlbumIdIn(
       @Param("userId") Long userId, @Param("albumIds") Set<Long> albumIds);
+
+  /**
+   * All of this user's favorited album ids - for the home feed's "might wanna join" priority list.
+   */
+  @Query("SELECT fa.album.id FROM FavoriteAlbum fa WHERE fa.user.id = :userId")
+  List<Long> findAlbumIdsByUserId(@Param("userId") Long userId);
+
+  /**
+   * Genre names ranked by how often they tag this user's favorited albums, most common first - for
+   * the home feed's "discover top picks from your favorite genre" card.
+   */
+  @Query(
+      "SELECT ag.genre.genre FROM FavoriteAlbum fa JOIN fa.album.albumGenres ag "
+          + "WHERE fa.user.id = :userId "
+          + "GROUP BY ag.genre.genre ORDER BY COUNT(ag) DESC")
+  List<String> findTopFavoriteGenres(@Param("userId") Long userId, Pageable pageable);
 }

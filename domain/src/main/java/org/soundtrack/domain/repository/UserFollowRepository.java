@@ -25,6 +25,8 @@ public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
   boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
 
+  long countByFollowingId(Long followingId);
+
   /**
    * Of the given candidate ids, which ones {@code followerId} already follows. Used to batch-mark
    * "followed" on a page of users (e.g. a followers/following list) in one query instead of N.

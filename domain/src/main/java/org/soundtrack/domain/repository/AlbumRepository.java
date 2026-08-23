@@ -3,6 +3,7 @@ package org.soundtrack.domain.repository;
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -143,5 +144,22 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
       @Param("m") double m,
       @Param("globalMean") double globalMean,
       @Param("sign") double sign,
+      Pageable pageable);
+
+  /**
+   * Top-rated album in a genre the caller hasn't already interacted with (reviewed, favorited, or
+   * listed) - for the home feed's "discover top picks from your favorite genre" card. {@code
+   * excludedIds} must be non-empty (callers add a sentinel id when the caller has no history yet).
+   */
+  @Query(
+      "SELECT a FROM Album a JOIN a.albumGenres ag JOIN ag.genre g "
+          + "WHERE LOWER(g.genre) = LOWER(:genre) AND a.id NOT IN :excludedIds AND a.reviewsCount > 0 "
+          + "ORDER BY ((a.reviewsCount * a.rating) + (:m * :globalMean)) / (a.reviewsCount + :m) DESC, "
+          + "a.title ASC")
+  Page<Album> findTopRatedByGenreExcludingIds(
+      @Param("genre") String genre,
+      @Param("excludedIds") Collection<Long> excludedIds,
+      @Param("m") double m,
+      @Param("globalMean") double globalMean,
       Pageable pageable);
 }

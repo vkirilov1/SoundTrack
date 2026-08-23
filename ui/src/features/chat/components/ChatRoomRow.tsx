@@ -46,6 +46,7 @@ function ChatRoomRow({
       py="16px"
       borderBottom="1px solid"
       borderColor="border"
+      _last={{ borderBottom: "none" }}
     >
       <Box
         flexShrink="0"
