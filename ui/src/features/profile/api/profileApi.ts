@@ -3,7 +3,7 @@ import type { PagedResponse } from "../../../types/api";
 import type { UserListSummary } from "../../../types/list";
 import type { AlbumSummary } from "../../../types/album";
 import type { FavoriteSong, UserReview } from "../types";
-import { apiFetch, fetchJson } from "../../../lib/api-client";
+import { apiFetch, fetchJson, fetchOk } from "../../../lib/api-client";
 import { throwFieldApiError } from "../../../lib/api-error";
 
 export function getUserProfile(userId: number): Promise<UserProfile> {
@@ -69,4 +69,11 @@ export function uploadProfilePhoto(file: File): Promise<UserProfile> {
 
 export function resetProfilePhoto(): Promise<UserProfile> {
   return fetchJson("/users/me/photo", { method: "DELETE" });
+}
+
+export function deleteAccount(password: string): Promise<void> {
+  return fetchOk("/users/me", {
+    method: "DELETE",
+    body: JSON.stringify({ password }),
+  });
 }

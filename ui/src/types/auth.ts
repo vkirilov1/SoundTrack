@@ -10,6 +10,15 @@ export interface LoginRequest {
   rememberMe: boolean;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 export type UserRole = "USER" | "ADMIN";
 
 export interface UserProfile {

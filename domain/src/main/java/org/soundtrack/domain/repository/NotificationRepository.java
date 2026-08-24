@@ -29,6 +29,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
   void deleteByRecipientId(Long recipientId);
 
+  void deleteByActorId(Long actorId);
+
   @Modifying
   @Transactional
   void deleteByRecipientIdAndTypeInAndEntityId(

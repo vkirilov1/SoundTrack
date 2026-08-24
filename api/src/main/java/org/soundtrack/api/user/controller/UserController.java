@@ -9,12 +9,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.soundtrack.api.auth.service.AccountDeletionService;
+import org.soundtrack.api.auth.util.CookieUtil;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.review.dto.UserReviewResponse;
 import org.soundtrack.api.review.service.ReviewService;
+import org.soundtrack.api.user.dto.DeleteAccountRequest;
 import org.soundtrack.api.user.dto.UpdateProfileRequest;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.api.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,8 +31,16 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Users", description = "Retrieve user profiles")
 public class UserController {
 
+  private static final String ACCESS_TOKEN_COOKIE = "access_token";
+  private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+  private static final String REFRESH_TOKEN_PATH = "/api/auth";
+
   private final UserService userService;
   private final ReviewService reviewService;
+  private final AccountDeletionService accountDeletionService;
+
+  @Value("${security.cookie.secure}")
+  private boolean cookieSecure;
 
   @GetMapping("/{id}")
   @Operation(
@@ -97,6 +111,32 @@ public class UserController {
   })
   public UserProfileResponse resetPhoto(Authentication authentication) throws IOException {
     return userService.resetPhoto(authentication.getName());
+  }
+
+  @DeleteMapping("/me")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(
+      summary = "Delete own account",
+      description =
+          "Password-confirmed self-service deletion. The account is deactivated immediately and"
+              + " logged out everywhere; an email is sent with a link to restore it within 30"
+              + " days, after which it's permanently anonymized.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Account scheduled for deletion"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated, or incorrect password")
+  })
+  public ResponseEntity<Void> deleteAccount(
+      Authentication authentication, @Valid @RequestBody DeleteAccountRequest request) {
+    accountDeletionService.requestDeletion(authentication.getName(), request.getPassword());
+
+    return ResponseEntity.noContent()
+        .header(
+            HttpHeaders.SET_COOKIE,
+            CookieUtil.clear(ACCESS_TOKEN_COOKIE, "/", cookieSecure).toString())
+        .header(
+            HttpHeaders.SET_COOKIE,
+            CookieUtil.clear(REFRESH_TOKEN_COOKIE, REFRESH_TOKEN_PATH, cookieSecure).toString())
+        .build();
   }
 
   @GetMapping("/{id}/reviews")

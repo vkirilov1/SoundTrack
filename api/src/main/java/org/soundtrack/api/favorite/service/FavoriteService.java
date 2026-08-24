@@ -80,12 +80,6 @@ public class FavoriteService {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<AlbumSummaryResponse> getMyFavoriteAlbums(int page, int size) {
-    User user = getAuthenticatedUser();
-    return getFavoriteAlbums(user.getId(), page, size);
-  }
-
-  @Transactional(readOnly = true)
   public PagedResponse<AlbumSummaryResponse> getFavoriteAlbumsByUser(
       Long userId, int page, int size) {
     if (!userRepository.existsById(userId)) {
@@ -120,12 +114,6 @@ public class FavoriteService {
             .orElseThrow(() -> new ResourceNotFoundException("Song not found in favorites"));
 
     favoriteSongRepository.delete(favorite);
-  }
-
-  @Transactional(readOnly = true)
-  public PagedResponse<FavoriteSongResponse> getMyFavoriteSongs(int page, int size) {
-    User user = getAuthenticatedUser();
-    return getFavoriteSongs(user.getId(), page, size);
   }
 
   @Transactional(readOnly = true)

@@ -45,6 +45,9 @@ public class User {
   @Builder.Default
   private boolean chatAccessRevoked = false;
 
+  @Column(name = "deleted_at")
+  private LocalDateTime deletedAt;
+
   @OneToMany(mappedBy = "user")
   private List<Review> reviews = new ArrayList<>();
 

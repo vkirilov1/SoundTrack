@@ -146,6 +146,29 @@ public class ReviewService {
     reviewRepository.delete(review);
   }
 
+  /** Deletes every review a user has written, recomputing each affected album's rating/count. */
+  @Transactional
+  public void deleteAllReviewsByUser(Long userId) {
+    List<Review> reviews = reviewRepository.findByUserId(userId);
+
+    for (Review review : reviews) {
+      Album album = findAlbumForUpdate(review.getAlbum().getId());
+      int currentCount = album.getReviewsCount();
+
+      if (currentCount <= 1) {
+        album.setRating(0);
+        album.setReviewsCount(0);
+      } else {
+        double updatedRating =
+            calculateDeletedReviewRating(album, currentCount, review.getRating());
+        album.setRating(updatedRating);
+        album.setReviewsCount(currentCount - 1);
+      }
+    }
+
+    reviewRepository.deleteAll(reviews);
+  }
+
   @Transactional(readOnly = true)
   public PagedResponse<ReviewResponse> getAlbumReviews(Long albumId, int page, int size) {
 

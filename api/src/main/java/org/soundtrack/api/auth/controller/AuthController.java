@@ -11,10 +11,15 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.soundtrack.api.auth.dto.ForgotPasswordRequest;
 import org.soundtrack.api.auth.dto.LoginRequest;
 import org.soundtrack.api.auth.dto.RegisterRequest;
+import org.soundtrack.api.auth.dto.ResetPasswordRequest;
+import org.soundtrack.api.auth.dto.RestoreAccountRequest;
+import org.soundtrack.api.auth.service.AccountDeletionService;
 import org.soundtrack.api.auth.service.AuthService;
 import org.soundtrack.api.auth.service.AuthService.AuthResult;
+import org.soundtrack.api.auth.service.PasswordResetService;
 import org.soundtrack.api.auth.util.CookieUtil;
 import org.soundtrack.api.common.exception.InvalidCredentialsException;
 import org.soundtrack.api.user.dto.UserProfileResponse;
@@ -40,6 +45,8 @@ public class AuthController {
 
   private final AuthService authService;
   private final UserService userService;
+  private final PasswordResetService passwordResetService;
+  private final AccountDeletionService accountDeletionService;
 
   @Value("${jwt.expiration}")
   private long accessExpirationMs;
@@ -103,6 +110,43 @@ public class AuthController {
             HttpHeaders.SET_COOKIE,
             CookieUtil.clear(REFRESH_TOKEN_COOKIE, REFRESH_TOKEN_PATH, cookieSecure).toString())
         .build();
+  }
+
+  @PostMapping("/forgot-password")
+  @Operation(
+      summary = "Forgot password",
+      description =
+          "Emails a password reset link if the address belongs to an account. Always responds the"
+              + " same way, so it can't be used to check which emails are registered.")
+  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    passwordResetService.requestReset(request.getEmail());
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/reset-password")
+  @Operation(
+      summary = "Reset password",
+      description = "Sets a new password using a reset link's token")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Password reset"),
+    @ApiResponse(responseCode = "401", description = "Invalid, expired, or already-used token")
+  })
+  public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/restore-account")
+  @Operation(
+      summary = "Restore account",
+      description = "Undoes a self-service account deletion using the emailed restore token")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Account restored"),
+    @ApiResponse(responseCode = "401", description = "Invalid, expired, or already-used token")
+  })
+  public ResponseEntity<Void> restoreAccount(@Valid @RequestBody RestoreAccountRequest request) {
+    accountDeletionService.restoreAccount(request.getToken());
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/me")

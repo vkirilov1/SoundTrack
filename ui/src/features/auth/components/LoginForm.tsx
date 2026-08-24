@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Field,
@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { ApiError } from "../../../lib/api-error";
 import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
+import FormSuccessBanner from "../../../components/FormErrorBanner/FormSuccessBanner";
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
 import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import { useAuth } from "../stores/useAuth";
@@ -35,7 +36,11 @@ type FieldErrorState = Partial<Record<FieldName, string>>;
 
 function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  const passwordReset = Boolean(
+    (location.state as { passwordReset?: boolean } | null)?.passwordReset,
+  );
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [fieldErrors, setFieldErrors] = useState<FieldErrorState>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -91,6 +96,11 @@ function LoginForm() {
         Log in to your account
       </Heading>
 
+      {passwordReset && (
+        <FormSuccessBanner>
+          Your password was reset. Log in with your new password.
+        </FormSuccessBanner>
+      )}
       {formError && <FormErrorBanner>{formError}</FormErrorBanner>}
 
       <Field.Root invalid={!!fieldErrors.email}>

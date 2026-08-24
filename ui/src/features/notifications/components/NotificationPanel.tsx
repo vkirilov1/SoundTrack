@@ -65,6 +65,36 @@ function NotificationMessage({
       return (
         <>Your suggestion “{notification.context}” was rejected by an Admin</>
       );
+    case "ALBUM_EDIT_REQUEST_APPROVED":
+    case "ALBUM_EDIT_REQUEST_REJECTED":
+    case "ARTIST_EDIT_REQUEST_APPROVED":
+    case "ARTIST_EDIT_REQUEST_REJECTED": {
+      const isAlbum = notification.type.startsWith("ALBUM_");
+      const approved = notification.type.endsWith("_APPROVED");
+      return (
+        <>
+          Your edit for{" "}
+          {notification.entityId != null ? (
+            <Link
+              asChild
+              fontWeight="600"
+              color="ink"
+              textDecoration="none"
+              _hover={{ color: "accentHover" }}
+            >
+              <RouterLink
+                to={`/${isAlbum ? "album" : "artist"}/${notification.entityId}`}
+              >
+                {notification.context}
+              </RouterLink>
+            </Link>
+          ) : (
+            notification.context
+          )}{" "}
+          was {approved ? "approved" : "rejected"} by an Admin
+        </>
+      );
+    }
     case "FOLLOW":
       return (
         <>
