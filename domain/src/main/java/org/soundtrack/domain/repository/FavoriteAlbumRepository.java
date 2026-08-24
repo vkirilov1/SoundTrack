@@ -26,16 +26,9 @@ public interface FavoriteAlbumRepository extends JpaRepository<FavoriteAlbum, Lo
   Set<Long> findFavoritedAlbumIdsByUserIdAndAlbumIdIn(
       @Param("userId") Long userId, @Param("albumIds") Set<Long> albumIds);
 
-  /**
-   * All of this user's favorited album ids - for the home feed's "might wanna join" priority list.
-   */
   @Query("SELECT fa.album.id FROM FavoriteAlbum fa WHERE fa.user.id = :userId")
   List<Long> findAlbumIdsByUserId(@Param("userId") Long userId);
 
-  /**
-   * Genre names ranked by how often they tag this user's favorited albums, most common first - for
-   * the home feed's "discover top picks from your favorite genre" card.
-   */
   @Query(
       "SELECT ag.genre.genre FROM FavoriteAlbum fa JOIN fa.album.albumGenres ag "
           + "WHERE fa.user.id = :userId "

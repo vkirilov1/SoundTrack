@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.Base64;
 import org.springframework.core.io.ClassPathResource;
 
-/** Builds the HTML bodies for outgoing emails */
 final class EmailTemplates {
 
   private static final String LOGO_DATA_URI = loadLogoDataUri();

@@ -49,10 +49,6 @@ public class ReleaseWriter {
    * across transactions because {@code AlbumGenre.genre} is a plain, non-cascading association
    * (unlike {@code AlbumArtist.artist}, which uses {@code @MapsId} and therefore requires artists
    * to be resolved within this same transaction).
-   *
-   * @param release the release dto
-   * @param genreMap page-wide genre name to saved {@link Genre}
-   * @throws InterruptedException for sleep()
    */
   @Transactional
   public void importRelease(MBReleaseDTO release, Map<String, Genre> genreMap)
@@ -139,13 +135,6 @@ public class ReleaseWriter {
     return weightsByName;
   }
 
-  /**
-   * Resolves Artists from ArtistCreditDTO
-   *
-   * @param credits of the artists
-   * @return List of the artists
-   * @throws InterruptedException for sleep()
-   */
   private List<Artist> resolveArtists(List<MBReleaseDTO.ArtistCreditDTO> credits)
       throws InterruptedException {
 
@@ -164,16 +153,11 @@ public class ReleaseWriter {
         resolveArtistsByMbids(new LinkedHashSet<>(orderedMbids)).stream()
             .collect(Collectors.toMap(Artist::getMbid, Function.identity()));
 
+    // Replayed against orderedMbids rather than returning artistsByMbid.values() directly, to
+    // preserve MusicBrainz's original artist-credit order (the map itself doesn't).
     return orderedMbids.stream().map(artistsByMbid::get).filter(Objects::nonNull).toList();
   }
 
-  /**
-   * Maps a ReleaseDTO to an album
-   *
-   * @param dto the release dto
-   * @param coverArtResult the cover art result for CoverArchive
-   * @return the album
-   */
   private Album mapAlbumToEntity(
       MBReleaseDTO dto, CoverArtResult coverArtResult, String coverFilename) {
     Album album = new Album();
@@ -190,13 +174,6 @@ public class ReleaseWriter {
     return album;
   }
 
-  /**
-   * Maps an ArtistDTO to an artist
-   *
-   * @param dto the artist dto
-   * @param imageUrl the image url for the artist (could be null)
-   * @return the artist
-   */
   private Artist mapArtistToEntity(MBArtistDTO dto, String imageUrl) {
     Artist artist = new Artist();
 
@@ -211,14 +188,6 @@ public class ReleaseWriter {
     return artist;
   }
 
-  /**
-   * Maps an ReleaseRecordingDTO to songs and return a list of the songs
-   *
-   * @param releaseRecordingDTO the releaseRecording dto
-   * @param album the album to which the songs belong to
-   * @return the List containing the songs
-   * @throws InterruptedException for sleep()
-   */
   private Set<Song> mapSongsToEntity(MBReleaseRecordingDTO releaseRecordingDTO, Album album)
       throws InterruptedException {
 
@@ -291,14 +260,6 @@ public class ReleaseWriter {
     return songs;
   }
 
-  /**
-   * Checks if artists exist in the db If they don't, fetches them from MusicBrainz through {@code
-   * fetchArtistById}
-   *
-   * @param mbids the musicbrainz ids of the artists
-   * @return List of the found artists
-   * @throws InterruptedException for sleep()
-   */
   private List<Artist> resolveArtistsByMbids(Set<String> mbids) throws InterruptedException {
 
     if (mbids == null || mbids.isEmpty()) {
@@ -349,8 +310,8 @@ public class ReleaseWriter {
   }
 
   /**
-   * Format from MusicBrainz - yyyy-mm-dd Possible dates received from MusicWorld - yyyy ; yyyy-mm ;
-   * yyyy-mm-dd
+   * MusicBrainz dates vary in precision - yyyy, yyyy-mm, or the full yyyy-mm-dd - depending on how
+   * much the source release actually specifies.
    *
    * @param dateStr String containing the date
    * @return the formatted date
@@ -369,12 +330,7 @@ public class ReleaseWriter {
     }
   }
 
-  /**
-   * Obtains wikidata id for the artist
-   *
-   * @param artist the artist
-   * @return the id
-   */
+  /** A wikidata relation URL looks like ".../entity/Q12345" - this just grabs the trailing id. */
   private String extractWikidataId(MBArtistDTO artist) {
     if (artist.relations == null) return null;
 

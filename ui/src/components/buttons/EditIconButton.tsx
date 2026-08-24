@@ -7,7 +7,6 @@ interface EditIconButtonProps {
   size?: number;
 }
 
-/** Small round pencil trigger */
 function EditIconButton({ onClick, label, size = 15 }: EditIconButtonProps) {
   return (
     <chakra.button

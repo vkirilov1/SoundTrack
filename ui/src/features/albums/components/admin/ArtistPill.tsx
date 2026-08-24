@@ -8,7 +8,6 @@ interface ArtistPillProps {
   onRemove: () => void;
 }
 
-/** Removable artist chip for admin editors (album/song credited-artists lists). */
 function ArtistPill({ artist, onRemove }: ArtistPillProps) {
   return (
     <HStack

@@ -4,9 +4,6 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/**
- * One-shot "fade + lift" reveal when an element first scrolls into view
- */
 export function useScrollReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [visible, setVisible] = useState(prefersReducedMotion);

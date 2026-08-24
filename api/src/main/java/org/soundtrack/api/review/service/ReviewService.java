@@ -10,6 +10,7 @@ import org.soundtrack.api.common.exception.ForbiddenException;
 import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.review.dto.CreateReviewRequest;
 import org.soundtrack.api.review.dto.ReviewResponse;
 import org.soundtrack.api.review.dto.UserReviewResponse;
@@ -25,8 +26,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,12 +43,14 @@ public class ReviewService {
 
   private final ReviewMapper reviewMapper;
 
+  private final CurrentUserService currentUserService;
+
   @Transactional
   public ReviewResponse createReview(Long albumId, CreateReviewRequest request) {
 
     Album album = findAlbumForUpdate(albumId);
 
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     if (reviewRepository.existsByUserAndAlbum(user, album)) {
       throw new ResourceExistsException(
@@ -93,7 +94,7 @@ public class ReviewService {
 
     Album album = findAlbumForUpdate(albumId);
 
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     Review review =
         reviewRepository
@@ -121,7 +122,7 @@ public class ReviewService {
 
     Album album = findAlbumForUpdate(albumId);
 
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     Review review =
         reviewRepository
@@ -174,7 +175,7 @@ public class ReviewService {
 
     findAlbumById(albumId);
 
-    Long viewerId = getAuthenticatedUserIdOrNull();
+    Long viewerId = currentUserService.getAuthenticatedUserIdOrNull();
 
     Page<Review> reviewPage;
     if (viewerId != null) {
@@ -210,7 +211,7 @@ public class ReviewService {
 
     Album album = findAlbumById(albumId);
 
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     Review review =
         reviewRepository
@@ -238,35 +239,6 @@ public class ReviewService {
         content, page, size, reviewPage.getTotalElements(), reviewPage.getTotalPages());
   }
 
-  private User getAuthenticatedUser() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    String email = authentication.getName();
-
-    return findUserByEmail(email);
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. GET
-   * /api/albums/{id}/reviews is open to anonymous visitors but pins reviews from followed users to
-   * the top when a real session is present.
-   *
-   * @return the current user's id, or null if not authenticated
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
-  }
-
   private void validateReviewOwnership(Review review, Long albumId, User user, String action) {
 
     if (!review.getAlbum().getId().equals(albumId)) {
@@ -288,20 +260,11 @@ public class ReviewService {
    * Same as {@link #findAlbumById}, but takes a row lock on the album - required before any
    * read-recompute-write on {@code rating}/{@code reviewsCount} to avoid a lost update between two
    * concurrent reviews on the same album.
-   *
-   * @param albumId the album id
-   * @return the album object
    */
   private Album findAlbumForUpdate(Long albumId) {
     return albumRepository
         .findByIdForUpdate(albumId)
         .orElseThrow(() -> new ResourceNotFoundException("Album not found"));
-  }
-
-  private User findUserByEmail(String email) {
-    return userRepository
-        .findByEmail(email)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
   }
 
   private double calculateCreatedReviewRating(Album album, int newCount, double newRating) {

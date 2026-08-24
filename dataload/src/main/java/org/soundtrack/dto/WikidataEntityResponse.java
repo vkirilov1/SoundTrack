@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-/** DTO class for WikiData entity response. Using 'P18' to obtain a link to an image */
+/** Wikidata keys every fact by an opaque property code - "P18" is the one for "image". */
 public class WikidataEntityResponse {
 
   public Map<String, Entity> entities;

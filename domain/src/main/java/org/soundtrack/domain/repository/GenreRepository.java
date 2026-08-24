@@ -15,6 +15,5 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
 
   List<Genre> findAllByGenreIn(Set<String> genreNames);
 
-  // Autocomplete for the admin "add genre" search box
   List<Genre> findTop8ByGenreContainingIgnoreCase(String query);
 }

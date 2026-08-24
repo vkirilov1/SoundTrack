@@ -8,6 +8,7 @@ import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.api.user.dto.UserProfileResponse;
 import org.soundtrack.domain.model.NotificationType;
@@ -18,8 +19,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,11 @@ public class UserFollowService {
   private final UserFollowRepository userFollowRepository;
   private final UserRepository userRepository;
   private final NotificationService notificationService;
+  private final CurrentUserService currentUserService;
 
   @Transactional
   public void follow(Long targetId) {
-    User me = getAuthenticatedUser();
+    User me = currentUserService.getAuthenticatedUser();
 
     if (me.getId().equals(targetId)) {
       throw new InvalidOperationException("You cannot follow yourself");
@@ -56,7 +56,7 @@ public class UserFollowService {
 
   @Transactional
   public void unfollow(Long targetId) {
-    User me = getAuthenticatedUser();
+    User me = currentUserService.getAuthenticatedUser();
 
     UserFollow follow =
         userFollowRepository
@@ -108,7 +108,7 @@ public class UserFollowService {
    * of two per row.
    */
   private List<UserProfileResponse> toProfileResponses(List<User> users) {
-    Long viewerId = getAuthenticatedUserIdOrNull();
+    Long viewerId = currentUserService.getAuthenticatedUserIdOrNull();
 
     Set<Long> rowIds = users.stream().map(User::getId).collect(Collectors.toSet());
 
@@ -140,32 +140,5 @@ public class UserFollowService {
         followed,
         followsYou,
         user.isChatAccessRevoked());
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    return userRepository
-        .findByEmail(auth.getName())
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. Followers/following
-   * lists are open to anonymous visitors but return real followed/followsYou flags per row when a
-   * real session is present.
-   *
-   * @return the current user's id, or null if not authenticated
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 }

@@ -9,10 +9,6 @@ interface TextButtonProps extends HTMLChakraProps<"button"> {
   tone?: keyof typeof TONE_COLORS;
 }
 
-/**
- * Generic Button used for text-based buttons (e.g "Read More..."/"Read less...")
- * Centralizes common design. Size and spacing stay per call site since those differ by context.
- */
 function TextButton({ tone = "accent", ...rest }: TextButtonProps) {
   const { color, hoverColor } = TONE_COLORS[tone];
 

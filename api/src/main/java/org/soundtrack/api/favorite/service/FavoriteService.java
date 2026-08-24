@@ -11,6 +11,7 @@ import org.soundtrack.api.chart.mapper.ChartMapper;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.favorite.dto.FavoriteSongResponse;
 import org.soundtrack.domain.model.*;
 import org.soundtrack.domain.repository.AlbumRepository;
@@ -21,8 +22,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +35,11 @@ public class FavoriteService {
   private final SongRepository songRepository;
   private final UserRepository userRepository;
   private final ChartMapper chartMapper;
+  private final CurrentUserService currentUserService;
 
   @Transactional
   public void addFavoriteAlbum(Long albumId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     if (favoriteAlbumRepository.existsByUserIdAndAlbumId(user.getId(), albumId)) {
       throw new ResourceExistsException("Album is already in favorites");
@@ -63,7 +63,7 @@ public class FavoriteService {
 
   @Transactional
   public void removeFavoriteAlbum(Long albumId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     FavoriteAlbum favorite =
         favoriteAlbumRepository
@@ -90,7 +90,7 @@ public class FavoriteService {
 
   @Transactional
   public void addFavoriteSong(Long songId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     if (favoriteSongRepository.existsByUserIdAndSongId(user.getId(), songId)) {
       throw new ResourceExistsException("Song is already in favorites");
@@ -106,7 +106,7 @@ public class FavoriteService {
 
   @Transactional
   public void removeFavoriteSong(Long songId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     FavoriteSong favorite =
         favoriteSongRepository
@@ -132,7 +132,7 @@ public class FavoriteService {
 
     List<Album> albums = favPage.getContent().stream().map(FavoriteAlbum::getAlbum).toList();
 
-    Long viewerId = getAuthenticatedUserIdOrNull();
+    Long viewerId = currentUserService.getAuthenticatedUserIdOrNull();
     Set<Long> viewerFavoritedIds =
         viewerId != null && !albums.isEmpty()
             ? favoriteAlbumRepository.findFavoritedAlbumIdsByUserIdAndAlbumIdIn(
@@ -177,30 +177,5 @@ public class FavoriteService {
                 .map(artist -> new ArtistResponse(artist.getId(), artist.getArtistName()))
                 .toList())
         .build();
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
-    return userRepository
-        .findByEmail(email)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. Favorite-albums/songs
-   * lookups are public (browsing another user's favorites), but return per-viewer favorited flags
-   * when a real session is present.
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 }

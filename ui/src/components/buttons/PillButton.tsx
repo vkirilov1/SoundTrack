@@ -5,10 +5,6 @@ interface PillButtonProps extends HTMLChakraProps<"button"> {
   muted?: boolean;
 }
 
-/**
- * Small rounded accent action button (Join/Open/Invite chips). Centralizes common design; size
- * and spacing stay per call site since those differ by context.
- */
 function PillButton({ muted, disabled, ...rest }: PillButtonProps) {
   return (
     <chakra.button

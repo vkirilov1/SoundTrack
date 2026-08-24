@@ -3,7 +3,6 @@ package org.soundtrack.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-/** DTO class for MusicBrainz release DTO from release-groups object */
 public class MBReleaseDTO {
   @JsonProperty("id")
   public String id;

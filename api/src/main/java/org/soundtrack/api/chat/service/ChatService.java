@@ -18,6 +18,7 @@ import org.soundtrack.api.common.exception.ChatRoomFullException;
 import org.soundtrack.api.common.exception.ForbiddenException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
@@ -43,8 +44,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,10 +70,11 @@ public class ChatService {
   private final ArtistRepository artistRepository;
   private final NotificationService notificationService;
   private final SimpMessagingTemplate messagingTemplate;
+  private final CurrentUserService currentUserService;
 
   @Transactional
   public ChatRoomResponse createRoom(CreateRoomRequest request) {
-    User creator = getAuthenticatedUser();
+    User creator = currentUserService.getAuthenticatedUser();
 
     if (creator.isChatAccessRevoked()) {
       throw new ForbiddenException(
@@ -115,7 +115,7 @@ public class ChatService {
 
   @Transactional(readOnly = true)
   public List<ChatRoomResponse> getRooms() {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     return chatRoomRepository.findAll().stream()
         .sorted(Comparator.comparing(ChatRoom::getCreatedAt).reversed())
         .map(room -> toResponse(room, user))
@@ -124,20 +124,20 @@ public class ChatService {
 
   @Transactional(readOnly = true)
   public ChatRoomResponse getRoomById(Long roomId) {
-    return toResponse(findRoomWithMembers(roomId), getAuthenticatedUser());
+    return toResponse(findRoomWithMembers(roomId), currentUserService.getAuthenticatedUser());
   }
 
   /** Maps already-fetched rooms to responses for the caller - e.g. the home feed's room picks. */
   @Transactional(readOnly = true)
   public List<ChatRoomResponse> toResponses(List<ChatRoom> rooms) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     return rooms.stream().map(room -> toResponse(room, user)).toList();
   }
 
   /** The room the caller is currently a member of - 404 when they are not in any room. */
   @Transactional(readOnly = true)
   public ChatRoomResponse getMyRoom() {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     ChatRoom room =
         chatRoomRepository
             .findByMemberId(user.getId())
@@ -151,7 +151,7 @@ public class ChatService {
    */
   @Transactional
   public JoinRoomResponse joinRoom(Long roomId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (room.getMembers().contains(user)) {
@@ -212,7 +212,7 @@ public class ChatService {
   /** Leaving as a member broadcasts a LEAVE message; leaving as the owner closes the room. */
   @Transactional
   public void leaveRoom(Long roomId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (room.getCreator().getId().equals(user.getId())) {
@@ -229,7 +229,7 @@ public class ChatService {
   /** Owner-only: removes a member and broadcasts a KICK message the kicked client reacts to. */
   @Transactional
   public void kickMember(Long roomId, Long targetUserId) {
-    User owner = getAuthenticatedUser();
+    User owner = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (!room.getCreator().getId().equals(owner.getId())) {
@@ -255,7 +255,7 @@ public class ChatService {
   /** Any member can invite; the invited user gets a CHAT_INVITE notification. */
   @Transactional
   public void inviteUser(Long roomId, Long targetUserId) {
-    User inviter = getAuthenticatedUser();
+    User inviter = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (!room.getMembers().contains(inviter)) {
@@ -282,7 +282,7 @@ public class ChatService {
    */
   @Transactional(noRollbackFor = {ResourceExistsException.class, ChatRoomFullException.class})
   public void approveRequest(Long roomId, Long targetUserId) {
-    User owner = getAuthenticatedUser();
+    User owner = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     requireOwner(room, owner);
@@ -322,7 +322,7 @@ public class ChatService {
    */
   @Transactional
   public void declineRequest(Long roomId, Long targetUserId) {
-    User caller = getAuthenticatedUser();
+    User caller = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (!caller.getId().equals(targetUserId)) {
@@ -339,7 +339,7 @@ public class ChatService {
 
   @Transactional(readOnly = true)
   public PagedResponse<ChatMessageResponse> getRoomHistory(Long roomId, int page, int size) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (!room.getMembers().contains(user)) {
@@ -439,7 +439,7 @@ public class ChatService {
    */
   @Transactional
   public void reportRoom(Long roomId, ChatReportCategory category) {
-    User reporter = getAuthenticatedUser();
+    User reporter = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     if (!room.getMembers().contains(reporter)) {
@@ -462,7 +462,7 @@ public class ChatService {
 
   @Transactional
   public void adminDeleteRoom(Long roomId) {
-    User admin = getAuthenticatedUser();
+    User admin = currentUserService.getAuthenticatedUser();
     ChatRoom room = findRoomWithMembers(roomId);
 
     ChatRoomReport report =
@@ -614,7 +614,6 @@ public class ChatService {
         pendingRequests);
   }
 
-  /** Resolves the display name and image filename for the room's topic entity */
   private TopicInfo resolveTopic(TopicType type, Long topicId) {
     switch (type) {
       case ALBUM -> {
@@ -648,11 +647,6 @@ public class ChatService {
         message.getContent(),
         message.getSentAt(),
         message.getMessageType());
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    return findUserByEmail(auth.getName());
   }
 
   private User findUserByEmail(String email) {

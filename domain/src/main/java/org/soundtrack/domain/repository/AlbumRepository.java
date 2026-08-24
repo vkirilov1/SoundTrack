@@ -52,11 +52,6 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   @EntityGraph(attributePaths = {"albumArtists"})
   List<Album> findTop8ByTitleContainingIgnoreCase(String title);
 
-  /**
-   * Reviewed albums released in the given date range (inclusive), ordered by Bayesian-weighted
-   * rating (highest first, ties broken alphabetically) for the Year's chart page. Unreviewed albums
-   * are excluded.
-   */
   @Query(
       "SELECT a FROM Album a "
           + "WHERE a.releaseDate BETWEEN :start AND :end AND a.reviewsCount > 0 "
@@ -77,7 +72,6 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   Page<Album> findByOverallOrderByWeightedRating(
       @Param("m") double m, @Param("globalMean") double globalMean, Pageable pageable);
 
-  /** Albums tagged with the given genre (case-insensitive), for the Genre's chart page. */
   @Query(
       "SELECT a FROM Album a JOIN a.albumGenres ag JOIN ag.genre g WHERE LOWER(g.genre) = LOWER(:genre)")
   Page<Album> findByGenreIgnoreCase(@Param("genre") String genre, Pageable pageable);
@@ -108,18 +102,10 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
   @Query("SELECT COALESCE(AVG(a.rating), 0) FROM Album a WHERE a.reviewsCount > 0")
   double findGlobalAverageRating();
 
-  /**
-   * Distinct release years with at least one reviewed album, newest first - for the Charts page's
-   * year picker.
-   */
   @Query(
       "SELECT DISTINCT YEAR(a.releaseDate) FROM Album a WHERE a.reviewsCount > 0 ORDER BY YEAR(a.releaseDate) DESC")
   List<Integer> findDistinctYearsWithReviews();
 
-  /**
-   * Albums added to the catalog after {@code cutoff}, newest first - for the Drops "Recently Added"
-   * feed.
-   */
   Page<Album> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime cutoff, Pageable pageable);
 
   /** Same as {@link #findByGenreIgnoreCase}, additionally narrowed to one artist's albums. */

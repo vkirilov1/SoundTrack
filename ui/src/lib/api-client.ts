@@ -86,7 +86,6 @@ export async function apiFetch(
   return doFetch(path, init);
 }
 
-/** apiFetch + throw a message-based ApiError on failure + parse the JSON response body. */
 export async function fetchJson<T>(
   path: string,
   init?: RequestInit,
@@ -100,7 +99,6 @@ export async function fetchJson<T>(
   return response.json() as Promise<T>;
 }
 
-/** apiFetch + throw a message-based ApiError on failure, for endpoints with no response body. */
 export async function fetchOk(path: string, init?: RequestInit): Promise<void> {
   const response = await apiFetch(path, init);
 

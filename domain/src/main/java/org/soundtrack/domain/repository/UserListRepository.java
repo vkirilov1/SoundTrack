@@ -24,7 +24,6 @@ public interface UserListRepository extends JpaRepository<UserList, Long> {
   @EntityGraph(attributePaths = {"albums", "owner"})
   Optional<UserList> findDetailedById(Long id);
 
-  /** Every album across all of this user's lists */
   @Query("SELECT DISTINCT a.id FROM UserList ul JOIN ul.albums a WHERE ul.owner.id = :ownerId")
   List<Long> findAlbumIdsByOwnerId(@Param("ownerId") Long ownerId);
 }

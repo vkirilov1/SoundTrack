@@ -12,17 +12,14 @@ import org.soundtrack.api.chart.WeightedRating;
 import org.soundtrack.api.chart.dto.AlbumSummaryResponse;
 import org.soundtrack.api.chart.mapper.ChartMapper;
 import org.soundtrack.api.common.dto.PagedResponse;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.domain.model.Album;
-import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.FavoriteAlbumRepository;
-import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +36,7 @@ public class ChartService {
   private final AlbumRepository albumRepository;
   private final ChartMapper chartMapper;
   private final FavoriteAlbumRepository favoriteAlbumRepository;
-  private final UserRepository userRepository;
+  private final CurrentUserService currentUserService;
 
   @Transactional(readOnly = true)
   public PagedResponse<AlbumSummaryResponse> getTopAlbumsForYear(int year, int page, int size) {
@@ -116,7 +113,6 @@ public class ChartService {
     return albumRepository.findDistinctYearsWithReviews();
   }
 
-  /** Albums added to the catalog in the last {@value #RECENTLY_ADDED_WINDOW_DAYS} days. */
   @Transactional(readOnly = true)
   public PagedResponse<AlbumSummaryResponse> getRecentlyAdded(int page, int size) {
     LocalDateTime cutoff = LocalDateTime.now().minusDays(RECENTLY_ADDED_WINDOW_DAYS);
@@ -177,7 +173,7 @@ public class ChartService {
 
     Set<Long> albumIds = albums.stream().map(Album::getId).collect(Collectors.toSet());
 
-    Long userId = getAuthenticatedUserIdOrNull();
+    Long userId = currentUserService.getAuthenticatedUserIdOrNull();
 
     Set<Long> favoritedAlbumIds =
         userId != null && !albumIds.isEmpty()
@@ -190,25 +186,5 @@ public class ChartService {
             .toList();
 
     return new PagedResponse<>(content, page, size, totalElements, totalPages);
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. Both chart endpoints
-   * are open to anonymous visitors but return per-user favorited flags when a real session is
-   * present.
-   *
-   * @return the current user's id, or null if not authenticated
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 }

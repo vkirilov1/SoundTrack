@@ -99,9 +99,6 @@ public class ReleaseImportService {
    * Reads the 0-indexed page after the last one successfully completed for this year, so a rerun
    * picks up where a previous run left off instead of restarting from page 0. The file holds a
    * single plain-text page number so it can also be edited by hand to force a different offset.
-   *
-   * @param year the import year
-   * @return the page index to start from (0 if no progress file exists or it can't be read)
    */
   private int loadStartPage(int year) {
     Path file = progressFile(year);
@@ -117,12 +114,6 @@ public class ReleaseImportService {
     }
   }
 
-  /**
-   * Persists the last completed page for this year, overwriting any previous value.
-   *
-   * @param year the import year
-   * @param completedPage 0-indexed page that just finished importing
-   */
   private void saveProgress(int year, int completedPage) {
     Path file = progressFile(year);
     try {
@@ -172,13 +163,6 @@ public class ReleaseImportService {
     log.info("Imported page with offset {}", offset);
   }
 
-  /**
-   * Fetches all unique genres (tags) from the ReleaseGroup dto and saves them to the database
-   * returns a map with the saved genres that can be used in an outer function
-   *
-   * @param dto containing releases
-   * @return map with the saved unique genres
-   */
   private Map<String, Genre> saveUniqueGenres(MBReleaseGroupsDTO dto) {
     Set<String> allTagNames =
         dto.releaseGroups.stream()
@@ -190,12 +174,7 @@ public class ReleaseImportService {
     return resolveGenres(allTagNames);
   }
 
-  /**
-   * Looks up existing {@link Genre} rows for the given names, creating any that don't exist yet.
-   *
-   * @param tagNames genre/tag names to resolve, already trimmed
-   * @return name to saved {@link Genre}
-   */
+  /** Looks up existing {@link Genre} rows for the given names, creating any that don't exist yet. */
   private Map<String, Genre> resolveGenres(Set<String> tagNames) {
     Map<String, Genre> genreMap =
         genreRepository.findAllByGenreIn(tagNames).stream()
