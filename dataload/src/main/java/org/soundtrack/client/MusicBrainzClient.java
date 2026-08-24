@@ -58,7 +58,8 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBReleaseGroupsDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseGroupsDTO.class);
+            restTemplate.exchange(
+                url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseGroupsDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
@@ -101,7 +102,8 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBArtistDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBArtistDTO.class);
+            restTemplate.exchange(
+                url, HttpMethod.GET, HttpClients.buildHeaders(), MBArtistDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
@@ -138,7 +140,8 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBReleaseRecordingDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseRecordingDTO.class);
+            restTemplate.exchange(
+                url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseRecordingDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {

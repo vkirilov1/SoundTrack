@@ -174,7 +174,9 @@ public class ReleaseImportService {
     return resolveGenres(allTagNames);
   }
 
-  /** Looks up existing {@link Genre} rows for the given names, creating any that don't exist yet. */
+  /**
+   * Looks up existing {@link Genre} rows for the given names, creating any that don't exist yet.
+   */
   private Map<String, Genre> resolveGenres(Set<String> tagNames) {
     Map<String, Genre> genreMap =
         genreRepository.findAllByGenreIn(tagNames).stream()
