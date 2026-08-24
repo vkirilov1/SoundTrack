@@ -50,6 +50,8 @@ public class SecurityConfig {
                         "/api/auth/reset-password",
                         "/api/auth/restore-account")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/contact")
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET,
                         "/api/albums/**",
