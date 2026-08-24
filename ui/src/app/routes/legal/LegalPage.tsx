@@ -9,7 +9,6 @@ interface LegalPageProps {
   children: ReactNode;
 }
 
-/** Shared prose layout for the Terms of Use and Privacy Policy pages. */
 function LegalPage({ title, lastUpdated, intro, children }: LegalPageProps) {
   return (
     <PageContainer maxW="760px">

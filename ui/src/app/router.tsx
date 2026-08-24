@@ -1,8 +1,11 @@
 import { Route, Routes } from "react-router-dom";
+import AboutRoute from "./routes/about";
 import AlbumRoute from "./routes/album";
 import ArtistRoute from "./routes/artist";
 import ChartsRoute from "./routes/charts";
 import ChatsRoute from "./routes/chats";
+import ContactRoute from "./routes/contact";
+import FaqRoute from "./routes/faq";
 import FavoritesRoute from "./routes/favorites";
 import ForgotPasswordRoute from "./routes/forgot-password";
 import GenreRoute from "./routes/genre";
@@ -41,6 +44,9 @@ function AppRouter() {
       <Route path="/drops" element={<DropsRoute />} />
       <Route path="/terms" element={<TermsRoute />} />
       <Route path="/privacy" element={<PrivacyRoute />} />
+      <Route path="/about" element={<AboutRoute />} />
+      <Route path="/faq" element={<FaqRoute />} />
+      <Route path="/contact" element={<ContactRoute />} />
       <Route path="*" element={<NotFoundRoute />} />
     </Routes>
   );

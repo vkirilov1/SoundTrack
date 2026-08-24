@@ -9,10 +9,7 @@ function TermsRoute() {
       lastUpdated="August 2026"
       intro={
         <>
-          SoundTrack is a student diploma project, not a commercial service.
-          These terms are here so you know what to expect if you create an
-          account - please don't rely on them as a substitute for professional
-          legal advice.
+          These terms cover what to expect when you create a SoundTrack account.
         </>
       }
     >
@@ -37,7 +34,38 @@ function TermsRoute() {
         </Text>
       </LegalSection>
 
-      <LegalSection title="3. Chat rooms">
+      <LegalSection title="3. Album and artist data">
+        <Text m="0">
+          Album titles, artist names, release dates, genres, and cover artwork
+          shown on SoundTrack are sourced from MusicBrainz and the Cover Art
+          Archive, community-maintained music databases. This information is
+          displayed for identification and informational purposes only. All
+          rights to cover artwork, artist names, and related media belong to
+          their respective owners (labels, artists, and photographers);
+          SoundTrack claims no ownership over it.
+        </Text>
+      </LegalSection>
+
+      <LegalSection title="4. Trademarks">
+        <Text m="0">
+          "SoundTrack" and its logo identify this service and aren't affiliated
+          with, endorsed by, or connected to any record label, artist, streaming
+          service, or other product using a similar name.
+        </Text>
+      </LegalSection>
+
+      <LegalSection title="5. Copyright complaints">
+        <Text m="0">
+          If you believe content displayed on SoundTrack infringes your rights -
+          whether it's album artwork, a user's review, or something else -{" "}
+          <Link asChild color="accent" textDecoration="underline">
+            <RouterLink to="/contact">contact us</RouterLink>
+          </Link>{" "}
+          with details of the material and we'll review it.
+        </Text>
+      </LegalSection>
+
+      <LegalSection title="6. Chat rooms">
         <Text m="0">
           Chat rooms are live and temporary: a room only exists while its owner
           is connected, and once it ends its messages are permanently deleted.
@@ -56,7 +84,7 @@ function TermsRoute() {
         </Text>
       </LegalSection>
 
-      <LegalSection title="4. Moderation">
+      <LegalSection title="7. Moderation">
         <Text m="0">
           Admins can remove reviews, reset an inappropriate profile photo,
           delete a chat room, and revoke a user's ability to create chat rooms,
@@ -66,23 +94,36 @@ function TermsRoute() {
         </Text>
       </LegalSection>
 
-      <LegalSection title="5. Account termination">
+      <LegalSection title="8. Ending your account">
         <Text m="0">
-          You can stop using the service at any time. We may suspend or remove
-          an account that repeatedly violates these terms, particularly around
-          chat conduct.
+          You can delete your own account at any time from your profile settings
+          - see our{" "}
+          <Link asChild color="accent" textDecoration="underline">
+            <RouterLink to="/privacy">Privacy Policy</RouterLink>
+          </Link>{" "}
+          for how that works and the 30-day window to undo it. We may also
+          suspend or remove an account that repeatedly violates these terms,
+          particularly around chat conduct.
         </Text>
       </LegalSection>
 
-      <LegalSection title="6. No warranty">
+      <LegalSection title="9. No warranty">
         <Text m="0">
-          This is a student project provided as-is, without warranty of any
-          kind, including uptime, data durability, or fitness for a particular
+          SoundTrack is provided "as is," without warranty of any kind,
+          including uptime, data durability, or fitness for a particular
           purpose.
         </Text>
       </LegalSection>
 
-      <LegalSection title="7. Changes">
+      <LegalSection title="10. General">
+        <Text m="0">
+          If any part of these terms turns out to be unenforceable, the rest
+          still stands. These terms, along with our Privacy Policy, are the
+          whole agreement between you and SoundTrack about using the service.
+        </Text>
+      </LegalSection>
+
+      <LegalSection title="11. Changes">
         <Text m="0">
           We may update these terms as the project evolves. Continuing to use
           SoundTrack after a change means you accept the updated terms.

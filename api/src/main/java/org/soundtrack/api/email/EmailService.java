@@ -4,11 +4,13 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.soundtrack.api.contact.dto.ContactRequestType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Thin wrapper around JavaMailSender. Failures are logged, not thrown - callers (e.g. "forgot
@@ -24,6 +26,9 @@ public class EmailService {
 
   @Value("${app.mail.from}")
   private String fromAddress;
+
+  @Value("${app.mail.support-to}")
+  private String supportAddress;
 
   public EmailService(JavaMailSender mailSender) {
     this.mailSender = mailSender;
@@ -67,5 +72,45 @@ public class EmailService {
         "Your SoundTrack account is scheduled for deletion",
         plainText,
         EmailTemplates.accountDeletion(restoreLink));
+  }
+
+  public void sendContactSubmission(
+      ContactRequestType type,
+      String fromLabel,
+      String replyToEmail,
+      String message,
+      MultipartFile attachment) {
+    boolean hasAttachment = attachment != null && !attachment.isEmpty();
+
+    try {
+      MimeMessage mimeMessage = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, hasAttachment, "UTF-8");
+      helper.setFrom(fromAddress);
+      helper.setTo(supportAddress);
+      helper.setReplyTo(replyToEmail);
+      helper.setSubject("[SoundTrack Contact] " + type.getLabel() + " - " + fromLabel);
+      helper.setText(
+          "From: "
+              + fromLabel
+              + " <"
+              + replyToEmail
+              + ">\nType: "
+              + type.getLabel()
+              + "\n\n"
+              + message);
+
+      if (hasAttachment) {
+        String filename =
+            attachment.getOriginalFilename() != null
+                ? attachment.getOriginalFilename()
+                : "attachment";
+        helper.addAttachment(filename, attachment);
+      }
+
+      mailSender.send(mimeMessage);
+    } catch (MailException | MessagingException e) {
+      log.error("Failed to send contact submission email", e);
+      throw new IllegalStateException("Couldn't send your message. Please try again.", e);
+    }
   }
 }
