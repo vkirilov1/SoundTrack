@@ -16,6 +16,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
   List<ChatRoom> findByTopicType(TopicType topicType);
 
+  List<ChatRoom> findByCreatorId(Long creatorId);
+
   /** Rooms about any of the given albums - candidates for the home feed */
   @EntityGraph(attributePaths = {"creator", "members"})
   List<ChatRoom> findByTopicTypeAndTopicIdIn(TopicType topicType, Collection<Long> topicIds);

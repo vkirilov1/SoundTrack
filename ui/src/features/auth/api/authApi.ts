@@ -1,6 +1,8 @@
 import type {
+  ForgotPasswordRequest,
   LoginRequest,
   RegisterRequest,
+  ResetPasswordRequest,
   UserProfile,
 } from "../../../types/auth";
 import { apiFetch, fetchJson } from "../../../lib/api-client";
@@ -44,4 +46,41 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
 
 export async function logout(): Promise<void> {
   await apiFetch("/auth/logout", { method: "POST" });
+}
+
+export async function forgotPassword(
+  payload: ForgotPasswordRequest,
+): Promise<void> {
+  const response = await apiFetch("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    return throwFieldApiError(response);
+  }
+}
+
+export async function resetPassword(
+  payload: ResetPasswordRequest,
+): Promise<void> {
+  const response = await apiFetch("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    return throwFieldApiError(response);
+  }
+}
+
+export async function restoreAccount(token: string): Promise<void> {
+  const response = await apiFetch("/auth/restore-account", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    return throwMessageApiError(response);
+  }
 }

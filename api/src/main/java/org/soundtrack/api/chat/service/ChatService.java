@@ -493,6 +493,13 @@ public class ChatService {
     closeRoom(room);
   }
 
+  @Transactional
+  public void forceCloseRoomsCreatedBy(Long userId) {
+    for (ChatRoom room : chatRoomRepository.findByCreatorId(userId)) {
+      closeRoom(room);
+    }
+  }
+
   private void markReportHandling(Long roomId, User admin) {
     chatRoomReportRepository
         .findFirstByRoomIdAndStatusNotOrderByCreatedAtDesc(roomId, ChatReportStatus.RESOLVED)

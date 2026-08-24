@@ -8,11 +8,13 @@ import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
 import org.soundtrack.api.editrequest.dto.EditRequestResponse;
 import org.soundtrack.api.editrequest.mapper.EditRequestMapper;
+import org.soundtrack.api.notification.service.NotificationService;
 import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.Artist;
 import org.soundtrack.domain.model.EditRequest;
 import org.soundtrack.domain.model.EditRequestStatus;
 import org.soundtrack.domain.model.EditRequestTargetType;
+import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
@@ -32,6 +34,7 @@ public class EditRequestService {
   private final ArtistRepository artistRepository;
   private final UserRepository userRepository;
   private final EditRequestMapper editRequestMapper;
+  private final NotificationService notificationService;
 
   @Transactional
   public void submitAlbumDescriptionRequest(Long albumId, String description, String email) {
@@ -78,6 +81,8 @@ public class EditRequestService {
     request.setReviewedBy(admin);
     request.setReviewedAt(LocalDateTime.now());
 
+    notifyRequester(request, admin, true);
+
     return toResponse(request);
   }
 
@@ -90,7 +95,24 @@ public class EditRequestService {
     request.setReviewedBy(admin);
     request.setReviewedAt(LocalDateTime.now());
 
+    notifyRequester(request, admin, false);
+
     return toResponse(request);
+  }
+
+  private void notifyRequester(EditRequest request, User admin, boolean approved) {
+    boolean isAlbum = request.getTargetType() == EditRequestTargetType.ALBUM;
+    NotificationType type =
+        isAlbum
+            ? (approved
+                ? NotificationType.ALBUM_EDIT_REQUEST_APPROVED
+                : NotificationType.ALBUM_EDIT_REQUEST_REJECTED)
+            : (approved
+                ? NotificationType.ARTIST_EDIT_REQUEST_APPROVED
+                : NotificationType.ARTIST_EDIT_REQUEST_REJECTED);
+
+    notificationService.notify(
+        request.getRequestedBy(), admin, type, request.getTargetId(), resolveTargetName(request));
   }
 
   private void submit(
@@ -118,6 +140,19 @@ public class EditRequestService {
     }
 
     return request;
+  }
+
+  private String resolveTargetName(EditRequest request) {
+    if (request.getTargetType() == EditRequestTargetType.ALBUM) {
+      return albumRepository
+          .findById(request.getTargetId())
+          .map(Album::getTitle)
+          .orElse("Deleted album");
+    }
+    return artistRepository
+        .findById(request.getTargetId())
+        .map(Artist::getArtistName)
+        .orElse("Deleted artist");
   }
 
   private void applyChange(EditRequest request) {

@@ -1,7 +1,15 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Box, chakra, Field, Heading, Input, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  chakra,
+  Field,
+  Heading,
+  Input,
+  Textarea,
+} from "@chakra-ui/react";
 import {
   resetProfilePhoto,
   updateProfile,
@@ -14,6 +22,7 @@ import type { FieldErrors } from "../../../types/auth";
 import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner";
 import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import AvatarUploadCard from "./AvatarUploadCard";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 function EditProfileForm() {
   const navigate = useNavigate();
@@ -25,6 +34,7 @@ function EditProfileForm() {
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   if (!isLoading && !user) {
     return <Navigate to="/login" replace />;
@@ -155,6 +165,43 @@ function EditProfileForm() {
           {saving ? "Saving…" : "Save Changes"}
         </PrimaryButton>
       </chakra.form>
+
+      <Box
+        maxW="480px"
+        mt="48px"
+        pt="24px"
+        borderTop="1px solid"
+        borderColor="border"
+      >
+        <Heading as="h2" fontSize="18px" color="danger" mb="4px">
+          Danger Zone
+        </Heading>
+        <Text m="0 0 16px" fontSize="14px" color="text" lineHeight="1.6">
+          Deleting your account logs you out everywhere. You&rsquo;ll have 30
+          days to change your mind via a link we email you.
+        </Text>
+        <chakra.button
+          type="button"
+          onClick={() => setDeleting(true)}
+          fontSize="13px"
+          fontWeight="700"
+          textTransform="uppercase"
+          letterSpacing="0.4px"
+          color="danger"
+          bg="none"
+          border="1px solid"
+          borderColor="danger"
+          borderRadius="md"
+          px="16px"
+          py="8px"
+          cursor="pointer"
+          _hover={{ bg: "dangerBg" }}
+        >
+          Delete Account
+        </chakra.button>
+      </Box>
+
+      {deleting && <DeleteAccountModal onClose={() => setDeleting(false)} />}
     </Box>
   );
 }

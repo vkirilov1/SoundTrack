@@ -14,7 +14,6 @@ import org.soundtrack.api.admin.dto.AddArtistRequest;
 import org.soundtrack.api.admin.dto.AddGenreRequest;
 import org.soundtrack.api.admin.dto.AddSongArtistRequest;
 import org.soundtrack.api.admin.dto.AddSongToAlbumRequest;
-import org.soundtrack.api.admin.dto.AdminUserResponse;
 import org.soundtrack.api.admin.dto.CreateAlbumRequest;
 import org.soundtrack.api.admin.dto.CreateArtistRequest;
 import org.soundtrack.api.admin.dto.UpdateAlbumRequest;
@@ -40,43 +39,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminController {
 
   private final AdminService adminService;
-
-  @GetMapping("/users")
-  @Operation(
-      summary = "List all users",
-      description = "Returns a paginated list of all registered users with their email and role.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Users returned"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not an admin")
-  })
-  public PagedResponse<AdminUserResponse> getUsers(
-      @Parameter(description = "Zero-based page index")
-          @RequestParam(name = "page", defaultValue = "0")
-          int page,
-      @Parameter(description = "Number of users per page")
-          @RequestParam(name = "size", defaultValue = "20")
-          int size) {
-    return adminService.getUsers(page, size);
-  }
-
-  @DeleteMapping("/users/{userId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "Delete a user",
-      description =
-          "Permanently deletes a user along with all their reviews and lists."
-              + " Album ratings are recalculated automatically.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "204", description = "User deleted"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated"),
-    @ApiResponse(responseCode = "403", description = "Not an admin"),
-    @ApiResponse(responseCode = "404", description = "User not found")
-  })
-  public void deleteUser(
-      @Parameter(description = "Internal user ID") @PathVariable("userId") Long userId) {
-    adminService.deleteUser(userId);
-  }
 
   @DeleteMapping("/users/{userId}/photo")
   @Operation(

@@ -1,5 +1,6 @@
 package org.soundtrack.domain.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.soundtrack.domain.model.User;
@@ -21,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
   List<User> findTop8ByUsernameContainingIgnoreCase(String username);
 
   List<User> findTop8ByUsernameContainingIgnoreCaseAndRoleNot(String username, UserRole role);
+
+  List<User> findByDeletedAtBefore(LocalDateTime cutoff);
 }

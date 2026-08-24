@@ -55,25 +55,6 @@ public class FavoriteController {
     favoriteService.removeFavoriteAlbum(albumId);
   }
 
-  @GetMapping("/albums/me")
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(
-      summary = "Get my favorite albums",
-      description = "Returns a paginated list of the authenticated user's favorite albums.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Favorite albums returned"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated")
-  })
-  public PagedResponse<AlbumSummaryResponse> getMyFavoriteAlbums(
-      @Parameter(description = "Zero-based page index")
-          @RequestParam(name = "page", defaultValue = "0")
-          int page,
-      @Parameter(description = "Number of items per page")
-          @RequestParam(name = "size", defaultValue = "20")
-          int size) {
-    return favoriteService.getMyFavoriteAlbums(page, size);
-  }
-
   @GetMapping("/albums/user/{userId}")
   @Operation(
       summary = "Get a user's favorite albums",
@@ -124,25 +105,6 @@ public class FavoriteController {
   public void removeFavoriteSong(
       @Parameter(description = "Internal song ID") @PathVariable("songId") Long songId) {
     favoriteService.removeFavoriteSong(songId);
-  }
-
-  @GetMapping("/songs/me")
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(
-      summary = "Get my favorite songs",
-      description = "Returns a paginated list of the authenticated user's favorite songs.")
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Favorite songs returned"),
-    @ApiResponse(responseCode = "401", description = "Not authenticated")
-  })
-  public PagedResponse<FavoriteSongResponse> getMyFavoriteSongs(
-      @Parameter(description = "Zero-based page index")
-          @RequestParam(name = "page", defaultValue = "0")
-          int page,
-      @Parameter(description = "Number of items per page")
-          @RequestParam(name = "size", defaultValue = "20")
-          int size) {
-    return favoriteService.getMyFavoriteSongs(page, size);
   }
 
   @GetMapping("/songs/user/{userId}")

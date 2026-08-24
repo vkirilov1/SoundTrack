@@ -60,6 +60,12 @@ public class AuthService {
       throw new InvalidCredentialsException("Invalid credentials");
     }
 
+    if (user.getDeletedAt() != null) {
+      throw new InvalidCredentialsException(
+          "This account has been deleted. Check your email for a link to restore it within 30"
+              + " days of deletion.");
+    }
+
     return issueSession(user, request.isRememberMe());
   }
 

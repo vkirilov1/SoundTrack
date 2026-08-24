@@ -7,6 +7,7 @@ import FormErrorBanner from "../../../components/FormErrorBanner/FormErrorBanner
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
 import PrimaryButton from "../../../components/buttons/PrimaryButton";
 import { useAuth } from "../stores/useAuth";
+import { validatePassword } from "../utils/validatePassword";
 import AuthFormShell from "./AuthFormShell";
 import AuthSwitchLink from "./AuthSwitchLink";
 
@@ -68,20 +69,8 @@ function RegisterForm() {
     }
 
     if (passwordToValidate) {
-      if (passwordToValidate.length < 8) {
-        errors.password = "Password must be at least 8 characters long";
-      } else if (!/[0-9]/.test(passwordToValidate)) {
-        errors.password = "Password must contain at least one digit";
-      } else if (!/[a-z]/.test(passwordToValidate)) {
-        errors.password = "Password must contain at least one lowercase letter";
-      } else if (!/[A-Z]/.test(passwordToValidate)) {
-        errors.password = "Password must contain at least one uppercase letter";
-      } else if (!/[@#$%^&+=]/.test(passwordToValidate)) {
-        errors.password =
-          "Password must contain at least one special character (@#$%^&+=)";
-      } else if (/\s/.test(passwordToValidate)) {
-        errors.password = "Password must not contain whitespace";
-      }
+      const passwordError = validatePassword(passwordToValidate);
+      if (passwordError) errors.password = passwordError;
     }
 
     if (form.confirmPassword.trim() !== passwordToValidate) {

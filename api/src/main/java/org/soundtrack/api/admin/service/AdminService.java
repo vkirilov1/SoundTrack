@@ -11,7 +11,6 @@ import org.soundtrack.api.admin.dto.AddArtistRequest;
 import org.soundtrack.api.admin.dto.AddGenreRequest;
 import org.soundtrack.api.admin.dto.AddSongArtistRequest;
 import org.soundtrack.api.admin.dto.AddSongToAlbumRequest;
-import org.soundtrack.api.admin.dto.AdminUserResponse;
 import org.soundtrack.api.admin.dto.CreateAlbumRequest;
 import org.soundtrack.api.admin.dto.CreateArtistRequest;
 import org.soundtrack.api.admin.dto.CreateSongRequest;
@@ -50,9 +49,6 @@ import org.soundtrack.domain.repository.ReviewRepository;
 import org.soundtrack.domain.repository.SongRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -83,43 +79,6 @@ public class AdminService {
 
   @Value("${artist.photo.storage.path}")
   private String artistPhotoStoragePath;
-
-  @Transactional(readOnly = true)
-  public PagedResponse<AdminUserResponse> getUsers(int page, int size) {
-    Page<User> userPage =
-        userRepository.findAll(PageRequest.of(page, size, Sort.by("id").ascending()));
-
-    List<AdminUserResponse> content =
-        userPage.getContent().stream().map(this::toAdminUserResponse).toList();
-
-    return new PagedResponse<>(
-        content, page, size, userPage.getTotalElements(), userPage.getTotalPages());
-  }
-
-  @Transactional
-  public void deleteUser(Long userId) {
-    User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-    List<Review> reviews = reviewRepository.findByUserId(userId);
-    for (Review review : reviews) {
-      Album album = findAlbumForUpdate(review.getAlbum().getId());
-      int count = album.getReviewsCount();
-      if (count <= 1) {
-        album.setRating(0);
-        album.setReviewsCount(0);
-      } else {
-        double newRating = (album.getRating() * count - review.getRating()) / (count - 1);
-        album.setRating(newRating);
-        album.setReviewsCount(count - 1);
-      }
-    }
-    reviewRepository.deleteAll(reviews);
-
-    userRepository.delete(user);
-  }
 
   @Transactional
   public UserProfileResponse resetUserPhoto(Long userId) throws IOException {
@@ -595,10 +554,5 @@ public class AdminService {
   @Transactional
   public EditRequestResponse rejectEditRequest(Long requestId, String adminEmail) {
     return editRequestService.reject(requestId, adminEmail);
-  }
-
-  private AdminUserResponse toAdminUserResponse(User user) {
-    return new AdminUserResponse(
-        user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getJoinDate());
   }
 }

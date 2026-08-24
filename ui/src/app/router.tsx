@@ -4,6 +4,7 @@ import ArtistRoute from "./routes/artist";
 import ChartsRoute from "./routes/charts";
 import ChatsRoute from "./routes/chats";
 import FavoritesRoute from "./routes/favorites";
+import ForgotPasswordRoute from "./routes/forgot-password";
 import GenreRoute from "./routes/genre";
 import HomeRoute from "./routes/home";
 import ListRoute from "./routes/list";
@@ -13,6 +14,8 @@ import PrivacyRoute from "./routes/privacy";
 import ProfileRoute from "./routes/profile";
 import ProfileEditRoute from "./routes/profile-edit";
 import RegisterRoute from "./routes/register";
+import ResetPasswordRoute from "./routes/reset-password";
+import RestoreAccountRoute from "./routes/restore-account";
 import TermsRoute from "./routes/terms";
 import DropsRoute from "./routes/drops";
 
@@ -22,6 +25,9 @@ function AppRouter() {
       <Route path="/" element={<HomeRoute />} />
       <Route path="/register" element={<RegisterRoute />} />
       <Route path="/login" element={<LoginRoute />} />
+      <Route path="/forgot-password" element={<ForgotPasswordRoute />} />
+      <Route path="/reset-password" element={<ResetPasswordRoute />} />
+      <Route path="/restore-account" element={<RestoreAccountRoute />} />
       <Route path="/profile/edit" element={<ProfileEditRoute />} />
       <Route path="/profile/:userId" element={<ProfileRoute />} />
       <Route path="/profile/:userId/favorites" element={<FavoritesRoute />} />
