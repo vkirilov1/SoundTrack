@@ -11,7 +11,6 @@ interface UsePhotoUploadOptions {
   errorFallback?: string;
 }
 
-/** File-input + upload state shared by any "change this photo" control. */
 export function usePhotoUpload(
   uploadFn: (file: File) => Promise<unknown>,
   {

@@ -49,7 +49,6 @@ public class NotificationService {
 
   private final Map<Long, List<SseEmitter>> emittersByUserId = new ConcurrentHashMap<>();
 
-  /** Opens a new SSE stream for the authenticated user and registers it for pushes. */
   public SseEmitter subscribe() {
     Long userId = requireAuthenticatedUserId();
 

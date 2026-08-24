@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.soundtrack.dto.*;
 import org.springframework.http.*;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -30,28 +29,14 @@ public class MusicBrainzClient {
 
   private static final long[] RETRY_DELAYS_MS = {2_000, 5_000, 15_000, 30_000, 60_000};
 
-  private final RestTemplate restTemplate = createRestTemplate();
+  private final RestTemplate restTemplate = HttpClients.createRestTemplate();
 
   private static long retryDelay(int attempt) {
     return RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)];
   }
 
-  private static RestTemplate createRestTemplate() {
-    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout(10_000);
-    factory.setReadTimeout(30_000);
-    return new RestTemplate(factory);
-  }
-
   private static final Logger log = LoggerFactory.getLogger(MusicBrainzClient.class);
 
-  /**
-   * Obtain all official albums from a year through pagination via offset
-   *
-   * @param year the year from which to take the albums
-   * @param offset offset for pagination
-   * @return the albums
-   */
   public MBReleaseGroupsDTO fetchReleasesByYear(int year, int offset) throws InterruptedException {
     String url =
         UriComponentsBuilder.fromHttpUrl(BASE_URL)
@@ -73,7 +58,7 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBReleaseGroupsDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseGroupsDTO.class);
+            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseGroupsDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
@@ -100,12 +85,6 @@ public class MusicBrainzClient {
     return null;
   }
 
-  /**
-   * Fetches artist data from musicbrainz
-   *
-   * @param mbid the id of the artist
-   * @return the artist dto
-   */
   public MBArtistDTO fetchArtistById(String mbid) throws InterruptedException {
     String url =
         UriComponentsBuilder.fromHttpUrl(ARTIST_URL + "{mbid}")
@@ -122,7 +101,7 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBArtistDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBArtistDTO.class);
+            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBArtistDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
@@ -143,13 +122,6 @@ public class MusicBrainzClient {
     return null;
   }
 
-  /**
-   * Fetches release recordings that contain song data
-   *
-   * @param releaseId the releaseid of the album to fetch songs from
-   * @return the ReleaseRecordingDTO
-   * @throws InterruptedException for sleep()
-   */
   public MBReleaseRecordingDTO fetchReleaseRecording(String releaseId) throws InterruptedException {
     String url =
         UriComponentsBuilder.fromHttpUrl("https://musicbrainz.org/ws/2/release/{releaseId}")
@@ -166,7 +138,7 @@ public class MusicBrainzClient {
 
       try {
         ResponseEntity<MBReleaseRecordingDTO> response =
-            restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), MBReleaseRecordingDTO.class);
+            restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), MBReleaseRecordingDTO.class);
 
         return response.getBody();
       } catch (HttpServerErrorException.ServiceUnavailable e) {
@@ -189,11 +161,9 @@ public class MusicBrainzClient {
   }
 
   /**
-   * Creates the url to the cover art of the album, stored in coverartarchive.org Tries fetching the
-   * release first in order to ensure release is available
-   *
-   * @param releaseIds List containing the releaseIds to verify and return covers for
-   * @return the result containing correct releaseId and url to the cover
+   * Cover Art Archive keys images by release, not release-group, so a release-group can have
+   * several candidate releaseIds - this tries each in turn (via a live fetch, to confirm a cover
+   * actually exists there) until one succeeds.
    */
   public CoverArtResult findCoverArt(List<String> releaseIds, String title)
       throws InterruptedException {
@@ -209,7 +179,7 @@ public class MusicBrainzClient {
 
         try {
           ResponseEntity<String> response =
-              restTemplate.exchange(url, HttpMethod.GET, buildHeaders(), String.class);
+              restTemplate.exchange(url, HttpMethod.GET, HttpClients.buildHeaders(), String.class);
 
           if (response.getStatusCode().is2xxSuccessful()) {
             log.debug("Found cover art for album '{}' using release '{}'", title, releaseId);
@@ -236,12 +206,6 @@ public class MusicBrainzClient {
     return null;
   }
 
-  /**
-   * Fetches the url pointing to an image of an artist by wikidataId
-   *
-   * @param wikidataId the id
-   * @return the url
-   */
   public String fetchArtistImageUrl(String wikidataId) throws InterruptedException {
 
     if (wikidataId == null) {
@@ -260,7 +224,7 @@ public class MusicBrainzClient {
 
         ResponseEntity<WikidataEntityResponse> response =
             restTemplate.exchange(
-                url, HttpMethod.GET, buildHeaders(), WikidataEntityResponse.class);
+                url, HttpMethod.GET, HttpClients.buildHeaders(), WikidataEntityResponse.class);
 
         if (response.getBody() == null || response.getBody().entities == null) {
 
@@ -269,6 +233,8 @@ public class MusicBrainzClient {
 
         WikidataEntityResponse.Entity entity = response.getBody().entities.get(wikidataId);
 
+        // P18 is wikidata's property code for "image" - there's no getImage() to reach for,
+        // every fact about an entity is keyed by one of these opaque P-codes.
         if (entity == null
             || entity.claims == null
             || entity.claims.P18 == null
@@ -311,24 +277,6 @@ public class MusicBrainzClient {
     return null;
   }
 
-  /**
-   * Generic headers when sending requests
-   *
-   * @return HttpEntity
-   */
-  private HttpEntity<Void> buildHeaders() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("User-Agent", "soundtrack-app/1.0 soundtrack.devs@gmail.com");
-    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-    return new HttpEntity<>(headers);
-  }
-
-  /**
-   * Extracts Retry-After property from the return
-   *
-   * @param e TooManyRequests exception
-   * @return seconds to wait before retrying
-   */
   private long extractRetryAfter(HttpClientErrorException.TooManyRequests e) {
 
     String retryAfter =
@@ -346,12 +294,6 @@ public class MusicBrainzClient {
     return 3000;
   }
 
-  /**
-   * Builds the url for an artist's image
-   *
-   * @param fileName the name of the file containing the image
-   * @return the url
-   */
   private String buildCommonsImageUrl(String fileName) {
 
     return "https://commons.wikimedia.org/wiki/Special:FilePath/"

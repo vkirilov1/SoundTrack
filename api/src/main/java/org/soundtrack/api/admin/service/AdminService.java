@@ -531,9 +531,6 @@ public class AdminService {
    * Same as a plain album lookup, but takes a row lock - required before any read-recompute-write
    * on {@code rating}/{@code reviewsCount} to avoid a lost update racing against a concurrent
    * review create/update/delete on the same album.
-   *
-   * @param albumId the album id
-   * @return the album object
    */
   private Album findAlbumForUpdate(Long albumId) {
     return albumRepository

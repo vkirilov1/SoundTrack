@@ -9,7 +9,6 @@ interface PhotoPickerFieldProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-/** Label + preview thumbnail (or placeholder) + hidden file input, for a "stage a photo before submit" form field. */
 function PhotoPickerField({ label, preview, onChange }: PhotoPickerFieldProps) {
   return (
     <Box>

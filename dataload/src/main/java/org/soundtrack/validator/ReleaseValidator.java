@@ -6,32 +6,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReleaseValidator {
 
-  /**
-   * Main validation method used before importing an album.
-   *
-   * @param release MusicBrainz release
-   * @return true if album is valid, false if not
-   */
   public boolean isValidAlbum(MBReleaseDTO release) {
     return hasReleases(release) && !isNonMusic(release);
   }
 
-  /**
-   * Checks if release-group contains at least one release.
-   *
-   * @param release MusicBrainz release
-   * @return true if any release are present, false if not
-   */
   public boolean hasReleases(MBReleaseDTO release) {
     return release.releases != null && !release.releases.isEmpty();
   }
 
-  /**
-   * Checks if release is tagged as "non-music" or has no tags in order to avoid non-music material.
-   *
-   * @param release MusicBrainz release
-   * @return true if the release has the tag or no tags, false if not
-   */
+  /** An untagged release is treated as non-music too, not as "unknown" - excluded either way. */
   public boolean isNonMusic(MBReleaseDTO release) {
     if (release.tags == null) {
       return true;
@@ -40,13 +23,6 @@ public class ReleaseValidator {
     return hasTag(release, "non-music");
   }
 
-  /**
-   * Checks if a release contains a certain tag.
-   *
-   * @param release MusicBrainz release
-   * @param tagName the name of the tag
-   * @return true if the release has the tag, false if not
-   */
   public boolean hasTag(MBReleaseDTO release, String tagName) {
     if (release.tags == null) return false;
 

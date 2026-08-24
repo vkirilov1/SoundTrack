@@ -8,7 +8,6 @@ interface ResultRowLinkProps {
   children: ReactNode;
 }
 
-/** The row shell (link + hover background) shared by every search result row variant. */
 function ResultRowLink({ to, onNavigate, children }: ResultRowLinkProps) {
   return (
     <Link
@@ -35,7 +34,6 @@ interface ResultRowButtonProps {
   children: ReactNode;
 }
 
-/** Same row shell as {@link ResultRowLink}, but a button - for pickers instead of navigation. */
 export function ResultRowButton({ onSelect, children }: ResultRowButtonProps) {
   return (
     <chakra.button

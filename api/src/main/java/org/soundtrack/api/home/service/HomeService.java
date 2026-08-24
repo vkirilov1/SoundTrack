@@ -16,7 +16,7 @@ import org.soundtrack.api.chart.dto.AlbumSummaryResponse;
 import org.soundtrack.api.chart.mapper.ChartMapper;
 import org.soundtrack.api.chat.dto.ChatRoomResponse;
 import org.soundtrack.api.chat.service.ChatService;
-import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.home.dto.FollowingReviewResponse;
 import org.soundtrack.api.home.dto.GenrePickResponse;
 import org.soundtrack.api.home.dto.HomeFeedResponse;
@@ -32,11 +32,8 @@ import org.soundtrack.domain.repository.FavoriteAlbumRepository;
 import org.soundtrack.domain.repository.ReviewRepository;
 import org.soundtrack.domain.repository.UserFollowRepository;
 import org.soundtrack.domain.repository.UserListRepository;
-import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,13 +60,13 @@ public class HomeService {
   private final UserFollowRepository userFollowRepository;
   private final ChatRoomRepository chatRoomRepository;
   private final AlbumRepository albumRepository;
-  private final UserRepository userRepository;
   private final ChartMapper chartMapper;
   private final ChatService chatService;
+  private final CurrentUserService currentUserService;
 
   @Transactional(readOnly = true)
   public HomeFeedResponse getFeed() {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     List<Long> reviewedAlbumIds = reviewRepository.findAlbumIdsByUserId(user.getId());
     List<Long> favoritedAlbumIds = favoriteAlbumRepository.findAlbumIdsByUserId(user.getId());
@@ -234,12 +231,5 @@ public class HomeService {
     List<AlbumSummaryResponse> summaries =
         picks.getContent().stream().map(album -> chartMapper.toSummary(album, false)).toList();
     return new GenrePickResponse(genre, summaries);
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    return userRepository
-        .findByEmail(auth.getName())
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
   }
 }

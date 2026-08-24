@@ -62,7 +62,6 @@ export interface CreateRoomPayload {
   approvalRequired: boolean;
 }
 
-/** Outcome of a join attempt, flattened for UI decisions. */
 export type JoinOutcome =
   | "joined"
   | "requested"

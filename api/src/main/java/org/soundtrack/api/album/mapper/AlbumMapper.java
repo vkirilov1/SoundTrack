@@ -15,12 +15,8 @@ import org.springframework.stereotype.Component;
 public class AlbumMapper {
 
   /**
-   * Maps an album to its response DTO.
-   *
-   * @param album the album
    * @param favorited whether the current caller has this album favorited (false for anonymous
    *     callers or contexts with no meaningful "current user", e.g. admin edits)
-   * @param favoritedSongIds ids of this album's songs the current caller has favorited
    * @param yearRank this album's rank on its release year's chart, or null (see {@link
    *     org.soundtrack.api.album.service.AlbumService})
    */

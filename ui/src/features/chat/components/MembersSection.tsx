@@ -12,10 +12,6 @@ import { useChat } from "../stores/useChat";
 import type { ChatRoomInfo } from "../types";
 import ChatSectionHeader from "./ChatSectionHeader";
 
-/**
- * Member list (owner marked with a crown) with owner-only inline remove controls, plus the
- * owner's pending join-request queue with approve/decline.
- */
 function MembersSection({
   room,
   onBack,

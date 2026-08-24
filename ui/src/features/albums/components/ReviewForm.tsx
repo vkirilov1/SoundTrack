@@ -7,11 +7,10 @@ import SecondaryButton from "../../../components/buttons/SecondaryButton";
 import type { AlbumReview, CreateAlbumReviewRequest } from "../types";
 import RatingPicker from "./RatingPicker";
 
-const MIN_COMMENT_LENGTH = 200;
+const MIN_COMMENT_LENGTH = 25;
 
 interface ReviewFormProps {
   commentInputRef: RefObject<HTMLTextAreaElement | null>;
-  /** Pre-fills the form when editing an existing review; omitted for a new one. */
   initialReview?: AlbumReview | null;
   isEditing: boolean;
   onSubmit: (payload: CreateAlbumReviewRequest) => Promise<AlbumReview>;
@@ -35,6 +34,21 @@ function ReviewForm({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    setFormError(null);
+  }
+
+  function handleCommentChange(value: string) {
+    setComment(value);
+    setFormError(null);
+  }
+
+  function handleRatingChange(value: number) {
+    setRating(value);
+    setFormError(null);
+  }
+
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
@@ -47,8 +61,12 @@ function ReviewForm({
     const trimmedTitle = title.trim();
     const trimmedComment = comment.trim();
 
-    if (!trimmedTitle || !trimmedComment) {
-      setFormError("Title and comment can't be empty.");
+    if (!trimmedTitle) {
+      setFormError("Title can't be empty.");
+      return;
+    }
+    if (!trimmedComment) {
+      setFormError("Comment can't be empty.");
       return;
     }
     if (trimmedComment.length < MIN_COMMENT_LENGTH) {
@@ -88,7 +106,7 @@ function ReviewForm({
           placeholder="Title"
           value={title}
           maxLength={255}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => handleTitleChange(event.target.value)}
           flex="1"
           minW="0"
           font="inherit"
@@ -111,14 +129,14 @@ function ReviewForm({
             },
           }}
         />
-        <RatingPicker value={rating} onChange={setRating} />
+        <RatingPicker value={rating} onChange={handleRatingChange} />
       </HStack>
       <chakra.textarea
         ref={commentInputRef}
         placeholder="Drop a thought..."
         value={comment}
         maxLength={3400}
-        onChange={(event) => setComment(event.target.value)}
+        onChange={(event) => handleCommentChange(event.target.value)}
         display="block"
         w="100%"
         minH="96px"

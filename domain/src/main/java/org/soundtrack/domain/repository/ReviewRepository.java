@@ -43,11 +43,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
   @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
   Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
-  /** The current user's reviewed albums */
   @Query("SELECT r.album.id FROM Review r WHERE r.user.id = :userId")
   List<Long> findAlbumIdsByUserId(@Param("userId") Long userId);
 
-  /** Most recent reviews authored by anyone that the current user follows */
   @Query(
       "SELECT r FROM Review r JOIN UserFollow uf ON uf.following.id = r.user.id "
           + "WHERE uf.follower.id = :followerId "
@@ -63,9 +61,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
   @Query("SELECT COALESCE(AVG(r.rating), 0) FROM Review r WHERE r.user.id = :userId")
   double findAverageRatingByUserId(@Param("userId") Long userId);
 
-  /**
-   * Album ids ranked by review activity in the last {@code since}..now window, most-reviewed first
-   */
   @Query(
       "SELECT r.album.id FROM Review r WHERE r.createdAt >= :since "
           + "GROUP BY r.album.id ORDER BY COUNT(r) DESC")

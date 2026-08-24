@@ -91,7 +91,6 @@ function ChatProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, enterRoom]);
 
-  // Live connection for the active room
   useEffect(() => {
     if (activeRoomId == null) return;
     // Guards against a message for the OLD room arriving after switching to a new one (e.g. a
@@ -234,7 +233,6 @@ function ChatProvider({ children }: { children: ReactNode }) {
     };
   }, [activeRoomId]);
 
-  // While waiting for approval, poll until the owner acts
   useEffect(() => {
     if (phase.kind !== "pending") return;
     const roomId = phase.room.id;

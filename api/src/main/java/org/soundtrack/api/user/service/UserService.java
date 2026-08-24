@@ -4,6 +4,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.common.service.ImageStorageService;
 import org.soundtrack.api.user.dto.UpdateProfileRequest;
 import org.soundtrack.api.user.dto.UserProfileResponse;
@@ -11,8 +12,6 @@ import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.UserFollowRepository;
 import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +25,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final UserFollowRepository userFollowRepository;
   private final ImageStorageService imageStorageService;
+  private final CurrentUserService currentUserService;
 
   @Value("${user.photo.storage.path}")
   private String userPhotoStoragePath;
@@ -36,7 +36,7 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
-    Long viewerId = getAuthenticatedUserIdOrNull();
+    Long viewerId = currentUserService.getAuthenticatedUserIdOrNull();
 
     boolean followed =
         viewerId != null
@@ -133,25 +133,5 @@ public class UserService {
         followed,
         followsYou,
         user.isChatAccessRevoked());
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. GET /api/users/{id} is
-   * open to anonymous visitors but returns real followed/followsYou flags when a real session is
-   * present.
-   *
-   * @return the current user's id, or null if not authenticated
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 }

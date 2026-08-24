@@ -313,7 +313,17 @@ function ChatsPage() {
 
       {loaded && rooms.length === 0 && (
         <Text m="0" py="48px" fontSize="14px" color="text" textAlign="center">
-          No active chat rooms right now - start one with the + button.
+          No active chat rooms right now - start{" "}
+          <chakra.button
+            onClick={() => setCreating(true)}
+            color="accent"
+            fontWeight="700"
+            textDecoration="none"
+            _hover={{ color: "accentHover" }}
+          >
+            one
+          </chakra.button>
+          .
         </Text>
       )}
 

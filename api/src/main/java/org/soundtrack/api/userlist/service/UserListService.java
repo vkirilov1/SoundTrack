@@ -8,6 +8,7 @@ import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.ForbiddenException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
+import org.soundtrack.api.common.service.CurrentUserService;
 import org.soundtrack.api.userlist.dto.CreateUserListRequest;
 import org.soundtrack.api.userlist.dto.UserListDetailResponse;
 import org.soundtrack.api.userlist.dto.UserListSummaryResponse;
@@ -22,8 +23,6 @@ import org.soundtrack.domain.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +35,11 @@ public class UserListService {
   private final AlbumRepository albumRepository;
   private final FavoriteAlbumRepository favoriteAlbumRepository;
   private final UserListMapper userListMapper;
+  private final CurrentUserService currentUserService;
 
   @Transactional(readOnly = true)
   public PagedResponse<UserListSummaryResponse> getMyLists(int page, int size, Long albumId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     Page<UserList> listPage =
         userListRepository.findByOwnerId(
@@ -88,7 +88,7 @@ public class UserListService {
 
   @Transactional
   public UserListDetailResponse createList(CreateUserListRequest request) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     verifyListNameAvailable(user, request);
 
@@ -105,7 +105,7 @@ public class UserListService {
 
   @Transactional
   public UserListDetailResponse updateList(Long listId, CreateUserListRequest request) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     UserList userList =
         userListRepository
@@ -122,7 +122,7 @@ public class UserListService {
 
   @Transactional
   public void deleteList(Long listId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     UserList userList =
         userListRepository
@@ -136,7 +136,7 @@ public class UserListService {
 
   @Transactional
   public UserListDetailResponse addAlbum(Long listId, Long albumId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     UserList userList =
         userListRepository
@@ -163,7 +163,7 @@ public class UserListService {
 
   @Transactional
   public UserListDetailResponse removeAlbum(Long listId, Long albumId) {
-    User user = getAuthenticatedUser();
+    User user = currentUserService.getAuthenticatedUser();
 
     UserList userList =
         userListRepository
@@ -181,37 +181,13 @@ public class UserListService {
   }
 
   private Set<Long> getFavoritedAlbumIds(List<Album> albums) {
-    Long userId = getAuthenticatedUserIdOrNull();
+    Long userId = currentUserService.getAuthenticatedUserIdOrNull();
     if (userId == null || albums.isEmpty()) {
       return Set.of();
     }
 
     Set<Long> albumIds = albums.stream().map(Album::getId).collect(Collectors.toSet());
     return favoriteAlbumRepository.findFavoritedAlbumIdsByUserIdAndAlbumIdIn(userId, albumIds);
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
-    return userRepository
-        .findByEmail(email)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-  }
-
-  /**
-   * Returns the authenticated user's id, or null if the caller is anonymous. GET /api/lists/{id} is
-   * open to anonymous visitors but returns per-user favorited flags when a real session is present.
-   */
-  private Long getAuthenticatedUserIdOrNull() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || "anonymousUser".equals(authentication.getName())) {
-      return null;
-    }
-
-    return userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
   }
 
   private void validateOwnership(UserList userList, User user) {

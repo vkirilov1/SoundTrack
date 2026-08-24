@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
 import { Box, Heading, HStack, Link, Text, chakra } from "@chakra-ui/react";
 import PageContainer from "../../../components/PageContainer/PageContainer";
@@ -7,8 +7,13 @@ import PagedSection from "../../../components/PagedSection/PagedSection";
 import AlbumGridRow from "../../../components/AlbumGridRow/AlbumGridRow";
 import ConfirmDeleteControl from "../../../components/ConfirmDeleteControl/ConfirmDeleteControl";
 import EditIconButton from "../../../components/buttons/EditIconButton";
+import AddChipButton from "../../../components/buttons/AddChipButton";
 import InlineTextEditForm from "../../edit-requests/components/InlineTextEditForm";
+import SearchFilterMenu from "../../search/components/SearchFilterMenu";
+import type { SearchResult } from "../../search/types";
+import { getAlbum } from "../../albums/api/albumApi";
 import {
+  addAlbumToList,
   deleteList,
   getList,
   removeAlbumFromList,
@@ -32,6 +37,22 @@ function ListPage() {
   const [notFound, setNotFound] = useState(() => invalidId);
   const [editingName, setEditingName] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [addingAlbum, setAddingAlbum] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!pickerRef.current?.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [pickerOpen]);
 
   useEffect(() => {
     if (invalidId) return;
@@ -67,6 +88,22 @@ function ListPage() {
           : prev,
       );
     });
+  }
+
+  function handleSelectAlbum(result: SearchResult) {
+    setPickerOpen(false);
+    if (list?.albums.some((a) => a.id === result.id)) return;
+
+    setAddingAlbum(true);
+    addAlbumToList(id, result.id)
+      .then(() => getAlbum(result.id))
+      .then((detail) => {
+        setList((prev) =>
+          prev ? { ...prev, albums: [...prev.albums, detail] } : prev,
+        );
+      })
+      .catch(() => {})
+      .finally(() => setAddingAlbum(false));
   }
 
   function handleDeleteList() {
@@ -230,6 +267,36 @@ function ListPage() {
           </chakra.ul>
         </PagedSection>
       </Box>
+
+      {isOwner && (
+        <Box
+          mt="20px"
+          pt="20px"
+          borderTop={list.albums.length > 0 ? "1px solid" : "none"}
+          borderColor="border"
+          textAlign="center"
+        >
+          <Box position="relative" display="inline-block" ref={pickerRef}>
+            <AddChipButton
+              onClick={() => setPickerOpen((prev) => !prev)}
+              label="Add album to list"
+              size={36}
+            />
+            {pickerOpen && (
+              <SearchFilterMenu
+                categories={["albums"]}
+                onSelectMusic={handleSelectAlbum}
+                align="left"
+              />
+            )}
+          </Box>
+          {addingAlbum && (
+            <Text mt="8px" fontSize="12px" color="text">
+              Adding…
+            </Text>
+          )}
+        </Box>
+      )}
     </PageContainer>
   );
 }
