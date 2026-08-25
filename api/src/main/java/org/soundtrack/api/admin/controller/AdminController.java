@@ -93,6 +93,25 @@ public class AdminController {
     return adminService.createAlbum(request);
   }
 
+  @DeleteMapping("/albums/{albumId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Delete an album",
+      description =
+          "Permanently deletes the album, its songs, and all of its reviews. Any chat rooms about"
+              + " it are closed too. Cannot be undone.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "Album deleted"),
+    @ApiResponse(responseCode = "401", description = "Not authenticated"),
+    @ApiResponse(responseCode = "403", description = "Not an admin"),
+    @ApiResponse(responseCode = "404", description = "Album not found")
+  })
+  public void deleteAlbum(
+      @Parameter(description = "Internal album ID") @PathVariable("albumId") Long albumId)
+      throws IOException {
+    adminService.deleteAlbum(albumId);
+  }
+
   @GetMapping("/genres/search")
   @Operation(
       summary = "Search genres",

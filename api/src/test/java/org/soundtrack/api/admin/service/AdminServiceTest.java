@@ -31,6 +31,7 @@ import org.soundtrack.api.admin.dto.UpdateSongRequest;
 import org.soundtrack.api.album.mapper.AlbumMapper;
 import org.soundtrack.api.artist.dto.ArtistResponse;
 import org.soundtrack.api.artist.mapper.ArtistMapper;
+import org.soundtrack.api.chat.service.ChatService;
 import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
 import org.soundtrack.api.common.exception.ResourceNotFoundException;
@@ -43,13 +44,16 @@ import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.AlbumArtist;
 import org.soundtrack.domain.model.AlbumGenre;
 import org.soundtrack.domain.model.Artist;
+import org.soundtrack.domain.model.ChatRoom;
 import org.soundtrack.domain.model.Genre;
 import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.Review;
 import org.soundtrack.domain.model.Song;
+import org.soundtrack.domain.model.TopicType;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
+import org.soundtrack.domain.repository.ChatRoomRepository;
 import org.soundtrack.domain.repository.GenreRepository;
 import org.soundtrack.domain.repository.ReviewRepository;
 import org.soundtrack.domain.repository.SongRepository;
@@ -69,12 +73,14 @@ class AdminServiceTest {
   @Mock private ReviewRepository reviewRepository;
   @Mock private GenreRepository genreRepository;
   @Mock private SongRepository songRepository;
+  @Mock private ChatRoomRepository chatRoomRepository;
   @Mock private AlbumMapper albumMapper;
   @Mock private ArtistMapper artistMapper;
   @Mock private ImageStorageService imageStorageService;
   @Mock private EditRequestService editRequestService;
   @Mock private UserService userService;
   @Mock private NotificationService notificationService;
+  @Mock private ChatService chatService;
 
   private AdminService adminService;
   private final User admin =
@@ -90,12 +96,14 @@ class AdminServiceTest {
             reviewRepository,
             genreRepository,
             songRepository,
+            chatRoomRepository,
             albumMapper,
             artistMapper,
             imageStorageService,
             editRequestService,
             userService,
-            notificationService);
+            notificationService,
+            chatService);
     ReflectionTestUtils.setField(adminService, "coverStoragePath", "/covers");
     ReflectionTestUtils.setField(adminService, "artistPhotoStoragePath", "/photos");
   }
@@ -473,6 +481,43 @@ class AdminServiceTest {
 
     verify(imageStorageService).deleteIfPresent("old.jpg", "/covers");
     assertThat(album.getCoverUrl()).isEqualTo("new.jpg");
+  }
+
+  @Test
+  void deleteAlbumRequiresAnExistingAlbum() {
+    when(albumRepository.findById(1L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> adminService.deleteAlbum(1L))
+        .isInstanceOf(ResourceNotFoundException.class);
+  }
+
+  @Test
+  void deleteAlbumDeletesItsReviewsCoverAndAlbumTopicRooms() throws IOException {
+    Album album = album(1L);
+    album.setCoverUrl("cover.jpg");
+    when(albumRepository.findById(1L)).thenReturn(Optional.of(album));
+    ChatRoom room = ChatRoom.builder().id(5L).build();
+    when(chatRoomRepository.findByTopicTypeAndTopicId(TopicType.ALBUM, 1L))
+        .thenReturn(List.of(room));
+
+    adminService.deleteAlbum(1L);
+
+    verify(chatService).adminDeleteRoom(5L);
+    verify(reviewRepository).deleteAllByAlbumId(1L);
+    verify(imageStorageService).deleteIfPresent("cover.jpg", "/covers");
+    verify(albumRepository).delete(album);
+  }
+
+  @Test
+  void deleteAlbumSkipsCoverCleanupWhenAlbumHasNoCover() throws IOException {
+    Album album = album(1L);
+    when(albumRepository.findById(1L)).thenReturn(Optional.of(album));
+    when(chatRoomRepository.findByTopicTypeAndTopicId(TopicType.ALBUM, 1L)).thenReturn(List.of());
+
+    adminService.deleteAlbum(1L);
+
+    verify(imageStorageService, never()).deleteIfPresent(any(), any());
+    verify(albumRepository).delete(album);
   }
 
   @Test

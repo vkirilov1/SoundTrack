@@ -22,6 +22,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
   Page<Review> findByAlbumId(Long albumId, Pageable pageable);
 
+  void deleteAllByAlbumId(Long albumId);
+
   /**
    * Same reviews as {@link #findByAlbumId}, but reviews from users {@code viewerId} follows are
    * pinned to the top regardless of date - the ad hoc join only matches a follow row for the

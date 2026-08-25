@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MONTH_DAY_FORMAT, YEAR_FORMAT } from "../../../utils/date";
 import { formatCompactCount } from "../../../utils/format";
@@ -20,6 +20,7 @@ import ImagePlaceholderIcon from "../../../components/icons/ImagePlaceholderIcon
 import EditIconButton from "../../../components/buttons/EditIconButton";
 import AddChipButton from "../../../components/buttons/AddChipButton";
 import TextButton from "../../../components/buttons/TextButton";
+import ConfirmDeleteControl from "../../../components/ConfirmDeleteControl/ConfirmDeleteControl";
 import { coverImageUrl } from "../../../utils/images";
 import type { RefObject } from "react";
 import type { AlbumArtist, AlbumDetail } from "../types";
@@ -31,6 +32,7 @@ import EditableDescription from "../../edit-requests/components/EditableDescript
 import InlineTextEditForm from "../../edit-requests/components/InlineTextEditForm";
 import {
   addAlbumArtist,
+  deleteAlbumAsAdmin,
   removeAlbumArtist,
   removeAlbumGenre,
   updateAlbumDescription,
@@ -112,6 +114,7 @@ function AlbumCard({
 }: AlbumCardProps) {
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
+  const navigate = useNavigate();
 
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDate, setEditingDate] = useState(false);
@@ -186,6 +189,10 @@ function AlbumCard({
     onCoverChange(updated.coverUrl);
   }
 
+  function handleDeleteAlbum() {
+    return deleteAlbumAsAdmin(album.id).then(() => navigate("/"));
+  }
+
   const primaryGenres = album.genres.slice(0, PRIMARY_GENRE_COUNT);
   const secondaryGenres = album.genres.slice(
     PRIMARY_GENRE_COUNT,
@@ -247,6 +254,16 @@ function AlbumCard({
             />
           )}
         </HStack>
+
+        {isAdmin && (
+          <Box mt="6px">
+            <ConfirmDeleteControl
+              label="Delete album"
+              confirmMessage="Delete this album and all its reviews? This can't be undone."
+              onDelete={handleDeleteAlbum}
+            />
+          </Box>
+        )}
 
         {isAdmin ? (
           <HStack mt="8px" flexWrap="wrap" gap="6px" align="center">

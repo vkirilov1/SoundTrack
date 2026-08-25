@@ -11,6 +11,7 @@ import {
   createArtist,
   uploadArtistPhoto,
 } from "../../../edit-requests/api/adminContentApi";
+import { imageSizeError } from "../../../../utils/imageValidation";
 
 interface CreateArtistModalProps {
   onClose: () => void;
@@ -37,6 +38,17 @@ function CreateArtistModal({ onClose }: CreateArtistModalProps) {
 
   function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
+
+    if (file) {
+      const sizeError = imageSizeError(file);
+      if (sizeError) {
+        event.target.value = "";
+        setError(sizeError);
+        return;
+      }
+    }
+
+    setError(null);
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoFile(file);
     setPhotoPreview(file ? URL.createObjectURL(file) : null);

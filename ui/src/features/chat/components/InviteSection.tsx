@@ -130,6 +130,22 @@ function InviteSection({
             </Text>
           )}
 
+          {following.length > 0 && (
+            <Text
+              m="0"
+              px="14px"
+              pt="12px"
+              pb="4px"
+              fontSize="12px"
+              fontWeight="700"
+              color="text"
+              textTransform="uppercase"
+              letterSpacing="0.04em"
+            >
+              Following
+            </Text>
+          )}
+
           {following.map((result) => (
             <InviteUserRow
               key={result.id}
