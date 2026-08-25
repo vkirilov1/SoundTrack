@@ -9,8 +9,7 @@ Developed using Spring Boot + React, backed by MusicBrainz-sourced album data th
 Requires WSL installed ("wsl --install" in cmd), Docker and Docker Compose (https://www.docker.com/products/docker-desktop/).
 
 1. Open the root folder of the app (SoundTrack)
-2. Copy the environment template. The defaults work as-is for a local test run - only bother
-   changing `POSTGRES_PASSWORD` and `JWT_SECRET` if you care about that for this environment:
+2. Copy the environment template. The defaults work as-is for a local test run.
    ```
    cp .env.example .env
    ```
