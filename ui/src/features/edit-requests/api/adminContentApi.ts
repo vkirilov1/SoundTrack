@@ -170,6 +170,10 @@ export function createAlbum(payload: CreateAlbumPayload): Promise<AlbumDetail> {
   });
 }
 
+export function deleteAlbumAsAdmin(albumId: number): Promise<void> {
+  return fetchOk(`/admin/albums/${albumId}`, { method: "DELETE" });
+}
+
 export function uploadAlbumPhoto(
   albumId: number,
   file: File,

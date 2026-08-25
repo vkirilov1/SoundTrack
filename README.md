@@ -20,9 +20,10 @@ Requires WSL installed ("wsl --install" in cmd), Docker and Docker Compose (http
    ```
 4. Open http://localhost:5173.
 
-The database is seeded on first boot with Pink Floyd's discography and two accounts (password
-`Password1!` for both):
-- `demo` / `demo@soundtrack.local` - regular user
+The database is seeded on first boot with Pink Floyd's discography and three accounts (password
+`Password1!` for all):
+- `demo`  / `demo@soundtrack.local` - regular user
+- `fan`   / `fan@soundtrack.local` - regular user
 - `admin` / `admin@soundtrack.local` - admin
 
 To wipe everything and start clean: `docker compose down -v` (this deletes the database and

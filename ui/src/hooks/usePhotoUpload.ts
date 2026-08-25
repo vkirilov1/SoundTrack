@@ -1,5 +1,6 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { ApiError } from "../lib/api-error";
+import { imageSizeError } from "../utils/imageValidation";
 
 interface UsePhotoUploadOptions {
   /**
@@ -49,6 +50,13 @@ export function usePhotoUpload(
 
     if (!file) {
       if (requireConfirm) resetInput();
+      return;
+    }
+
+    const sizeError = imageSizeError(file);
+    if (sizeError) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setError(sizeError);
       return;
     }
 

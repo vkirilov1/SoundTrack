@@ -6,8 +6,9 @@ mkdir -p "$USER_PHOTO_STORAGE_PATH" "$ARTIST_PHOTO_STORAGE_PATH" "$COVER_STORAGE
 [ -f "$USER_PHOTO_STORAGE_PATH/userDefault.png" ] ||
   cp /app/seed-assets/userDefault.png "$USER_PHOTO_STORAGE_PATH/userDefault.png"
 
-[ -f "$ARTIST_PHOTO_STORAGE_PATH/defaultArtistPhoto.jpg" ] ||
-  cp /app/seed-assets/defaultArtistPhoto.jpg "$ARTIST_PHOTO_STORAGE_PATH/defaultArtistPhoto.jpg"
+for artist_photo in defaultArtistPhoto.jpg Pink_Floyd.png; do
+  [ -f "$ARTIST_PHOTO_STORAGE_PATH/$artist_photo" ] || cp "/app/seed-assets/$artist_photo" "$ARTIST_PHOTO_STORAGE_PATH/$artist_photo"
+done
 
 for cover in A_Saucerful_of_Secrets.png Animals.png Dark_Side_of_the_Moon.png Meddle.png \
   The_Division_Bell.png The_Piper_At_The_Gates_Of_Dawn.png The_Wall.png Wish_You_Were_Here.png; do

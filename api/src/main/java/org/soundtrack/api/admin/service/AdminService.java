@@ -22,6 +22,7 @@ import org.soundtrack.api.album.dto.SongResponse;
 import org.soundtrack.api.album.mapper.AlbumMapper;
 import org.soundtrack.api.artist.dto.ArtistResponse;
 import org.soundtrack.api.artist.mapper.ArtistMapper;
+import org.soundtrack.api.chat.service.ChatService;
 import org.soundtrack.api.common.dto.PagedResponse;
 import org.soundtrack.api.common.exception.InvalidOperationException;
 import org.soundtrack.api.common.exception.ResourceExistsException;
@@ -36,14 +37,17 @@ import org.soundtrack.domain.model.Album;
 import org.soundtrack.domain.model.AlbumArtist;
 import org.soundtrack.domain.model.AlbumGenre;
 import org.soundtrack.domain.model.Artist;
+import org.soundtrack.domain.model.ChatRoom;
 import org.soundtrack.domain.model.Genre;
 import org.soundtrack.domain.model.NotificationType;
 import org.soundtrack.domain.model.Review;
 import org.soundtrack.domain.model.Song;
 import org.soundtrack.domain.model.SongArtist;
+import org.soundtrack.domain.model.TopicType;
 import org.soundtrack.domain.model.User;
 import org.soundtrack.domain.repository.AlbumRepository;
 import org.soundtrack.domain.repository.ArtistRepository;
+import org.soundtrack.domain.repository.ChatRoomRepository;
 import org.soundtrack.domain.repository.GenreRepository;
 import org.soundtrack.domain.repository.ReviewRepository;
 import org.soundtrack.domain.repository.SongRepository;
@@ -67,12 +71,14 @@ public class AdminService {
   private final ReviewRepository reviewRepository;
   private final GenreRepository genreRepository;
   private final SongRepository songRepository;
+  private final ChatRoomRepository chatRoomRepository;
   private final AlbumMapper albumMapper;
   private final ArtistMapper artistMapper;
   private final ImageStorageService imageStorageService;
   private final EditRequestService editRequestService;
   private final UserService userService;
   private final NotificationService notificationService;
+  private final ChatService chatService;
 
   @Value("${cover.storage.path}")
   private String coverStoragePath;
@@ -410,6 +416,27 @@ public class AdminService {
     albumRepository.save(album);
 
     return albumMapper.toResponse(album, false, Set.of(), null);
+  }
+
+  @Transactional
+  public void deleteAlbum(Long albumId) throws IOException {
+    Album album =
+        albumRepository
+            .findById(albumId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Album not found with id: " + albumId));
+
+    chatRoomRepository.findByTopicTypeAndTopicId(TopicType.ALBUM, albumId).stream()
+        .map(ChatRoom::getId)
+        .forEach(chatService::adminDeleteRoom);
+
+    reviewRepository.deleteAllByAlbumId(albumId);
+
+    if (album.getCoverUrl() != null) {
+      imageStorageService.deleteIfPresent(album.getCoverUrl(), coverStoragePath);
+    }
+
+    albumRepository.delete(album);
   }
 
   private Genre findOrCreateGenre(String name) {

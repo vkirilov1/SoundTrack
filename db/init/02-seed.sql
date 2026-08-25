@@ -10,7 +10,7 @@ INSERT INTO public.genre (id, genre) OVERRIDING SYSTEM VALUE VALUES
 INSERT INTO public.artist (id, artist_name, country, artist_type, biography, artist_pic) OVERRIDING SYSTEM VALUE VALUES
     (1, 'Pink Floyd', 'United Kingdom', 'Group',
      'English rock band formed in London in 1965, known for their philosophical lyrics, sonic experimentation, and elaborate live shows.',
-     'defaultArtistPhoto.jpg');
+     'Pink_Floyd.png');
 
 INSERT INTO public.album (id, title, release_date, cover_pic, rating, reviews_count, description, created_at) OVERRIDING SYSTEM VALUE VALUES
     (1, 'The Piper at the Gates of Dawn', '1967-08-05', 'The_Piper_At_The_Gates_Of_Dawn.png', 0, 0, 'Pink Floyd''s psychedelic debut, led largely by Syd Barrett.', now()),
@@ -108,15 +108,18 @@ INSERT INTO public.song (id, "position", title, duration, album_id) OVERRIDING S
 INSERT INTO public.song_artist (song_id, artist_id, "position")
 SELECT id, 1, 0 FROM public.song WHERE id BETWEEN 1 AND 60;
 
--- Both accounts below log in with the password: Password1!
+-- All three accounts below log in with the password: Password1!
 INSERT INTO public.user_account (id, username, password, email, join_date, bio, profile_pic, user_role) OVERRIDING SYSTEM VALUE VALUES
     (1, 'demo', '$2a$10$ILEWYiQgq4Kc80eJwea48.AE3IEaqC0ozarEZXZ66uwEns9O5uWui', 'demo@soundtrack.local',
      '2026-01-15 10:00:00', 'Just here for the music.', 'userDefault.png', 'USER'),
-    (2, 'admin', '$2a$10$ILEWYiQgq4Kc80eJwea48.AE3IEaqC0ozarEZXZ66uwEns9O5uWui', 'admin@soundtrack.local',
+    (2, 'fan', '$2a$10$ILEWYiQgq4Kc80eJwea48.AE3IEaqC0ozarEZXZ66uwEns9O5uWui', 'fan@soundtrack.local',
+     '2026-01-20 11:00:00', 'Vinyl collector, prog rock enthusiast.', 'userDefault.png', 'USER'),
+    (3, 'admin', '$2a$10$ILEWYiQgq4Kc80eJwea48.AE3IEaqC0ozarEZXZ66uwEns9O5uWui', 'admin@soundtrack.local',
      '2026-01-10 09:00:00', 'Keeping the catalog tidy.', 'userDefault.png', 'ADMIN');
 
 INSERT INTO public.user_follow (follower_id, following_id) VALUES
-    (1, 2);
+    (1, 2),
+    (2, 1);
 
 INSERT INTO public.review (rating, title, review_comment, album_id, user_id, created_at) VALUES
     (5.0, 'A masterpiece', 'Every track flows into the next. The production still sounds incredible decades later.', 4, 1, '2026-08-20 18:30:00'),
